@@ -39,9 +39,9 @@ export function SeekerTabs() {
   const insets = useSafeAreaInsets();
   
   const tabBarStyle = {
-    height: verticalScale(60) + (insets.bottom > 0 ? insets.bottom - 4 : 8),
+    height: verticalScale(52) + (insets.bottom > 0 ? insets.bottom - 4 : 8),
     paddingBottom: insets.bottom > 0 ? insets.bottom - 4 : 8,
-    paddingTop: verticalScale(8),
+    paddingTop: verticalScale(4),
     borderTopColor: '#F1F5F9',
     borderTopWidth: 1,
     backgroundColor: '#FFFFFF',
@@ -133,9 +133,9 @@ export function ProviderTabs() {
   const insets = useSafeAreaInsets();
 
   const tabBarStyle = {
-    height: verticalScale(60) + (insets.bottom > 0 ? insets.bottom - 4 : 8),
+    height: verticalScale(52) + (insets.bottom > 0 ? insets.bottom - 4 : 8),
     paddingBottom: insets.bottom > 0 ? insets.bottom - 4 : 8,
-    paddingTop: verticalScale(8),
+    paddingTop: verticalScale(4),
     borderTopColor: '#F1F5F9',
     borderTopWidth: 1,
     backgroundColor: '#FFFFFF',

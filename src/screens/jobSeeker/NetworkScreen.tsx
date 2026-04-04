@@ -28,7 +28,8 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 import { moderateScale, verticalScale } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 40) / 2;
+const GRID_SPACING = 12;
+const COLUMN_WIDTH = (width - (16 * 2) - GRID_SPACING) / 2;
 
 const BLUE = '#0A66C2'; 
 const LIGHT_BLUE = '#EFF6FF';
@@ -162,60 +163,64 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
            </Box>
         </Box>
 
-        {/* People You May Know - Responsive Grid */}
-        <Box p={8}>
-           <Text fontSize={16} fontWeight="800" color="#1c1e21" ml={8} mb={12}>People you may know</Text>
+        {/* People You May Know - Grid Layout */}
+        <Box px={16} pb={20}>
+           <Text fontSize={16} fontWeight="800" color="#1c1e21" mb={12}>People you may know</Text>
            
-           <Box style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+           <Box style={styles.gridContainer}>
               {suggestions.map((item) => (
-                 <Box key={item.id} style={{ width: COLUMN_WIDTH, margin: 8 }}>
-                    <TouchableOpacity 
-                      activeOpacity={0.9} 
-                      onPress={() => navigateToProfile(item.id)}
-                      style={styles.suggestionCard}
-                    >
+                 <TouchableOpacity 
+                    key={item.id}
+                    activeOpacity={0.9} 
+                    onPress={() => navigateToProfile(item.id)}
+                    style={styles.suggestionCard}
+                 >
+                    <Box h={moderateScale(60)} bg="#E5E7EB">
                        <Image 
                           source={{ uri: item.banner }} 
-                          style={styles.cardBanner} 
+                          style={StyleSheet.absoluteFillObject} 
                           resizeMode="cover"
                        />
-                       
-                       <Box style={styles.cardAvatarContainer}>
-                          <Avatar 
-                             source={{ uri: item.avatar }} 
-                             size={80} 
-                             style={{ borderWidth: 3, borderColor: 'white' }} 
-                          />
-                       </Box>
+                       <Box bg="rgba(0,0,0,0.1)" style={StyleSheet.absoluteFillObject} />
+                    </Box>
+                    
+                    <Box style={styles.cardAvatarWrapper}>
+                       <Avatar 
+                          source={{ uri: item.avatar }} 
+                          size={72} 
+                          style={{ borderWidth: 3, borderColor: 'white' }} 
+                       />
+                    </Box>
 
-                       <VStack items="center" p={12} pt={44} flex={1}>
+                    <VStack items="center" p={12} pt={40} flex={1} justify="space-between">
+                       <VStack items="center">
                           <Text fontSize={15} fontWeight="900" color="#1c1e21" textAlign="center" numberOfLines={1}>
                              {item.name}
                           </Text>
-                          <Text fontSize={12} color="#65676B" mt={2} textAlign="center" numberOfLines={2} h={verticalScale(34)}>
+                          <Text fontSize={12} color="#65676B" mt={2} textAlign="center" numberOfLines={2} h={moderateScale(34)}>
                              {item.role}
                           </Text>
-                          
-                          <HStack mt={10} items="center" style={{ width: '100%', justifyContent: 'center' }}>
-                             <Users size={12} color="#65676B" />
-                             <Text fontSize={11} color="#65676B" ml={6}>{item.mutual} mutuals</Text>
-                          </HStack>
                        </VStack>
-
-                       <Box p={12} pt={0}>
-                          <TouchableOpacity 
-                             style={styles.connectOutlineBtn}
-                             onPress={() => handleConnect(item.id)}
-                          >
-                             <Text fontSize={14} fontWeight="800" color={BLUE}>Connect</Text>
-                          </TouchableOpacity>
-                       </Box>
                        
-                       <TouchableOpacity style={styles.closeBtn}>
-                          <X size={16} color="white" />
+                       <HStack mt={8} items="center">
+                          <Users size={12} color="#65676B" />
+                          <Text fontSize={11} color="#65676B" ml={4}>{item.mutual} mutuals</Text>
+                       </HStack>
+                    </VStack>
+
+                    <Box p={12} pt={0}>
+                       <TouchableOpacity 
+                          style={styles.connectOutlineBtn}
+                          onPress={() => handleConnect(item.id)}
+                       >
+                          <Text fontSize={14} fontWeight="800" color={BLUE}>Connect</Text>
                        </TouchableOpacity>
+                    </Box>
+                    
+                    <TouchableOpacity style={styles.closeBtn}>
+                       <X size={16} color="white" />
                     </TouchableOpacity>
-                 </Box>
+                 </TouchableOpacity>
               ))}
            </Box>
         </Box>
@@ -233,19 +238,36 @@ const styles = StyleSheet.create({
   actionIconCircle: {
      width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: '#CED0D4', alignItems: 'center', justifyContent: 'center'
   },
+  gridContainer: {
+     flexDirection: 'row',
+     flexWrap: 'wrap',
+     justifyContent: 'space-between',
+  },
   suggestionCard: {
-     backgroundColor: 'white', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, height: verticalScale(240)
+     width: COLUMN_WIDTH,
+     backgroundColor: 'white',
+     borderRadius: 12,
+     marginBottom: GRID_SPACING,
+     overflow: 'hidden',
+     borderWidth: 1,
+     borderColor: '#E5E7EB',
+     elevation: 2,
+     shadowColor: '#000',
+     shadowOffset: { width: 0, height: 2 },
+     shadowOpacity: 0.08,
+     shadowRadius: 4,
+     height: verticalScale(250),
   },
   cardBanner: {
-     width: '100%', height: 60, backgroundColor: '#A0A0A0'
+     width: '100%', height: moderateScale(60), backgroundColor: '#A0A0A0'
   },
-  cardAvatarContainer: {
-     position: 'absolute', top: 20, alignSelf: 'center', zIndex: 1
+  cardAvatarWrapper: {
+     position: 'absolute', top: moderateScale(24), alignSelf: 'center', zIndex: 1
   },
   connectOutlineBtn: {
      width: '100%', height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: BLUE, alignItems: 'center', justifyContent: 'center'
   },
   closeBtn: {
-     position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center'
+     position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center'
   }
 });

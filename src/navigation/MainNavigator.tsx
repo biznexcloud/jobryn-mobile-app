@@ -72,6 +72,7 @@ import PrivacySettingsScreen from '../screens/shared/PrivacySettingsScreen';
 import TopUpScreen from '../screens/jobSeeker/TopUpScreen';
 import TransactionHistoryScreen from '../screens/jobSeeker/TransactionHistoryScreen';
 import LikersListScreen from '../screens/shared/LikersListScreen';
+import AIChatbotScreen from '../screens/shared/AIChatbotScreen';
 
 // ─── Shared Screens (All Roles) ────────────────────────────────────────────────
 import ProfileWizardScreen from '../screens/auth/ProfileWizardScreen';
@@ -144,6 +145,7 @@ export default function MainNavigator() {
           <Stack.Screen name="JobDetailProvider" component={JobDetailProviderScreen} />
           <Stack.Screen name="ScheduleMeeting" component={ScheduleMeetingScreen} />
           <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+          <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       ) : (
         <Stack.Group>
@@ -179,6 +181,7 @@ export default function MainNavigator() {
           <Stack.Screen name="SecuritySettings" component={SecuritySettingsScreen} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
           <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+          <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       )}
     </Stack.Navigator>

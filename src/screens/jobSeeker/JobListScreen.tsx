@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { JobService } from '../../services/api/jobs';
+import { useAuthStore } from '../../store/authStore';
 import { timeAgo } from '../../utils';
 import Toast from 'react-native-toast-message';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,6 +42,7 @@ const FILTERS = [
 ];
 
 export default function JobListScreen({ navigation }: { navigation?: any }) {
+  const { token } = useAuthStore();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
@@ -56,7 +58,9 @@ export default function JobListScreen({ navigation }: { navigation?: any }) {
       const data = await JobService.getJobs();
       setAllJobs(data?.results || []);
     } catch (e) {
-      console.warn('Sync failed');
+      if (!token?.startsWith('demo_') && token !== 'demo-token') {
+        console.warn('Sync failed');
+      }
     } finally {
       setRefreshing(false);
     }
@@ -136,7 +140,7 @@ export default function JobListScreen({ navigation }: { navigation?: any }) {
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor="#F3F2EF">
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="#F3F2EF">
       <StatusBar barStyle="dark-content" />
       
       {/* Search Header */}

@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   StatusBar,
   TextInput,
-  View, s
+  View,
   Alert,
   KeyboardAvoidingView,
   Platform,

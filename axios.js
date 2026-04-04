@@ -36,7 +36,8 @@ apiClient.interceptors.response.use(
     const token = useAuthStore.getState().token;
     if (error.response && error.response.status === 401) {
       console.log('--- AXIOS: 401 DETECTED ---', error.config.url, 'Token:', token);
-      if (token !== 'demo-token') {
+      const isDemoToken = token === 'demo-token' || token?.startsWith('demo_');
+      if (!isDemoToken) {
         console.log('--- AXIOS: TRIGGERING AUTO-LOGOUT ---');
         useAuthStore.getState().logout();
       } else {

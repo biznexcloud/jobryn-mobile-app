@@ -1,0 +1,10 @@
+﻿C:\Users\chaud\Desktop\jobryn-mobile-app\src\ai_files.txt
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\navigation\MainNavigator.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobProvider\ApplicantDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobProvider\ChatDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobProvider\JobDetailProviderScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobProvider\PostDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobSeeker\ChatDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobSeeker\CompanyDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobSeeker\JobDetailScreen.tsx
+C:\Users\chaud\Desktop\jobryn-mobile-app\src\screens\jobSeeker\PostDetailScreen.tsx
