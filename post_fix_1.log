@@ -1,0 +1,8 @@
+﻿src/screens/auth/ProfileWizardScreen.tsx(214,111): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.
+src/screens/auth/SignupScreen.tsx(51,9): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'RegisterData'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(58,49): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(84,90): error TS2353: Object literal may only specify known properties, and 'px' does not exist in type 'ViewStyle | RecursiveArray<ViewStyle | Falsy>'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(97,58): error TS2322: Type '{ size: number; color: string; ml: number; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+  Property 'ml' does not exist on type 'IntrinsicAttributes & LucideProps'.
+src/screens/jobSeeker/SearchExploreScreen.tsx(115,98): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.

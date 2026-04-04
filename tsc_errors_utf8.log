@@ -1,0 +1,74 @@
+﻿src/components/common/Sidebar.tsx(107,15): error TS2304: Cannot find name 'HStack'.
+src/components/common/Sidebar.tsx(108,18): error TS2304: Cannot find name 'Avatar'.
+src/components/common/Sidebar.tsx(109,18): error TS2304: Cannot find name 'VStack'.
+src/components/common/Sidebar.tsx(112,19): error TS2304: Cannot find name 'VStack'.
+src/components/common/Sidebar.tsx(113,16): error TS2304: Cannot find name 'HStack'.
+src/components/recruiter/RecruiterActionSheet.tsx(13,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'XCircleIcon'.
+src/components/recruiter/RecruiterActionSheet.tsx(19,10): error TS2614: Module '"../../screens/jobProvider/ApplicantsScreen"' has no exported member 'ApplicationStatus'. Did you mean to use 'import ApplicationStatus from "../../screens/jobProvider/ApplicantsScreen"' instead?
+src/components/recruiter/RecruiterActionSheet.tsx(156,57): error TS2304: Cannot find name 'GRAY_BG'.
+src/components/recruiter/RecruiterActionSheet.tsx(190,28): error TS1117: An object literal cannot have multiple properties with the same name.
+src/components/recruiter/RecruiterActionSheet.tsx(190,50): error TS1117: An object literal cannot have multiple properties with the same name.
+src/screens/auth/LoginScreen.tsx(106,16): error TS2322: Type '{ label: string; onPress: () => Promise<void>; loading: boolean; style: { backgroundColor: string; height: number; borderRadius: number; marginTop: number; }; textStyle: { fontSize: number; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/auth/LoginScreen.tsx(120,16): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => any; style: { borderColor: string; height: number; borderRadius: number; }; textStyle: { color: string; fontSize: number; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/auth/ProfileWizardScreen.tsx(214,111): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.
+src/screens/auth/SignupScreen.tsx(48,25): error TS2339: Property 'signup' does not exist on type '{ login: (email: string, password: string) => Promise<AuthResponse>; register: (userData: RegisterData) => Promise<AuthResponse>; ... 4 more ...; resetPassword: (email: string, otp: string, new_password: string) => Promise<...>; }'.
+src/screens/jobProvider/AnalyticsScreen.tsx(13,71): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'TrendingUpIcon'.
+src/screens/jobProvider/ApplicantDetailScreen.tsx(21,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'XCircleIcon'.
+src/screens/jobProvider/ApplicantDetailScreen.tsx(26,10): error TS2614: Module '"./ApplicantsScreen"' has no exported member 'ApplicationStatus'. Did you mean to use 'import ApplicationStatus from "./ApplicantsScreen"' instead?
+src/screens/jobProvider/ApplicantDetailScreen.tsx(111,19): error TS2322: Type '{ label: string; onPress: () => void; flex: number; outline: true; color: string; borderColor: string; h: number; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'outline' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobProvider/ApplicantsScreen.tsx(88,14): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => void; style: { flex: number; borderColor: string; height: number; borderRadius: number; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobProvider/BillingScreen.tsx(17,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'ArrowPathIcon'.
+src/screens/jobProvider/BillingScreen.tsx(18,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'LockClosedIcon'.
+src/screens/jobProvider/BillingScreen.tsx(49,11): error TS2322: Type '{ title: string; variant: "solid" | "outline"; onPress: () => void; style: false | { backgroundColor: string; }; textStyle: any; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'title' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(14,10): error TS2305: Module '"react-native-heroicons/solid"' has no exported member 'PencilIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(54,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(61,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(67,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(74,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderProfileScreen.tsx(15,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'Cog6ToothIcon'.
+src/screens/jobProvider/ProviderProfileScreen.tsx(71,119): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => void; style: { flex: number; borderColor: string; }; textStyle: { color: string; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobProvider/ProviderProfileScreen.tsx(72,120): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => void; style: { flex: number; borderColor: string; }; textStyle: { color: string; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobProvider/ProviderProfileScreen.tsx(114,21): error TS2304: Cannot find name 'ChevronRightIcon'.
+src/screens/jobProvider/SettingsScreen.tsx(16,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'ShieldCheckIcon'.
+src/screens/jobProvider/SettingsScreen.tsx(18,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'ArrowRightOnRectangleIcon'.
+src/screens/jobProvider/SettingsScreen.tsx(23,3): error TS2305: Module '"react-native-heroicons/outline"' has no exported member 'LockClosedIcon'.
+src/screens/jobProvider/SettingsScreen.tsx(25,3): error TS2724: '"react-native-heroicons/outline"' has no exported member named 'KeyIcon'. Did you mean 'EyeIcon'?
+src/screens/jobSeeker/AppliedJobsScreen.tsx(38,37): error TS2339: Property 'getAppliedJobs' does not exist on type '{ getRecruiterApplicationsFromUrl: (url: string) => Promise<any>; getJobs: (params?: { search?: string | undefined; job_type?: "full_time" | "part_time" | "contract" | "internship" | "freelance" | undefined; ... 5 more ...; page?: number | undefined; }) => Promise<...>; ... 14 more ...; updateApplicationStatus: (id:...'.
+src/screens/jobSeeker/ApplyJobScreen.tsx(49,46): error TS2322: Type '{ children: Element[]; backgroundColor: string; justify: string; items: string; px: number; }' is not assignable to type 'IntrinsicAttributes & ScreenWrapperProps'.
+  Property 'justify' does not exist on type 'IntrinsicAttributes & ScreenWrapperProps'.
+src/screens/jobSeeker/CompanyDetailScreen.tsx(99,66): error TS2322: Type '{ label: string; onPress: () => void; outline: true; h: number; w: number; color: string; borderColor: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'outline' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobSeeker/CompanyDetailScreen.tsx(124,36): error TS2322: Type '{ children: Element; mt: number; }' is not assignable to type 'IntrinsicAttributes & TouchableOpacityProps & RefAttributes<View>'.
+  Property 'mt' does not exist on type 'IntrinsicAttributes & TouchableOpacityProps & RefAttributes<View>'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(58,49): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(84,90): error TS2353: Object literal may only specify known properties, and 'px' does not exist in type 'ViewStyle | RecursiveArray<ViewStyle | Falsy>'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(97,58): error TS2322: Type '{ size: number; color: string; ml: number; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+  Property 'ml' does not exist on type 'IntrinsicAttributes & LucideProps'.
+src/screens/jobSeeker/JobListScreen.tsx(207,20): error TS2322: Type '{ children: Element; isVisible: boolean; onClose: () => void; }' is not assignable to type 'IntrinsicAttributes & BottomSheetProps'.
+  Property 'isVisible' does not exist on type 'IntrinsicAttributes & BottomSheetProps'. Did you mean 'visible'?
+src/screens/jobSeeker/LearningScreen.tsx(69,60): error TS2322: Type '{ children: string; fontSize: number; color: string; mt: number; opacity: number; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+  Property 'opacity' does not exist on type 'IntrinsicAttributes & TextProps'.
+src/screens/jobSeeker/LearningScreen.tsx(70,132): error TS2322: Type '{ label: string; onPress: () => void; style: { backgroundColor: string; marginTop: number; height: number; }; textStyle: { color: string; fontSize: number; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobSeeker/ProfileScreen.tsx(67,47): error TS2322: Type '{ children: Element; backgroundColor: string; items: string; justify: string; }' is not assignable to type 'IntrinsicAttributes & ScreenWrapperProps'.
+  Property 'items' does not exist on type 'IntrinsicAttributes & ScreenWrapperProps'.
+src/screens/jobSeeker/ProfileScreen.tsx(106,119): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => void; style: { flex: number; borderColor: string; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobSeeker/SavedItemsScreen.tsx(36,37): error TS2339: Property 'getSavedJobs' does not exist on type '{ getRecruiterApplicationsFromUrl: (url: string) => Promise<any>; getJobs: (params?: { search?: string | undefined; job_type?: "full_time" | "part_time" | "contract" | "internship" | "freelance" | undefined; ... 5 more ...; page?: number | undefined; }) => Promise<...>; ... 14 more ...; updateApplicationStatus: (id:...'.
+src/screens/jobSeeker/SearchExploreScreen.tsx(115,98): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.
+src/screens/jobSeeker/SeekerAboutInfoScreen.tsx(87,13): error TS2322: Type '{ label: string; variant: "outline"; onPress: () => any; style: { borderColor: string; height: number; borderRadius: number; }; textStyle: { color: string; fontWeight: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'textStyle' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/screens/jobSeeker/StoryViewerScreen.tsx(104,27): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/screens/jobSeeker/StoryViewerScreen.tsx(104,30): error TS7006: Parameter 'index' implicitly has an 'any' type.

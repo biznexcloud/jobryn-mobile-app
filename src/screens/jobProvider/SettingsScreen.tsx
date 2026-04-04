@@ -1,0 +1,149 @@
+import React from 'react';
+import {
+  ScrollView,
+  View,
+  TouchableOpacity,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ChevronLeft as ChevronLeftIcon,
+  User as UserIcon,
+  Bell as BellIcon,
+  ShieldCheck as ShieldCheckIcon,
+  FileText as DocumentTextIcon,
+  LogOut as LogoutIcon,
+  ChevronRight as ChevronRightIcon,
+  Globe as GlobeAltIcon,
+  CreditCard as CreditCardIcon,
+  Eye as EyeIcon,
+  Lock as LockClosedIcon,
+  Building as OfficeIcon,
+  Key as KeyIcon,
+} from 'lucide-react-native';
+import { useAuthStore } from '../../store/authStore';
+import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
+
+const BLUE = '#0A66C2';
+const GRAY_BG = '#F3F2EF';
+
+export default function ProviderSettingsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { user, logout } = useAuthStore();
+  const [notifications, setNotifications] = React.useState(true);
+
+  const SettingRow = ({ icon: Icon, label, value, onPress, isSwitch, switchValue, onSwitchChange, destructive }: any) => (
+    <TouchableOpacity 
+      style={styles.settingRow} 
+      onPress={onPress}
+      disabled={isSwitch}
+      activeOpacity={0.6}
+    >
+      <HStack items="center" flex={1}>
+        <View style={[styles.iconWrap, { backgroundColor: destructive ? '#FEE2E2' : '#F1F5F9' }]}>
+           <Icon size={20} color={destructive ? '#EF4444' : '#475569'} />
+        </View>
+        <Text fontSize={16} color={destructive ? '#EF4444' : '#1F2937'} ml={16} fontWeight="500">{label}</Text>
+      </HStack>
+      
+      {isSwitch ? (
+        <Switch 
+           value={switchValue} 
+           onValueChange={onSwitchChange}
+           trackColor={{ false: '#D1D5DB', true: BLUE }}
+           thumbColor="white"
+        />
+      ) : (
+        <HStack items="center">
+           {value && <Text fontSize={14} color="#6B7280" mr={8}>{value}</Text>}
+           <ChevronRightIcon size={18} color="#9CA3AF" />
+        </HStack>
+      )}
+    </TouchableOpacity>
+  );
+
+  return (
+    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Modern Header */}
+      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
+        <HStack items="center">
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <ChevronLeftIcon size={24} color="#1F2937" strokeWidth={2.5} />
+          </TouchableOpacity>
+          <Text fontSize={20} color="#1F2937" fontWeight="700" ml={16}>Recruiter Settings</Text>
+        </HStack>
+      </Box>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Meta Style Account Center */}
+        <Box bg="white" rounded={12} p={16} mb={20} border={1} borderColor="#E5E7EB">
+           <Text fontSize={14} color="#6B7280" fontWeight="700" mb={16}>Meta Account Center</Text>
+           <SettingRow 
+              icon={OfficeIcon} 
+              label="Company Details" 
+              onPress={() => navigation.navigate('ProviderProfile')} 
+           />
+           <Divider color="#F1F5F9" my={4} />
+           <SettingRow 
+              icon={KeyIcon} 
+              label="Login Security" 
+              onPress={() => navigation.navigate('SecuritySettings')} 
+           />
+           <Divider color="#F1F5F9" my={4} />
+           <SettingRow 
+              icon={CreditCardIcon} 
+              label="Payments & Payouts" 
+              onPress={() => navigation.navigate('Billing')} 
+           />
+           <Text fontSize={12} color={BLUE} fontWeight="600" mt={12}>See more in Account Center</Text>
+        </Box>
+
+        <Text fontSize={14} color="#6B7280" fontWeight="700" ml={4} mb={10}>Recruitment Preferences</Text>
+        <Box bg="white" rounded={12} px={16} mb={20} border={1} borderColor="#E5E7EB">
+           <SettingRow 
+              icon={BellIcon} 
+              label="Candidate alerts" 
+              onPress={() => navigation.navigate('NotificationSettings')} 
+           />
+           <Divider color="#F1F5F9" />
+           <SettingRow 
+              icon={GlobeAltIcon} 
+              label="Privacy & Transparency" 
+              onPress={() => navigation.navigate('PrivacySettings')} 
+           />
+        </Box>
+
+        <Box bg="white" rounded={12} px={16} mb={40} border={1} borderColor="#E5E7EB">
+           <SettingRow 
+              icon={LogoutIcon} 
+              label="Close terminal session" 
+              destructive 
+              onPress={() => logout()} 
+           />
+        </Box>
+
+        <VStack items="center" mb={40}>
+           <Text fontSize={12} color="#9CA3AF">Jobryn Provider v1.8.0</Text>
+           <Text fontSize={12} color="#9CA3AF" mt={4}>Secure Professional Infrastructure</Text>
+        </VStack>
+      </ScrollView>
+    </ScreenWrapper>
+  );
+}
+
+const styles = StyleSheet.create({
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { padding: 16 },
+  settingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
+  iconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+});
+
+
+
+
+

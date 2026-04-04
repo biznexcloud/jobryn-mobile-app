@@ -1,0 +1,5604 @@
+openapi: 3.0.3
+info:
+  title: Jobryn API
+  version: 1.0.0
+  description: Professional Job Portal and Social Network API
+paths:
+  /api/v1/account/forgot-password/:
+    post:
+      operationId: v1_account_forgot_password_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPassword'
+          description: ''
+  /api/v1/account/login/:
+    post:
+      operationId: v1_account_login_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+  /api/v1/account/profile/:
+    get:
+      operationId: v1_account_profile_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: v1_account_profile_update
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/account/register/:
+    post:
+      operationId: v1_account_register_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/v1/account/reset-password/:
+    post:
+      operationId: v1_account_reset_password_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPassword'
+          description: ''
+  /api/v1/account/verify-otp/:
+    post:
+      operationId: v1_account_verify_otp_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOTP'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOTP'
+          description: ''
+  /api/v1/applications/recruiter/:
+    get:
+      operationId: v1_applications_recruiter_list
+      description: API for Recruiters to view and manage applications for their jobs.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_ApplicationList'
+          description: ''
+  /api/v1/applications/recruiter/{id}/:
+    get:
+      operationId: v1_applications_recruiter_retrieve
+      description: API for Recruiters to view and manage applications for their jobs.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Application'
+          description: ''
+  /api/v1/applications/recruiter/{id}/update_status/:
+    patch:
+      operationId: v1_applications_recruiter_update_status_partial_update
+      description: Recruiter updates application status.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Application'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Application'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Application'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Application'
+          description: ''
+  /api/v1/applications/seeker/:
+    get:
+      operationId: v1_applications_seeker_list
+      description: API for Job Seekers to manage their own applications.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJobSeeker_ApplicationList'
+          description: ''
+    post:
+      operationId: v1_applications_seeker_create
+      description: API for Job Seekers to manage their own applications.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Application'
+          description: ''
+  /api/v1/applications/seeker/{id}/:
+    get:
+      operationId: v1_applications_seeker_retrieve
+      description: API for Job Seekers to manage their own applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Application'
+          description: ''
+    put:
+      operationId: v1_applications_seeker_update
+      description: API for Job Seekers to manage their own applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Application'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Application'
+          description: ''
+    patch:
+      operationId: v1_applications_seeker_partial_update
+      description: API for Job Seekers to manage their own applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Application'
+          description: ''
+    delete:
+      operationId: v1_applications_seeker_destroy
+      description: API for Job Seekers to manage their own applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/applications/seeker/{id}/withdraw/:
+    patch:
+      operationId: v1_applications_seeker_withdraw_partial_update
+      description: Job seeker withdraws their application.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Application.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Application'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Application'
+          description: ''
+  /api/v1/billing/recruiter/invoices/:
+    get:
+      operationId: v1_billing_recruiter_invoices_list
+      description: API for Recruiters to manage invoices for their job applications.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_InvoiceList'
+          description: ''
+    post:
+      operationId: v1_billing_recruiter_invoices_create
+      description: API for Recruiters to manage invoices for their job applications.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Invoice'
+          description: ''
+  /api/v1/billing/recruiter/invoices/{id}/:
+    get:
+      operationId: v1_billing_recruiter_invoices_retrieve
+      description: API for Recruiters to manage invoices for their job applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Invoice'
+          description: ''
+    put:
+      operationId: v1_billing_recruiter_invoices_update
+      description: API for Recruiters to manage invoices for their job applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Invoice.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Invoice'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Invoice'
+          description: ''
+    patch:
+      operationId: v1_billing_recruiter_invoices_partial_update
+      description: API for Recruiters to manage invoices for their job applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Invoice.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Invoice'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Invoice'
+          description: ''
+    delete:
+      operationId: v1_billing_recruiter_invoices_destroy
+      description: API for Recruiters to manage invoices for their job applications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/billing/recruiter/payments/:
+    get:
+      operationId: v1_billing_recruiter_payments_list
+      description: API for Recruiters to track their payments.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_PaymentList'
+          description: ''
+    post:
+      operationId: v1_billing_recruiter_payments_create
+      description: API for Recruiters to track their payments.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Payment'
+          description: ''
+  /api/v1/billing/recruiter/payments/{id}/:
+    get:
+      operationId: v1_billing_recruiter_payments_retrieve
+      description: API for Recruiters to track their payments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Payment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Payment'
+          description: ''
+    put:
+      operationId: v1_billing_recruiter_payments_update
+      description: API for Recruiters to track their payments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Payment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Payment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Payment'
+          description: ''
+    patch:
+      operationId: v1_billing_recruiter_payments_partial_update
+      description: API for Recruiters to track their payments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Payment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Payment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Payment'
+          description: ''
+    delete:
+      operationId: v1_billing_recruiter_payments_destroy
+      description: API for Recruiters to track their payments.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Payment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/certifications/certifications/:
+    get:
+      operationId: v1_certifications_certifications_list
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCertificationList'
+          description: ''
+    post:
+      operationId: v1_certifications_certifications_create
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Certification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Certification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Certification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+          description: ''
+  /api/v1/certifications/certifications/{id}/:
+    get:
+      operationId: v1_certifications_certifications_retrieve
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this certification.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+          description: ''
+    put:
+      operationId: v1_certifications_certifications_update
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this certification.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Certification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Certification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Certification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+          description: ''
+    patch:
+      operationId: v1_certifications_certifications_partial_update
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this certification.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCertification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCertification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCertification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certification'
+          description: ''
+    delete:
+      operationId: v1_certifications_certifications_destroy
+      description: |-
+        ViewSet for managing user certifications.
+        Job seekers can manage their own certifications.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this certification.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/companies/:
+    get:
+      operationId: v1_companies_list
+      parameters:
+      - in: query
+        name: company_size
+        schema:
+          type: string
+          enum:
+          - 1-10
+          - 1001-5000
+          - 11-50
+          - 201-500
+          - 5001+
+          - 501-1000
+          - 51-200
+        description: |-
+          * `1-10` - 1-10 employees
+          * `11-50` - 11-50 employees
+          * `51-200` - 51-200 employees
+          * `201-500` - 201-500 employees
+          * `501-1000` - 501-1,000 employees
+          * `1001-5000` - 1,001-5,000 employees
+          * `5001+` - 5,001+ employees
+      - in: query
+        name: industry
+        schema:
+          type: string
+      - in: query
+        name: location
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompanyList'
+          description: ''
+    post:
+      operationId: v1_companies_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/v1/companies/{id}/:
+    get:
+      operationId: v1_companies_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Company.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    put:
+      operationId: v1_companies_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Company.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    patch:
+      operationId: v1_companies_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Company.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    delete:
+      operationId: v1_companies_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Company.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/educations/:
+    get:
+      operationId: v1_educations_list
+      parameters:
+      - in: query
+        name: degree
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: school
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEducationList'
+          description: ''
+    post:
+      operationId: v1_educations_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Education'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Education'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Education'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+          description: ''
+  /api/v1/educations/{id}/:
+    get:
+      operationId: v1_educations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this education.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+          description: ''
+    put:
+      operationId: v1_educations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this education.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Education'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Education'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Education'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+          description: ''
+    patch:
+      operationId: v1_educations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this education.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEducation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEducation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEducation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Education'
+          description: ''
+    delete:
+      operationId: v1_educations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this education.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/experiences/:
+    get:
+      operationId: v1_experiences_list
+      parameters:
+      - in: query
+        name: company_name
+        schema:
+          type: string
+      - in: query
+        name: is_current
+        schema:
+          type: boolean
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExperienceList'
+          description: ''
+    post:
+      operationId: v1_experiences_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Experience'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Experience'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Experience'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+          description: ''
+  /api/v1/experiences/{id}/:
+    get:
+      operationId: v1_experiences_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this experience.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+          description: ''
+    put:
+      operationId: v1_experiences_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this experience.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Experience'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Experience'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Experience'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+          description: ''
+    patch:
+      operationId: v1_experiences_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this experience.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExperience'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExperience'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExperience'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+          description: ''
+    delete:
+      operationId: v1_experiences_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this experience.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/jobs/recruiter/:
+    get:
+      operationId: v1_jobs_recruiter_list
+      description: API for Recruiters to manage their own job postings.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_JobList'
+          description: ''
+    post:
+      operationId: v1_jobs_recruiter_create
+      description: API for Recruiters to manage their own job postings.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Job'
+          description: ''
+  /api/v1/jobs/recruiter/{id}/:
+    get:
+      operationId: v1_jobs_recruiter_retrieve
+      description: API for Recruiters to manage their own job postings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Job'
+          description: ''
+    put:
+      operationId: v1_jobs_recruiter_update
+      description: API for Recruiters to manage their own job postings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Job'
+          description: ''
+    patch:
+      operationId: v1_jobs_recruiter_partial_update
+      description: API for Recruiters to manage their own job postings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Job'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Job'
+          description: ''
+    delete:
+      operationId: v1_jobs_recruiter_destroy
+      description: API for Recruiters to manage their own job postings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/jobs/recruiter/{id}/toggle_active/:
+    post:
+      operationId: v1_jobs_recruiter_toggle_active_create
+      description: Recruiter can toggle job active/inactive.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Job'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Job'
+          description: ''
+  /api/v1/jobs/seeker/:
+    get:
+      operationId: v1_jobs_seeker_list
+      description: API for Job Seekers to discover active jobs.
+      parameters:
+      - in: query
+        name: experience_level
+        schema:
+          type: string
+          enum:
+          - entry
+          - executive
+          - lead
+          - mid
+          - senior
+        description: |-
+          * `entry` - Entry Level
+          * `mid` - Mid Level
+          * `senior` - Senior Level
+          * `lead` - Lead / Principal
+          * `executive` - Executive
+      - in: query
+        name: is_onsite
+        schema:
+          type: boolean
+      - in: query
+        name: is_remote
+        schema:
+          type: boolean
+      - in: query
+        name: job_type
+        schema:
+          type: string
+          enum:
+          - contract
+          - freelance
+          - full_time
+          - internship
+          - part_time
+        description: |-
+          * `full_time` - Full-time
+          * `part_time` - Part-time
+          * `contract` - Contract
+          * `internship` - Internship
+          * `freelance` - Freelance
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: payment_type
+        schema:
+          type: string
+          enum:
+          - fixed
+          - payroll
+        description: |-
+          * `fixed` - Fixed Price
+          * `payroll` - Monthly Payroll
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJobSeeker_JobList'
+          description: ''
+  /api/v1/jobs/seeker/{id}/:
+    get:
+      operationId: v1_jobs_seeker_retrieve
+      description: API for Job Seekers to discover active jobs.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Job.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Job'
+          description: ''
+  /api/v1/learning/courses/:
+    get:
+      operationId: v1_learning_courses_list
+      description: Courses API — Admin creates/manages, both roles can read.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCourseList'
+          description: ''
+  /api/v1/learning/courses/{id}/:
+    get:
+      operationId: v1_learning_courses_retrieve
+      description: Courses API — Admin creates/manages, both roles can read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Course.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+  /api/v1/learning/enrollments/:
+    get:
+      operationId: v1_learning_enrollments_list
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEnrollmentList'
+          description: ''
+    post:
+      operationId: v1_learning_enrollments_create
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+          description: ''
+  /api/v1/learning/enrollments/{id}/:
+    get:
+      operationId: v1_learning_enrollments_retrieve
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+          description: ''
+    put:
+      operationId: v1_learning_enrollments_update
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+          description: ''
+    patch:
+      operationId: v1_learning_enrollments_partial_update
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+          description: ''
+    delete:
+      operationId: v1_learning_enrollments_destroy
+      description: |-
+        Enrollments API.
+        - Job Seekers: Enroll + view/manage their own enrollments.
+        - Recruiters: View enrollments in courses they instruct.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/learning/enrollments/{id}/update_progress/:
+    patch:
+      operationId: v1_learning_enrollments_update_progress_partial_update
+      description: Job seeker updates their own course progress.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this enrollment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEnrollment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+          description: ''
+  /api/v1/meetings/recruiter/:
+    get:
+      operationId: v1_meetings_recruiter_list
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_MeetingList'
+          description: ''
+    post:
+      operationId: v1_meetings_recruiter_create
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Meeting'
+          description: ''
+  /api/v1/meetings/recruiter/{id}/:
+    get:
+      operationId: v1_meetings_recruiter_retrieve
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Meeting.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Meeting'
+          description: ''
+    put:
+      operationId: v1_meetings_recruiter_update
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Meeting.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Meeting'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Meeting'
+          description: ''
+    patch:
+      operationId: v1_meetings_recruiter_partial_update
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Meeting.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Meeting'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Meeting'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Meeting'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Meeting'
+          description: ''
+    delete:
+      operationId: v1_meetings_recruiter_destroy
+      description: API for Recruiters to schedule and manage meetings/interviews.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Meeting.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/meetings/seeker/:
+    get:
+      operationId: v1_meetings_seeker_list
+      description: API for Job Seekers to view their scheduled meetings.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJobSeeker_MeetingList'
+          description: ''
+  /api/v1/meetings/seeker/{id}/:
+    get:
+      operationId: v1_meetings_seeker_retrieve
+      description: API for Job Seekers to view their scheduled meetings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Meeting.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Meeting'
+          description: ''
+  /api/v1/profiles/recruiter/:
+    get:
+      operationId: v1_profiles_recruiter_list
+      description: API for Recruiters to manage their own profile.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecruiter_ProfileList'
+          description: ''
+    post:
+      operationId: v1_profiles_recruiter_create
+      description: API for Recruiters to manage their own profile.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Profile'
+          description: ''
+  /api/v1/profiles/recruiter/{id}/:
+    get:
+      operationId: v1_profiles_recruiter_retrieve
+      description: API for Recruiters to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Profile'
+          description: ''
+    put:
+      operationId: v1_profiles_recruiter_update
+      description: API for Recruiters to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Recruiter_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Profile'
+          description: ''
+    patch:
+      operationId: v1_profiles_recruiter_partial_update
+      description: API for Recruiters to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecruiter_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recruiter_Profile'
+          description: ''
+    delete:
+      operationId: v1_profiles_recruiter_destroy
+      description: API for Recruiters to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/profiles/seeker/:
+    get:
+      operationId: v1_profiles_seeker_list
+      description: API for Job Seekers to manage their own profile.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJobSeeker_ProfileList'
+          description: ''
+    post:
+      operationId: v1_profiles_seeker_create
+      description: API for Job Seekers to manage their own profile.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Profile'
+          description: ''
+  /api/v1/profiles/seeker/{id}/:
+    get:
+      operationId: v1_profiles_seeker_retrieve
+      description: API for Job Seekers to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Profile'
+          description: ''
+    put:
+      operationId: v1_profiles_seeker_update
+      description: API for Job Seekers to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JobSeeker_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Profile'
+          description: ''
+    patch:
+      operationId: v1_profiles_seeker_partial_update
+      description: API for Job Seekers to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedJobSeeker_Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSeeker_Profile'
+          description: ''
+    delete:
+      operationId: v1_profiles_seeker_destroy
+      description: API for Job Seekers to manage their own profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/projects/projects/:
+    get:
+      operationId: v1_projects_projects_list
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProjectList'
+          description: ''
+    post:
+      operationId: v1_projects_projects_create
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Project'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Project'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+  /api/v1/projects/projects/{id}/:
+    get:
+      operationId: v1_projects_projects_retrieve
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    put:
+      operationId: v1_projects_projects_update
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Project'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Project'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    patch:
+      operationId: v1_projects_projects_partial_update
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProject'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProject'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProject'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    delete:
+      operationId: v1_projects_projects_destroy
+      description: |-
+        ViewSet for managing user projects.
+        Job seekers can manage their own portfolio projects.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/skills/endorsements/:
+    get:
+      operationId: v1_skills_endorsements_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEndorsementList'
+          description: ''
+    post:
+      operationId: v1_skills_endorsements_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endorsement'
+          description: ''
+  /api/v1/skills/endorsements/{id}/:
+    get:
+      operationId: v1_skills_endorsements_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this endorsement.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endorsement'
+          description: ''
+    put:
+      operationId: v1_skills_endorsements_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this endorsement.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Endorsement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endorsement'
+          description: ''
+    patch:
+      operationId: v1_skills_endorsements_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this endorsement.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEndorsement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEndorsement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEndorsement'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Endorsement'
+          description: ''
+    delete:
+      operationId: v1_skills_endorsements_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this endorsement.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/skills/global/:
+    get:
+      operationId: v1_skills_global_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSkillList'
+          description: ''
+    post:
+      operationId: v1_skills_global_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Skill'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+  /api/v1/skills/global/{id}/:
+    get:
+      operationId: v1_skills_global_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Skill.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    put:
+      operationId: v1_skills_global_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Skill.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Skill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Skill'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    patch:
+      operationId: v1_skills_global_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Skill.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSkill'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+          description: ''
+    delete:
+      operationId: v1_skills_global_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Skill.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/skills/user-skills/:
+    get:
+      operationId: v1_skills_user_skills_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserSkillList'
+          description: ''
+    post:
+      operationId: v1_skills_user_skills_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSkill'
+          description: ''
+  /api/v1/skills/user-skills/{id}/:
+    get:
+      operationId: v1_skills_user_skills_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user skill.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSkill'
+          description: ''
+    put:
+      operationId: v1_skills_user_skills_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user skill.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSkill'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSkill'
+          description: ''
+    patch:
+      operationId: v1_skills_user_skills_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user skill.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSkill'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSkill'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserSkill'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSkill'
+          description: ''
+    delete:
+      operationId: v1_skills_user_skills_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user skill.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    BlankEnum:
+      enum:
+      - ''
+    CategoryEnum:
+      enum:
+      - technical
+      - design
+      - management
+      - communication
+      - data
+      - marketing
+      - finance
+      - language
+      - other
+      type: string
+      description: |-
+        * `technical` - Technical
+        * `design` - Design
+        * `management` - Management
+        * `communication` - Communication
+        * `data` - Data & Analytics
+        * `marketing` - Marketing
+        * `finance` - Finance
+        * `language` - Language
+        * `other` - Other
+    Certification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        issuing_organization:
+          type: string
+          maxLength: 255
+        issue_date:
+          type: string
+          format: date
+        expiration_date:
+          type: string
+          format: date
+          nullable: true
+        credential_id:
+          type: string
+          maxLength: 100
+        credential_url:
+          type: string
+          format: uri
+          maxLength: 200
+        is_expired:
+          type: boolean
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - issue_date
+      - issuing_organization
+      - name
+      - user
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 20
+        description:
+          type: string
+        tagline:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+          maxLength: 255
+        industry:
+          type: string
+          maxLength: 100
+        company_size:
+          oneOf:
+          - $ref: '#/components/schemas/CompanySizeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        founded_year:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        headquarters:
+          type: string
+          maxLength: 255
+        registration_number:
+          type: string
+          maxLength: 100
+        tax_number:
+          type: string
+          maxLength: 100
+        is_verified:
+          type: boolean
+        social_links: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - owner
+      - updated_at
+    CompanySizeEnum:
+      enum:
+      - 1-10
+      - 11-50
+      - 51-200
+      - 201-500
+      - 501-1000
+      - 1001-5000
+      - 5001+
+      type: string
+      description: |-
+        * `1-10` - 1-10 employees
+        * `11-50` - 11-50 employees
+        * `51-200` - 51-200 employees
+        * `201-500` - 201-500 employees
+        * `501-1000` - 501-1,000 employees
+        * `1001-5000` - 1,001-5,000 employees
+        * `5001+` - 5,001+ employees
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        thumbnail:
+          type: string
+          format: uri
+          nullable: true
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+        language:
+          type: string
+          maxLength: 50
+        syllabus:
+          type: string
+        what_you_learn: {}
+        requirements:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        duration_hours:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        total_lectures:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        certificate_offered:
+          type: boolean
+        is_published:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        instructor:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - description
+      - id
+      - instructor
+      - title
+      - updated_at
+    Education:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        school:
+          type: string
+          maxLength: 255
+        degree:
+          type: string
+          maxLength: 255
+        field_of_study:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        grade:
+          type: string
+          maxLength: 50
+        activities_societies:
+          type: string
+        gpa_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,2}(?:\.\d{0,2})?$
+          nullable: true
+        description:
+          type: string
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - school
+      - start_date
+      - user
+    EmploymentTypeEnum:
+      enum:
+      - full-time
+      - part-time
+      - contract
+      - freelance
+      - internship
+      type: string
+      description: |-
+        * `full-time` - Full-time
+        * `part-time` - Part-time
+        * `contract` - Contract
+        * `freelance` - Freelance
+        * `internship` - Internship
+    Endorsement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        endorser:
+          type: integer
+          readOnly: true
+        user_skill:
+          type: integer
+      required:
+      - created_at
+      - endorser
+      - id
+      - user_skill
+    Enrollment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        progress:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        completed:
+          type: boolean
+        completion_date:
+          type: string
+          format: date-time
+          nullable: true
+        certificate_issued:
+          type: boolean
+        enrolled_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+        course:
+          type: integer
+      required:
+      - course
+      - enrolled_at
+      - id
+      - user
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        company_name:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        description:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentTypeEnum'
+        location_type:
+          $ref: '#/components/schemas/LocationTypeEnum'
+        company_logo:
+          type: string
+          format: uri
+          nullable: true
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - company_name
+      - id
+      - start_date
+      - title
+      - user
+    ExperienceLevelEnum:
+      enum:
+      - entry
+      - mid
+      - senior
+      - lead
+      - executive
+      type: string
+      description: |-
+        * `entry` - Entry Level
+        * `mid` - Mid Level
+        * `senior` - Senior Level
+        * `lead` - Lead / Principal
+        * `executive` - Executive
+    ForgotPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    JobSeeker_Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        job:
+          type: integer
+        job_title:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status4f5Enum'
+          readOnly: true
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        cover_letter:
+          type: string
+        expected_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        rejection_reason:
+          type: string
+          readOnly: true
+        feedback_for_seeker:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - feedback_for_seeker
+      - id
+      - job
+      - job_title
+      - rejection_reason
+      - status
+      - updated_at
+    JobSeeker_Job:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company:
+          type: integer
+        company_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        job_type:
+          $ref: '#/components/schemas/JobTypeEnum'
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevelEnum'
+        payment_type:
+          $ref: '#/components/schemas/PaymentTypeEnum'
+        is_onsite:
+          type: boolean
+        is_remote:
+          type: boolean
+        salary_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        salary_max:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          type: string
+          maxLength: 10
+        required_skills: {}
+        requirements:
+          type: string
+        benefits:
+          type: string
+        application_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - company_name
+      - created_at
+      - description
+      - id
+      - location
+      - title
+    JobSeeker_Meeting:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        application:
+          type: integer
+        meeting_type:
+          $ref: '#/components/schemas/MeetingTypeEnum'
+        meeting_type_display:
+          type: string
+          readOnly: true
+        scheduled_at:
+          type: string
+          format: date-time
+        meeting_link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        location_address:
+          type: string
+          nullable: true
+        duration_minutes:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        agenda:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status2a3Enum'
+          readOnly: true
+        status_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - application
+      - created_at
+      - id
+      - meeting_type
+      - meeting_type_display
+      - scheduled_at
+      - status
+      - status_display
+      - updated_at
+    JobSeeker_Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_detail:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        profile_strength:
+          type: string
+          readOnly: true
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        cover_photo:
+          type: string
+          format: uri
+          nullable: true
+        headline:
+          type: string
+          maxLength: 220
+        about:
+          type: string
+        pronouns:
+          type: string
+          maxLength: 50
+        city:
+          type: string
+          nullable: true
+          maxLength: 255
+        state:
+          type: string
+          nullable: true
+          maxLength: 255
+        country:
+          type: string
+          nullable: true
+          maxLength: 255
+        job_title:
+          type: string
+          nullable: true
+          maxLength: 255
+        company:
+          type: string
+          nullable: true
+          maxLength: 255
+        experience_years:
+          type: number
+          format: double
+          nullable: true
+        skills:
+          type: string
+          nullable: true
+        education:
+          type: string
+          nullable: true
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        linkedin_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        github_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        portfolio_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        social_links: {}
+        featured_items: {}
+        languages: {}
+        interests: {}
+        visibility_settings:
+          $ref: '#/components/schemas/VisibilitySettingsEnum'
+        available_for_freelance:
+          type: boolean
+        availability:
+          type: boolean
+        professional_motto:
+          type: string
+          maxLength: 255
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - profile_strength
+      - user
+      - user_detail
+    JobTypeEnum:
+      enum:
+      - full_time
+      - part_time
+      - contract
+      - internship
+      - freelance
+      type: string
+      description: |-
+        * `full_time` - Full-time
+        * `part_time` - Part-time
+        * `contract` - Contract
+        * `internship` - Internship
+        * `freelance` - Freelance
+    LevelEnum:
+      enum:
+      - beginner
+      - intermediate
+      - advanced
+      type: string
+      description: |-
+        * `beginner` - Beginner
+        * `intermediate` - Intermediate
+        * `advanced` - Advanced
+    LocationTypeEnum:
+      enum:
+      - on-site
+      - hybrid
+      - remote
+      type: string
+      description: |-
+        * `on-site` - On-site
+        * `hybrid` - Hybrid
+        * `remote` - Remote
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+      - email
+      - password
+    MeetingTypeEnum:
+      enum:
+      - online
+      - onsite
+      - phone
+      type: string
+      description: |-
+        * `online` - Online Meeting
+        * `onsite` - On-site Meeting
+        * `phone` - Phone Call
+    PaginatedCertificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certification'
+    PaginatedCompanyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+    PaginatedCourseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+    PaginatedEducationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+    PaginatedEndorsementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Endorsement'
+    PaginatedEnrollmentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Enrollment'
+    PaginatedExperienceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Experience'
+    PaginatedJobSeeker_ApplicationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobSeeker_Application'
+    PaginatedJobSeeker_JobList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobSeeker_Job'
+    PaginatedJobSeeker_MeetingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobSeeker_Meeting'
+    PaginatedJobSeeker_ProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobSeeker_Profile'
+    PaginatedProjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+    PaginatedRecruiter_ApplicationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Application'
+    PaginatedRecruiter_InvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Invoice'
+    PaginatedRecruiter_JobList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Job'
+    PaginatedRecruiter_MeetingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Meeting'
+    PaginatedRecruiter_PaymentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Payment'
+    PaginatedRecruiter_ProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recruiter_Profile'
+    PaginatedSkillList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+    PaginatedUserSkillList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSkill'
+    PatchedCertification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        issuing_organization:
+          type: string
+          maxLength: 255
+        issue_date:
+          type: string
+          format: date
+        expiration_date:
+          type: string
+          format: date
+          nullable: true
+        credential_id:
+          type: string
+          maxLength: 100
+        credential_url:
+          type: string
+          format: uri
+          maxLength: 200
+        is_expired:
+          type: boolean
+        user:
+          type: integer
+          readOnly: true
+    PatchedCompany:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 20
+        description:
+          type: string
+        tagline:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+          maxLength: 255
+        industry:
+          type: string
+          maxLength: 100
+        company_size:
+          oneOf:
+          - $ref: '#/components/schemas/CompanySizeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        founded_year:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        headquarters:
+          type: string
+          maxLength: 255
+        registration_number:
+          type: string
+          maxLength: 100
+        tax_number:
+          type: string
+          maxLength: 100
+        is_verified:
+          type: boolean
+        social_links: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+    PatchedEducation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        school:
+          type: string
+          maxLength: 255
+        degree:
+          type: string
+          maxLength: 255
+        field_of_study:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        grade:
+          type: string
+          maxLength: 50
+        activities_societies:
+          type: string
+        gpa_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,2}(?:\.\d{0,2})?$
+          nullable: true
+        description:
+          type: string
+        user:
+          type: integer
+          readOnly: true
+    PatchedEndorsement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        endorser:
+          type: integer
+          readOnly: true
+        user_skill:
+          type: integer
+    PatchedEnrollment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        progress:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        completed:
+          type: boolean
+        completion_date:
+          type: string
+          format: date-time
+          nullable: true
+        certificate_issued:
+          type: boolean
+        enrolled_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+        course:
+          type: integer
+    PatchedExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        company_name:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        description:
+          type: string
+        employment_type:
+          $ref: '#/components/schemas/EmploymentTypeEnum'
+        location_type:
+          $ref: '#/components/schemas/LocationTypeEnum'
+        company_logo:
+          type: string
+          format: uri
+          nullable: true
+        user:
+          type: integer
+          readOnly: true
+    PatchedJobSeeker_Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        job:
+          type: integer
+        job_title:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/Status4f5Enum'
+          readOnly: true
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        cover_letter:
+          type: string
+        expected_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        rejection_reason:
+          type: string
+          readOnly: true
+        feedback_for_seeker:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedJobSeeker_Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_detail:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        profile_strength:
+          type: string
+          readOnly: true
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        cover_photo:
+          type: string
+          format: uri
+          nullable: true
+        headline:
+          type: string
+          maxLength: 220
+        about:
+          type: string
+        pronouns:
+          type: string
+          maxLength: 50
+        city:
+          type: string
+          nullable: true
+          maxLength: 255
+        state:
+          type: string
+          nullable: true
+          maxLength: 255
+        country:
+          type: string
+          nullable: true
+          maxLength: 255
+        job_title:
+          type: string
+          nullable: true
+          maxLength: 255
+        company:
+          type: string
+          nullable: true
+          maxLength: 255
+        experience_years:
+          type: number
+          format: double
+          nullable: true
+        skills:
+          type: string
+          nullable: true
+        education:
+          type: string
+          nullable: true
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        linkedin_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        github_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        portfolio_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        social_links: {}
+        featured_items: {}
+        languages: {}
+        interests: {}
+        visibility_settings:
+          $ref: '#/components/schemas/VisibilitySettingsEnum'
+        available_for_freelance:
+          type: boolean
+        availability:
+          type: boolean
+        professional_motto:
+          type: string
+          maxLength: 255
+        user:
+          type: integer
+          readOnly: true
+    PatchedProject:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+          maxLength: 200
+        role:
+          type: string
+          maxLength: 100
+        technologies: {}
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        collaborators: {}
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        user:
+          type: integer
+          readOnly: true
+    PatchedRecruiter_Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        seeker_name:
+          type: string
+          nullable: true
+          readOnly: true
+        seeker_email:
+          type: string
+          format: email
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/Status4f5Enum'
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        cover_letter:
+          type: string
+        expected_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        rejection_reason:
+          type: string
+        feedback_for_seeker:
+          type: string
+        interview_score:
+          type: integer
+          maximum: 65535
+          minimum: 0
+          nullable: true
+        internal_notes:
+          type: string
+        accepted_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        payment_type:
+          type: string
+          maxLength: 20
+        hired_at:
+          type: string
+          format: date-time
+          nullable: true
+        contract_end:
+          type: string
+          format: date
+          nullable: true
+        payroll_initialized:
+          type: boolean
+        commission_paid:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        job:
+          type: integer
+        seeker:
+          type: integer
+          readOnly: true
+    PatchedRecruiter_Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        seeker_email:
+          type: string
+          format: email
+          readOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 10
+        status:
+          $ref: '#/components/schemas/RecruiterInvoiceStatusEnum'
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        tax_id:
+          type: string
+          maxLength: 50
+        billing_address:
+          type: string
+        invoice_notes:
+          type: string
+        khalti_pidx:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        application:
+          type: integer
+    PatchedRecruiter_Job:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        applications_count:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        job_type:
+          $ref: '#/components/schemas/JobTypeEnum'
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevelEnum'
+        payment_type:
+          $ref: '#/components/schemas/PaymentTypeEnum'
+        is_onsite:
+          type: boolean
+        is_remote:
+          type: boolean
+        salary_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        salary_max:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          type: string
+          maxLength: 10
+        required_skills: {}
+        requirements:
+          type: string
+        benefits:
+          type: string
+        application_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        views_count:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        recruiter:
+          type: integer
+          readOnly: true
+        company:
+          type: integer
+    PatchedRecruiter_Meeting:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        meeting_type_display:
+          type: string
+          readOnly: true
+        status_display:
+          type: string
+          readOnly: true
+        seeker_name:
+          type: string
+          nullable: true
+          readOnly: true
+        meeting_type:
+          $ref: '#/components/schemas/MeetingTypeEnum'
+        scheduled_at:
+          type: string
+          format: date-time
+        meeting_link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        location_address:
+          type: string
+          nullable: true
+        duration_minutes:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        recording_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        agenda:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status2a3Enum'
+        notes:
+          type: string
+        feedback:
+          type: string
+        candidate_no_show:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        application:
+          type: integer
+        interviewer:
+          type: integer
+          nullable: true
+    PatchedRecruiter_Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        transaction_id:
+          type: string
+          maxLength: 255
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        payment_details: {}
+        is_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        invoice:
+          type: integer
+    PatchedRecruiter_Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        user_detail:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        headline:
+          type: string
+          maxLength: 220
+        about:
+          type: string
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        visibility_settings:
+          $ref: '#/components/schemas/VisibilitySettingsEnum'
+    PatchedSkill:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+    PatchedUserSkill:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        skill_detail:
+          allOf:
+          - $ref: '#/components/schemas/Skill'
+          readOnly: true
+        endorsement_count:
+          type: string
+          readOnly: true
+        proficiency_level:
+          $ref: '#/components/schemas/ProficiencyLevelEnum'
+        years_of_experience:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        is_featured:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        skill:
+          type: integer
+    PaymentMethodEnum:
+      enum:
+      - khalti
+      - esewa
+      - bank_transfer
+      - cash
+      type: string
+      description: |-
+        * `khalti` - Khalti
+        * `esewa` - eSewa
+        * `bank_transfer` - Bank Transfer
+        * `cash` - Cash
+    PaymentTypeEnum:
+      enum:
+      - fixed
+      - payroll
+      type: string
+      description: |-
+        * `fixed` - Fixed Price
+        * `payroll` - Monthly Payroll
+    ProficiencyLevelEnum:
+      enum:
+      - beginner
+      - intermediate
+      - expert
+      - master
+      type: string
+      description: |-
+        * `beginner` - Beginner
+        * `intermediate` - Intermediate
+        * `expert` - Expert
+        * `master` - Master
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+          maxLength: 200
+        role:
+          type: string
+          maxLength: 100
+        technologies: {}
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        collaborators: {}
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - description
+      - id
+      - name
+      - start_date
+      - user
+    RecruiterInvoiceStatusEnum:
+      enum:
+      - unpaid
+      - paid
+      - void
+      - overdue
+      type: string
+      description: |-
+        * `unpaid` - Unpaid
+        * `paid` - Paid
+        * `void` - Void
+        * `overdue` - Overdue
+    Recruiter_Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        seeker_name:
+          type: string
+          nullable: true
+          readOnly: true
+        seeker_email:
+          type: string
+          format: email
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/Status4f5Enum'
+        resume:
+          type: string
+          format: uri
+          nullable: true
+        cover_letter:
+          type: string
+        expected_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        rejection_reason:
+          type: string
+        feedback_for_seeker:
+          type: string
+        interview_score:
+          type: integer
+          maximum: 65535
+          minimum: 0
+          nullable: true
+        internal_notes:
+          type: string
+        accepted_salary:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        payment_type:
+          type: string
+          maxLength: 20
+        hired_at:
+          type: string
+          format: date-time
+          nullable: true
+        contract_end:
+          type: string
+          format: date
+          nullable: true
+        payroll_initialized:
+          type: boolean
+        commission_paid:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        job:
+          type: integer
+        seeker:
+          type: integer
+          readOnly: true
+      required:
+      - commission_paid
+      - created_at
+      - id
+      - job
+      - job_title
+      - seeker
+      - seeker_email
+      - seeker_name
+      - updated_at
+    Recruiter_Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        seeker_email:
+          type: string
+          format: email
+          readOnly: true
+        job_title:
+          type: string
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 10
+        status:
+          $ref: '#/components/schemas/RecruiterInvoiceStatusEnum'
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        tax_id:
+          type: string
+          maxLength: 50
+        billing_address:
+          type: string
+        invoice_notes:
+          type: string
+        khalti_pidx:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        application:
+          type: integer
+      required:
+      - amount
+      - application
+      - created_at
+      - id
+      - job_title
+      - seeker_email
+      - updated_at
+    Recruiter_Job:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        applications_count:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        job_type:
+          $ref: '#/components/schemas/JobTypeEnum'
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevelEnum'
+        payment_type:
+          $ref: '#/components/schemas/PaymentTypeEnum'
+        is_onsite:
+          type: boolean
+        is_remote:
+          type: boolean
+        salary_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        salary_max:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        currency:
+          type: string
+          maxLength: 10
+        required_skills: {}
+        requirements:
+          type: string
+        benefits:
+          type: string
+        application_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        views_count:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        recruiter:
+          type: integer
+          readOnly: true
+        company:
+          type: integer
+      required:
+      - applications_count
+      - company
+      - company_name
+      - created_at
+      - description
+      - id
+      - location
+      - recruiter
+      - title
+      - updated_at
+      - views_count
+    Recruiter_Meeting:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        meeting_type_display:
+          type: string
+          readOnly: true
+        status_display:
+          type: string
+          readOnly: true
+        seeker_name:
+          type: string
+          nullable: true
+          readOnly: true
+        meeting_type:
+          $ref: '#/components/schemas/MeetingTypeEnum'
+        scheduled_at:
+          type: string
+          format: date-time
+        meeting_link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        location_address:
+          type: string
+          nullable: true
+        duration_minutes:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+        recording_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        agenda:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status2a3Enum'
+        notes:
+          type: string
+        feedback:
+          type: string
+        candidate_no_show:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        application:
+          type: integer
+        interviewer:
+          type: integer
+          nullable: true
+      required:
+      - application
+      - created_at
+      - id
+      - meeting_type
+      - meeting_type_display
+      - scheduled_at
+      - seeker_name
+      - status_display
+      - updated_at
+    Recruiter_Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        transaction_id:
+          type: string
+          maxLength: 255
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        payment_details: {}
+        is_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        invoice:
+          type: integer
+      required:
+      - amount
+      - created_at
+      - id
+      - invoice
+      - transaction_id
+    Recruiter_Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        user_detail:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        headline:
+          type: string
+          maxLength: 220
+        about:
+          type: string
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        visibility_settings:
+          $ref: '#/components/schemas/VisibilitySettingsEnum'
+      required:
+      - id
+      - user
+      - user_detail
+    Register:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - email
+      - password
+    ResetPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          maxLength: 6
+        new_password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - new_password
+      - otp
+    RoleEnum:
+      enum:
+      - job_seeker
+      - recruiter
+      - admin
+      type: string
+      description: |-
+        * `job_seeker` - Job Seeker
+        * `recruiter` - Recruiter
+        * `admin` - Admin
+    Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - id
+      - name
+    Status2a3Enum:
+      enum:
+      - scheduled
+      - completed
+      - cancelled
+      - rescheduled
+      - no_show
+      type: string
+      description: |-
+        * `scheduled` - Scheduled
+        * `completed` - Completed
+        * `cancelled` - Cancelled
+        * `rescheduled` - Rescheduled
+        * `no_show` - No Show
+    Status4f5Enum:
+      enum:
+      - applied
+      - screening
+      - online_meeting
+      - onsite_meeting
+      - hired
+      - rejected
+      - withdrawn
+      type: string
+      description: |-
+        * `applied` - Applied
+        * `screening` - Screening
+        * `online_meeting` - Online Meeting
+        * `onsite_meeting` - On-site Meeting
+        * `hired` - Hired
+        * `rejected` - Rejected
+        * `withdrawn` - Withdrawn
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_email_verified:
+          type: boolean
+      required:
+      - email
+      - id
+    UserSkill:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        skill_detail:
+          allOf:
+          - $ref: '#/components/schemas/Skill'
+          readOnly: true
+        endorsement_count:
+          type: string
+          readOnly: true
+        proficiency_level:
+          $ref: '#/components/schemas/ProficiencyLevelEnum'
+        years_of_experience:
+          type: integer
+          maximum: 65535
+          minimum: 0
+        is_featured:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        skill:
+          type: integer
+      required:
+      - created_at
+      - endorsement_count
+      - id
+      - skill
+      - skill_detail
+      - user
+    VerifyOTP:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+          maxLength: 6
+      required:
+      - email
+      - otp
+    VisibilitySettingsEnum:
+      enum:
+      - public
+      - private
+      - connections
+      type: string
+      description: |-
+        * `public` - Public
+        * `private` - Private
+        * `connections` - Connections Only
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

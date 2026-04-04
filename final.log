@@ -1,0 +1,69 @@
+﻿src/screens/auth/ProfileWizardScreen.tsx(214,111): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.
+src/screens/auth/SignupScreen.tsx(51,9): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'RegisterData'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(5,18): error TS2304: Cannot find name 'useSafeAreaInsets'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(8,5): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(8,6): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type '{ new (data?: string | undefined): Text; prototype: Text; }' is not a valid JSX element type.
+    Type '{ new (data?: string | undefined): Text; prototype: Text; }' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(12,6): error TS2304: Cannot find name 'HStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(14,8): error TS2304: Cannot find name 'VStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(15,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(15,10): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type '{ new (data?: string | undefined): Text; prototype: Text; }' is not a valid JSX element type.
+    Type '{ new (data?: string | undefined): Text; prototype: Text; }' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(16,22): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(16,23): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type '{ new (data?: string | undefined): Text; prototype: Text; }' is not a valid JSX element type.
+    Type '{ new (data?: string | undefined): Text; prototype: Text; }' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(17,9): error TS2304: Cannot find name 'VStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(19,10): error TS2304: Cannot find name 'TouchableOpacity'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(21,11): error TS2304: Cannot find name 'TouchableOpacity'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(23,7): error TS2304: Cannot find name 'HStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(27,6): error TS2304: Cannot find name 'ScreenWrapper'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(28,8): error TS2552: Cannot find name 'StatusBar'. Did you mean 'statusbar'?
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(31,8): error TS2304: Cannot find name 'Box'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(32,10): error TS2304: Cannot find name 'HStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(33,12): error TS2304: Cannot find name 'TouchableOpacity'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(34,14): error TS2304: Cannot find name 'ChevronLeftIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(35,13): error TS2304: Cannot find name 'TouchableOpacity'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(36,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(36,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type '{ new (data?: string | undefined): Text; prototype: Text; }' is not a valid JSX element type.
+    Type '{ new (data?: string | undefined): Text; prototype: Text; }' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(37,11): error TS2304: Cannot find name 'HStack'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(38,9): error TS2304: Cannot find name 'Box'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(40,8): error TS2304: Cannot find name 'ScrollView'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(42,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(43,24): error TS2304: Cannot find name 'BuildingIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(44,24): error TS2304: Cannot find name 'UsersIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(45,24): error TS2304: Cannot find name 'GlobeIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(47,10): error TS2304: Cannot find name 'Divider'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(49,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(50,24): error TS2304: Cannot find name 'SparklesIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(51,24): error TS2304: Cannot find name 'UsersIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(53,10): error TS2304: Cannot find name 'Divider'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(55,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(56,24): error TS2304: Cannot find name 'LinkIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(57,24): error TS2304: Cannot find name 'LinkIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(58,24): error TS2304: Cannot find name 'LinkIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(60,10): error TS2304: Cannot find name 'Divider'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(62,25): error TS2322: Type '{ label: string; }' is not assignable to type 'IntrinsicAttributes & { title: string; }'.
+  Property 'label' does not exist on type 'IntrinsicAttributes & { title: string; }'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(63,24): error TS2304: Cannot find name 'MailIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(64,24): error TS2304: Cannot find name 'MailIcon'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(66,9): error TS2304: Cannot find name 'ScrollView'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(67,7): error TS2304: Cannot find name 'ScreenWrapper'.
+src/screens/jobProvider/ProviderAboutInfoScreen.tsx(71,27): error TS2339: Property 'create' does not exist on type '{ new (): StyleSheet; prototype: StyleSheet; }'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(58,49): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(84,90): error TS2353: Object literal may only specify known properties, and 'px' does not exist in type 'ViewStyle | RecursiveArray<ViewStyle | Falsy>'.
+src/screens/jobSeeker/CreateSocialPostScreen.tsx(97,58): error TS2322: Type '{ size: number; color: string; ml: number; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+  Property 'ml' does not exist on type 'IntrinsicAttributes & LucideProps'.
+src/screens/jobSeeker/SearchExploreScreen.tsx(115,98): error TS2322: Type '{ rotate: string; }' is not assignable to type 'string'.

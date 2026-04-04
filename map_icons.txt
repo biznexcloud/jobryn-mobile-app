@@ -1,0 +1,15 @@
+﻿
+
+    Directory: C:\Users\ch
+    aud\Desktop\jobryn-mob
+    ile-app\node_modules\r
+    eact-native-heroicons\
+    outline
+
+
+Mode         LastWriteTime
+----         -------------
+-a----   3/23/2026   3:58 
+                        PM
+
+
