@@ -36,6 +36,16 @@ import PublicUserProfileScreen from '../screens/jobSeeker/PublicUserProfileScree
 import CreateStoryScreen from '../screens/jobSeeker/CreateStoryScreen';
 import StoryViewerScreen from '../screens/jobSeeker/StoryViewerScreen';
 import SeekerAboutInfoScreen from '../screens/jobSeeker/SeekerAboutInfoScreen';
+import OpenToSelectionScreen from '../screens/jobSeeker/OpenToSelectionScreen';
+import AddProfileSegmentScreen from '../screens/jobSeeker/AddProfileSegmentScreen';
+import ProfileManagementScreen from '../screens/jobSeeker/ProfileManagementScreen';
+import JobPreferencesScreen from '../screens/jobSeeker/JobPreferencesScreen';
+import ServiceShowcaseScreen from '../screens/jobSeeker/ServiceShowcaseScreen';
+import EditBioScreen from '../screens/jobSeeker/EditBioScreen';
+import ExperienceManagementScreen from '../screens/jobSeeker/ExperienceManagementScreen';
+import PhotoViewerScreen from '../screens/jobSeeker/PhotoViewerScreen';
+import AddServiceScreen from '../screens/jobSeeker/AddServiceScreen';
+import ConnectionsListScreen from '../screens/jobSeeker/ConnectionsListScreen';
 
 // ─── Provider Screens ────────────────────────────────────────────────────────
 import ApplicantDetailScreen from '../screens/jobProvider/ApplicantDetailScreen';
@@ -171,6 +181,17 @@ export default function MainNavigator() {
           <Stack.Screen name="CompanyDetail" component={CompanyDetailScreen} />
           <Stack.Screen name="PublicProfile" component={PublicUserProfileScreen} />
           <Stack.Screen name="SeekerAboutInfo" component={SeekerAboutInfoScreen} />
+          <Stack.Screen name="OpenToSelection" component={OpenToSelectionScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="AddProfileSegment" component={AddProfileSegmentScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="ProfileManagement" component={ProfileManagementScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="JobPreferences" component={JobPreferencesScreen} />
+          <Stack.Screen name="ServiceShowcase" component={ServiceShowcaseScreen} />
+          <Stack.Screen name="AddService" component={AddServiceScreen} />
+          <Stack.Screen name="PostJob" component={PostJobScreen} />
+          <Stack.Screen name="EditBio" component={EditBioScreen} options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="ExperienceManagement" component={ExperienceManagementScreen} />
+          <Stack.Screen name="ConnectionsList" component={ConnectionsListScreen} />
+          <Stack.Screen name="PhotoViewer" component={PhotoViewerScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="CreateStory" component={CreateStoryScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="StoryViewer" component={StoryViewerScreen} options={{ animation: 'fade', presentation: 'fullScreenModal' }} />
           <Stack.Screen name="Messages" component={MessagesScreen} />

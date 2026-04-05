@@ -8,7 +8,10 @@ import {
   View,
   Image,
   Platform,
+  Alert,
+  Dimensions,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeftIcon,
@@ -28,12 +31,45 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
+const { width } = Dimensions.get('window');
+
+const DUMMY_MEDIA = [
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=400',
+  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=400',
+];
 
 export default function ProviderProfileScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800');
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+
+  const pickImage = async (type: 'logo' | 'cover') => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'We need access to your photos to upload.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: type === 'logo' ? [1, 1] : [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      if (type === 'logo') setLogoImage(result.assets[0].uri);
+      else setCoverImage(result.assets[0].uri);
+      Alert.alert('Success', `${type.charAt(0).toUpperCase() + type.slice(1)} updated (Simulated)`);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -64,27 +100,47 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, backgroundColor: GRAY_BG }}>
         
         {/* Banner Section */}
-        <Box>
+        <Box height={200} bg="#A0A0A0">
            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800' }}
-              style={{ width: '100%', height: 160 }}
+              source={{ uri: coverImage }}
+              style={StyleSheet.absoluteFill}
            />
            <Box position="absolute" top={insets.top + 12} left={16}>
               <TouchableOpacity onPress={() => navigation?.goBack()} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' }}>
                  <ChevronLeftIcon size={24} color="white" strokeWidth={2} />
               </TouchableOpacity>
            </Box>
+           
+           {/* Cover Camera Button */}
+           <TouchableOpacity 
+              onPress={() => pickImage('cover')} 
+              style={styles.coverCameraBtn}
+           >
+              <CameraIcon size={20} color="#1C1E21" />
+           </TouchableOpacity>
+
            <Box position="absolute" bottom={-40} left={16}>
-              <Box p={3} bg="white" rounded={8} shadow={2}>
+              <Box p={3} bg="white" rounded={8} shadow={2} style={{ position: 'relative' }}>
                  <Box w={80} h={80} bg={GRAY_BG} rounded={4} items="center" justify="center">
-                    <BriefcaseIcon size={40} color="#666666" />
+                    {logoImage ? (
+                       <Image source={{ uri: logoImage }} style={{ width: 80, height: 80, borderRadius: 4 }} />
+                    ) : (
+                       <BriefcaseIcon size={40} color="#666666" />
+                    )}
                  </Box>
+                 {/* Logo Camera Button */}
+                 <TouchableOpacity 
+                    onPress={() => pickImage('logo')} 
+                    style={styles.logoCameraBtn}
+                 >
+                    <CameraIcon size={16} color="#1C1E21" />
+                 </TouchableOpacity>
               </Box>
            </Box>
         </Box>
 
         {/* Company Info Header */}
-        <Box bg="white" px={16} pt={54} pb={20}>
+        <Box bg="white" px={16} pt={64} pb={20}>
            <HStack justify="space-between" items="flex-start">
               <VStack flex={1}>
                  <Text fontSize={24} fontWeight="700" color="#000000">Nexus Corp</Text>
@@ -137,6 +193,24 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
            </VStack>
         </Box>
 
+        {/* Media Gallery Section (Facebook Style) */}
+        <Box bg="white" mt={8} p={16}>
+           <HStack justify="space-between" items="center" mb={16}>
+              <VStack>
+                 <Text fontSize={18} fontWeight="700" color="#000000">Media Gallery</Text>
+                 <Text fontSize={12} color="#666666" mt={2}>Showcasing our culture and workplace</Text>
+              </VStack>
+              <TouchableOpacity><Text fontSize={14} fontWeight="700" color={BLUE}>See all</Text></TouchableOpacity>
+           </HStack>
+           <HStack flexWrap="wrap" space="xs" justify="space-between">
+              {DUMMY_MEDIA.map((uri, i) => (
+                 <TouchableOpacity key={i} style={styles.mediaBox}>
+                    <Image source={{ uri }} style={styles.galleryImage} />
+                 </TouchableOpacity>
+              ))}
+           </HStack>
+        </Box>
+
         {/* Active Jobs Section */}
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
@@ -171,7 +245,44 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
 const styles = StyleSheet.create({
   primaryBtn: { height: 40, paddingHorizontal: 20, backgroundColor: BLUE, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   secondaryBtn: { height: 40, paddingHorizontal: 20, borderWidth: 1, borderColor: BLUE, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  jobCard: { marginBottom: 12 }
+  jobCard: { marginBottom: 12 },
+  coverCameraBtn: { 
+    position: 'absolute', 
+    right: 12, 
+    bottom: 12, 
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
+    backgroundColor: '#FFFFFF', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
+  },
+  logoCameraBtn: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E4E6EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mediaBox: { width: (width - 48) / 3, height: (width - 48) / 3, marginBottom: 8 },
+  galleryImage: { width: '100%', height: '100%', borderRadius: 8 },
 });
 
 

@@ -23,6 +23,7 @@ import {
    BarChart,
    Briefcase,
    Sparkles,
+   Bell,
 } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
@@ -113,12 +114,18 @@ export default function ProviderDashboardScreen() {
          <Box px={16} pt={insets.top + 4} pb={12} bg="white">
             <HStack items="center" justify="space-between">
                <Text fontSize={28} fontWeight="900" color={FB_BLUE} letterSpacing={-2}>jobryn</Text>
-               <HStack space="sm">
+               <HStack space="xs">
+                  <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('PostJob')}>
+                     <Plus size={20} color="black" />
+                  </TouchableOpacity>
                   <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('SearchExplore')}>
                      <Search size={20} color="black" />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('PostJob')}>
-                     <Plus size={20} color="black" />
+                  <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Messages')}>
+                     <MessageSquare size={20} color="black" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Notifications')}>
+                     <Bell size={20} color="black" />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.headerIcon} onPress={() => setSidebarOpen(true)}>
                      <Menu size={20} color="black" />

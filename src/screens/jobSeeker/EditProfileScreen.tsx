@@ -8,6 +8,8 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -25,6 +27,25 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 
 const BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
+
+const InputField = ({ label, icon: Icon, value, onChangeText, multiline, ...props }: any) => (
+  <VStack mb={20}>
+     <Text fontSize={14} fontWeight="700" color="#666666" mb={8}>{label}</Text>
+     <Box bg="white" rounded={12} px={12} py={12} border={1} borderColor="#E5E7EB">
+        <HStack items={multiline ? 'flex-start' : 'center'}>
+           <Icon size={20} color="#65676B" style={{ marginTop: multiline ? 4 : 0 }} />
+           <TextInput 
+              value={value} 
+              onChangeText={onChangeText}
+              multiline={multiline}
+              style={[styles.input, { height: multiline ? 100 : 22 }]}
+              placeholderTextColor="#9CA3AF"
+              {...props}
+           />
+        </HStack>
+     </Box>
+  </VStack>
+);
 
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -73,25 +94,6 @@ export default function EditProfileScreen({ navigation }: any) {
     }
   };
 
-  const InputField = ({ label, icon: Icon, value, onChangeText, multiline, ...props }: any) => (
-    <VStack mb={20}>
-       <Text fontSize={14} fontWeight="700" color="#666666" mb={8}>{label}</Text>
-       <Box bg="white" rounded={12} px={12} py={12} border={1} borderColor="#E5E7EB">
-          <HStack items={multiline ? 'flex-start' : 'center'}>
-             <Icon size={20} color="#65676B" style={{ marginTop: multiline ? 4 : 0 }} />
-             <TextInput 
-                value={value} 
-                onChangeText={onChangeText}
-                multiline={multiline}
-                style={[styles.input, { height: multiline ? 100 : 22 }]}
-                placeholderTextColor="#9CA3AF"
-                {...props}
-             />
-          </HStack>
-       </Box>
-    </VStack>
-  );
-
   return (
     <ScreenWrapper safeAreaTop={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
@@ -111,56 +113,62 @@ export default function EditProfileScreen({ navigation }: any) {
          </HStack>
       </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-         <VStack items="center" mb={24}>
-            <Box>
-               <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size={100} />
-               <TouchableOpacity style={styles.photoBtn}>
-                  <Camera size={20} color="white" />
-               </TouchableOpacity>
-            </Box>
-            <Text fontSize={14} color={BLUE} fontWeight="700" mt={12}>Change profile photo</Text>
-         </VStack>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+           <VStack items="center" mb={24}>
+              <Box>
+                 <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size={100} />
+                 <TouchableOpacity style={styles.photoBtn}>
+                    <Camera size={20} color="white" />
+                 </TouchableOpacity>
+              </Box>
+              <Text fontSize={14} color={BLUE} fontWeight="700" mt={12}>Change profile photo</Text>
+           </VStack>
 
-         <VStack mb={24}>
-            <InputField 
-               label="Full Name" 
-               icon={User} 
-               value={formData.full_name}
-               onChangeText={(text: string) => setFormData({ ...formData, full_name: text })}
-            />
-            <InputField 
-               label="Headline" 
-               icon={Briefcase} 
-               placeholder="e.g. Senior Software Engineer"
-               value={formData.job_title}
-               onChangeText={(text: string) => setFormData({ ...formData, job_title: text })}
-            />
-            <InputField 
-               label="Location" 
-               icon={MapPin} 
-               placeholder="e.g. London, UK"
-               value={formData.location}
-               onChangeText={(text: string) => setFormData({ ...formData, location: text })}
-            />
-            <InputField 
-               label="Bio / Summary" 
-               icon={Globe} 
-               placeholder="Tell the professional world about yourself..."
-               multiline
-               value={formData.bio}
-               onChangeText={(text: string) => setFormData({ ...formData, bio: text })}
-            />
-         </VStack>
+           <VStack mb={24}>
+              <InputField 
+                 label="Full Name" 
+                 icon={User} 
+                 value={formData.full_name}
+                 onChangeText={(text: string) => setFormData({ ...formData, full_name: text })}
+              />
+              <InputField 
+                 label="Headline" 
+                 icon={Briefcase} 
+                 placeholder="e.g. Senior Software Engineer"
+                 value={formData.job_title}
+                 onChangeText={(text: string) => setFormData({ ...formData, job_title: text })}
+              />
+              <InputField 
+                 label="Location" 
+                 icon={MapPin} 
+                 placeholder="e.g. London, UK"
+                 value={formData.location}
+                 onChangeText={(text: string) => setFormData({ ...formData, location: text })}
+              />
+              <InputField 
+                 label="Bio / Summary" 
+                 icon={Globe} 
+                 placeholder="Tell the professional world about yourself..."
+                 multiline
+                 value={formData.bio}
+                 onChangeText={(text: string) => setFormData({ ...formData, bio: text })}
+              />
+           </VStack>
 
-         <Button 
-            label="Save Professional Identity" 
-            loading={loading} 
-            onPress={handleSave} 
-            bg={BLUE}
-            style={{ height: 52, borderRadius: 26 }} 
-         />
-      </ScrollView>
+           <Button 
+              label="Save Professional Identity" 
+              loading={loading} 
+              onPress={handleSave} 
+              bg={BLUE}
+              style={{ height: 52, borderRadius: 26 }} 
+           />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 }
