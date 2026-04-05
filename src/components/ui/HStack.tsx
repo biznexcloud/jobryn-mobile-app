@@ -20,7 +20,7 @@ export function HStack({
   alignSelf, flexDirection, flexWrap,
   w, h, roundedTop, roundedBottom,
   borderTopLeft, borderTopRight, borderBottomLeft, borderBottomRight,
-  maxW, maxH, minW, minH, flexDir,
+  maxW, maxH, minW, minH, flexDir, shadow,
   ...props 
 }: HStackProps) {
   const shorthand = getShorthandStyles({
@@ -34,7 +34,7 @@ export function HStack({
     alignSelf, flexDirection, flexWrap,
     w, h, roundedTop, roundedBottom,
     borderTopLeft, borderTopRight, borderBottomLeft, borderBottomRight,
-    maxW, maxH, minW, minH, flexDir,
+    maxW, maxH, minW, minH, flexDir, shadow,
   });
   
   return (

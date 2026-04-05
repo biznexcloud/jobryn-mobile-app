@@ -20,7 +20,7 @@ export function VStack({
   alignSelf, flexDirection, flexWrap,
   w, h, roundedTop, roundedBottom,
   borderTopLeft, borderTopRight, borderBottomLeft, borderBottomRight,
-  maxW, maxH, minW, minH, flexDir,
+  maxW, maxH, minW, minH, flexDir, shadow,
   ...props 
 }: VStackProps) {
   const shorthand = getShorthandStyles({
@@ -34,7 +34,7 @@ export function VStack({
     alignSelf, flexDirection, flexWrap,
     w, h, roundedTop, roundedBottom,
     borderTopLeft, borderTopRight, borderBottomLeft, borderBottomRight,
-    maxW, maxH, minW, minH, flexDir,
+    maxW, maxH, minW, minH, flexDir, shadow,
   });
   
   return (

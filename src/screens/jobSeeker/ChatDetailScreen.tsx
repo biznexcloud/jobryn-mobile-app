@@ -520,7 +520,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
             <Text fontSize={18} fontWeight="700" color="#050505" mb={16}>Experience</Text>
             <VStack mb={12}>
               <HStack items="flex-start">
-                <Briefcase size={22} color="#65676B" mt={2} />
+                <Briefcase size={22} color="#65676B" style={{ marginTop: 2 }} />
                 <VStack ml={16} flex={1}>
                   <Text fontSize={16} fontWeight="600" color="#050505">Senior Product Designer</Text>
                   <Text fontSize={15} color="#4B4D52" mt={2}>TechHive</Text>
@@ -530,7 +530,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
             </VStack>
             <VStack>
               <HStack items="flex-start">
-                <Briefcase size={22} color="#65676B" mt={2} />
+                <Briefcase size={22} color="#65676B" style={{ marginTop: 2 }} />
                 <VStack ml={16} flex={1}>
                   <Text fontSize={16} fontWeight="600" color="#050505">UX Designer</Text>
                   <Text fontSize={15} color="#4B4D52" mt={2}>Meta Systems</Text>
@@ -544,7 +544,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
           <VStack mb={24}>
             <Text fontSize={18} fontWeight="700" color="#050505" mb={16}>Education</Text>
             <HStack items="flex-start">
-              <GraduationCap size={24} color="#65676B" mt={2} />
+              <GraduationCap size={24} color="#65676B" style={{ marginTop: 2 }} />
               <VStack ml={16} flex={1}>
                 <Text fontSize={16} fontWeight="600" color="#050505">Tribhuvan University</Text>
                 <Text fontSize={15} color="#4B4D52" mt={2}>BSc Computer Science, Design</Text>
@@ -557,7 +557,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
           <VStack mb={24}>
             <Text fontSize={18} fontWeight="700" color="#050505" mb={16}>Projects</Text>
             <HStack items="flex-start">
-              <ImageIcon size={22} color="#65676B" mt={2} />
+              <ImageIcon size={22} color="#65676B" style={{ marginTop: 2 }} />
               <VStack ml={16} flex={1}>
                 <Text fontSize={16} fontWeight="600" color="#050505">Global FinTech Redesign</Text>
                 <Text fontSize={15} color="#4B4D52" mt={2} lineHeight={22}>Complete overhaul of the mobile banking experience.</Text>
