@@ -44,24 +44,32 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
     setLoading(true);
     try {
       const resp = await AuthService.login(email, password);
-      const { access, user } = resp;
-      const targetRole = user?.role === 'recruiter' ? Roles.JOB_PROVIDER : Roles.JOB_SEEKER;
-      login(targetRole, access, user);
+      
+      // Support both { token: { access }, role } and older { access, user } formats to be safe
+      const access = resp.token?.access || resp.access;
+      const rawRole = resp.role || resp.user?.role;
+      
+      // Map backend role to app role
+      const targetRole = (rawRole === 'recruiter' || rawRole === 'job_provider') 
+         ? Roles.JOB_PROVIDER 
+         : Roles.JOB_SEEKER;
+         
+      const userData = resp.user || { email, role: rawRole };
+
+      // Existing users logging in are already onboarded — set true so they land on dashboard
+      login(targetRole, access, userData, true);
     } catch (err: any) {
       setLoading(false);
-      setError('Invalid credentials. Please check your email and password.');
+      const apiError = err.response?.data?.msg || err.response?.data?.error || err.response?.data?.detail || 'Invalid credentials. Please check your email and password.';
+      setError(apiError);
+      
+      // If unverified, navigate to OTP screen
+      if (apiError.toLowerCase().includes('verify') || apiError.toLowerCase().includes('otp')) {
+        setTimeout(() => {
+          navigation.navigate('VerifyOtp', { email });
+        }, 1500);
+      }
     }
-  };
-
-  const handleDemoLogin = (role: UserRole) => {
-    const dummyUser = {
-      id: role === Roles.JOB_SEEKER ? 'demo-seeker-id' : 'demo-provider-id',
-      name: role === Roles.JOB_SEEKER ? 'Demo Seeker' : 'Demo Provider',
-      email: role === Roles.JOB_SEEKER ? 'seeker@demo.com' : 'provider@demo.com',
-      role: role === Roles.JOB_SEEKER ? 'seeker' : 'recruiter',
-      avatar: 'https://i.pravatar.cc/150?u=' + role,
-    };
-    login(role, 'demo_token_12345', dummyUser, true);
   };
 
   return (
@@ -127,24 +135,6 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
                textStyle={{ color: BLUE, fontSize: 16, fontWeight: '800' }}
             />
 
-            <VStack space="sm" mt={10}>
-               <Text fontSize={12} color="#999999" textAlign="center" mb={4}>QUICK DEMO ACCESS</Text>
-               <HStack space="md" justify="center">
-                  <TouchableOpacity 
-                     onPress={() => handleDemoLogin(Roles.JOB_SEEKER)}
-                     style={styles.demoButton}
-                  >
-                     <Text color={BLUE} fontWeight="700" fontSize={13}>Job Seeker</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                     onPress={() => handleDemoLogin(Roles.JOB_PROVIDER)}
-                     style={styles.demoButton}
-                  >
-                     <Text color={BLUE} fontWeight="700" fontSize={13}>Job Provider</Text>
-                  </TouchableOpacity>
-               </HStack>
-            </VStack>
          </VStack>
 
          <VStack items="center" mt={40} mb={20}>

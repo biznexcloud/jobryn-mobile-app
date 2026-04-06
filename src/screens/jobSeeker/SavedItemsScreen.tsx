@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { Text } from '../../components/ui/Text';
-import { Box } from '../../components/ui/Box';
-import { VStack } from '../../components/ui/VStack';
-import { HStack } from '../../components/ui/HStack';
-import { BookmarkIcon, BriefcaseIcon } from 'react-native-heroicons/solid';
-import { LocationMarkerIcon } from 'react-native-heroicons/outline';
-import { Colors } from '../../constants';
+import { FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { Text, Box, VStack, HStack, ScreenWrapper } from '../../components/ui';
+import { Bookmark, Briefcase, ChevronLeft } from 'lucide-react-native';
 import { JobService } from '../../services/api/jobs';
+import { JobCard } from '../../components/cards/JobCard';
+import { useNavigation } from '@react-navigation/native';
+import { Job } from '../../types';
+
+import { MOCK_SAVED_JOBS } from '../../constants/MockData';
+
+const BLUE = '#0A66C2';
+const SOFT_BG = '#F3F2EF';
 
 const SavedItemsScreen = () => {
-  const [savedJobs, setSavedJobs] = useState([]);
+  const navigation = useNavigation<any>();
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,75 +22,65 @@ const SavedItemsScreen = () => {
   }, []);
 
   const fetchSavedJobs = async () => {
+    setLoading(true);
     try {
       const response = await JobService.getSavedJobs();
-      setSavedJobs(response.data || []);
+      setSavedJobs(response.data?.length > 0 ? response.data : MOCK_SAVED_JOBS);
     } catch (error) {
-      console.error('Error fetching saved jobs:', error);
+      // Fallback for demo
+      setSavedJobs(MOCK_SAVED_JOBS);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderItem = ({ item }: any) => (
-    <TouchableOpacity style={styles.card}>
-      <HStack justify="space-between">
-        <VStack flex={1}>
-          <Text fontWeight="bold" fontSize={16}>{item.job_title}</Text>
-          <HStack mt={4} items="center">
-            <BriefcaseIcon size={14} color={Colors.textSecondary} />
-            <Text fontSize={14} color={Colors.textSecondary} ml={4}>{item.company_name}</Text>
-          </HStack>
-          <HStack mt={2} items="center">
-            <LocationMarkerIcon size={14} color={Colors.textSecondary} />
-            <Text fontSize={14} color={Colors.textSecondary} ml={4}>{item.location}</Text>
-          </HStack>
-        </VStack>
-        <TouchableOpacity>
-          <BookmarkIcon size={24} color={Colors.primary} />
-        </TouchableOpacity>
-      </HStack>
-    </TouchableOpacity>
-  );
-
   return (
-    <Box flex={1} bg={Colors.white} pt={10}>
+    <ScreenWrapper safeAreaTop={false} backgroundColor={SOFT_BG}>
+      <Box px={16} pt={60} pb={16} bg="white" borderBottom={1} borderColor="#E0E0E0">
+         <HStack items="center">
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+               <ChevronLeft size={24} color="#000000" />
+            </TouchableOpacity>
+            <VStack ml={16}>
+               <Text fontSize={22} fontWeight="800" color="#000000">Saved Jobs</Text>
+               <Text fontSize={13} color="#666666" mt={2}>Easily access your favorite opportunities</Text>
+            </VStack>
+         </HStack>
+      </Box>
+
       <FlatList
         data={savedJobs}
-        renderItem={renderItem}
-        keyExtractor={(item: any) => item.id?.toString() || Math.random().toString()}
+        renderItem={({ item }) => (
+          <Box px={12} pt={8}>
+            <JobCard 
+              job={item as any} 
+              onPress={() => navigation.navigate('JobDetail', { id: item.id })}
+              onApply={() => navigation.navigate('ApplyForm', { job: item })}
+              onSave={() => console.log('Unsaved', item.id)}
+            />
+          </Box>
+        )}
+        keyExtractor={(item: any) => item.id?.toString()}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={fetchSavedJobs} />
+          <RefreshControl refreshing={loading} onRefresh={fetchSavedJobs} tintColor={BLUE} />
         }
         ListEmptyComponent={
           loading ? null : (
-            <VStack flex={1} items="center" justify="center" p={40}>
-              <BookmarkIcon size={60} color="#E5E7EB" />
-              <Text fontWeight="bold" fontSize={18} mt={16}>No Saved Jobs</Text>
-              <Text textAlign="center" color={Colors.textSecondary} mt={8}>Jobs you save will appear here for easy access later.</Text>
+            <VStack flex={1} items="center" justify="center" p={60} mt={40}>
+              <Box bg="white" p={24} rounded={999} mb={20} border={1} borderColor="#E0E0E0">
+                <Bookmark size={40} color="#CBD5E1" />
+              </Box>
+              <Text fontWeight="800" fontSize={18} color="#000000">No Saved Jobs</Text>
+              <Text textAlign="center" color="#666666" mt={8} fontSize={14}>
+                Found a mission you like? Save it here for quick access later.
+              </Text>
             </VStack>
           )
         }
       />
-    </Box>
+    </ScreenWrapper>
   );
-};
-
-const styles = {
-  card: {
-    backgroundColor: 'white',
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  }
 };
 
 export default SavedItemsScreen;

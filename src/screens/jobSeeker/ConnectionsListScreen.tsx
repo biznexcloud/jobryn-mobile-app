@@ -7,24 +7,16 @@ import { ChevronLeft, Search, MessageSquare, UserMinus, UserPlus, MoreVertical }
 const BLUE = '#1066C2';
 const FB_GRAY = '#F0F2F5';
 
-const DUMMY_CONNECTIONS = [
-  { id: '1', name: 'Arjun Sharma', headline: 'Senior Product Manager @ Meta', avatar: 'https://i.pravatar.cc/150?u=1' },
-  { id: '2', name: 'Sarah Jenkins', headline: 'UX Design Lead', avatar: 'https://i.pravatar.cc/150?u=2' },
-  { id: '3', name: 'David Chen', headline: 'Full Stack Developer | React Native Expert', avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '4', name: 'Priya Patel', headline: 'HR Specialist @ Google', avatar: 'https://i.pravatar.cc/150?u=4' },
-  { id: '5', name: 'Michael Ross', headline: 'Corporate Lawyer | Legal Tech Advisory', avatar: 'https://i.pravatar.cc/150?u=5' },
-  { id: '6', name: 'Emily White', headline: 'Content Strategist & Copywriter', avatar: 'https://i.pravatar.cc/150?u=6' },
-  { id: '7', name: 'Kevin Lee', headline: 'Backend Engineer @ Amazon', avatar: 'https://i.pravatar.cc/150?u=7' },
-];
+import { MOCK_NETWORK_SUGGESTIONS } from '../../constants/MockData';
 
 export default function ConnectionsListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
-  const [connections, setConnections] = useState(DUMMY_CONNECTIONS);
+  const [connections, setConnections] = useState(MOCK_NETWORK_SUGGESTIONS);
 
   const filteredConnections = connections.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.headline.toLowerCase().includes(search.toLowerCase())
+    c.role.toLowerCase().includes(search.toLowerCase())
   );
 
   const ConnectionItem = ({ item }: any) => (
@@ -34,7 +26,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
              <Avatar source={{ uri: item.avatar }} size="lg" />
              <VStack ml={12} flex={1}>
                 <Text fontSize={16} fontWeight="700" color="#1C1E21">{item.name}</Text>
-                <Text fontSize={13} color="#65676B" mt={2} numberOfLines={2}>{item.headline}</Text>
+                <Text fontSize={13} color="#65676B" mt={2} numberOfLines={2}>{item.role}</Text>
              </VStack>
           </HStack>
           <HStack space="sm" ml={8}>

@@ -51,14 +51,7 @@ const FB_BLUE = '#1877F2';
 
 const { height: SCREEN_HEIGHT, width } = Dimensions.get('window');
 
-const DUMMY_PHOTOS = [
-  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=400',
-];
+
 
 export default function ChatDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -96,22 +89,9 @@ export default function ChatDetailScreen({ route, navigation }: any) {
     const fetchMessages = async () => {
       try {
         const resp = await MessageService.getMessages(id);
-        const fallback = [
-          { id: 1, sender: { id: 99, name: name }, content: 'Hi! I saw your recent post about your amazing work. We are looking for someone with your expertise for an exciting new role.', created_at: new Date().toISOString() },
-          { id: 2, sender: { id: user?.id, name: 'Me' }, content: 'Hello! Thanks for reaching out. I would love to hear more about the opportunity!', created_at: new Date().toISOString() },
-          { id: 3, sender: { id: 99, name: name }, content: 'Great! We are building a next-gen product and need a strong engineer. Are you available for a quick call this week?', created_at: new Date().toISOString() },
-        ];
-        const initialMsgs = resp?.results?.length ? resp.results : fallback;
-        // Inverted FlatList needs latest messages at the BEGINNING of the array
-        setMessages([...initialMsgs].reverse());
       } catch (e) {
-        // Always show demo messages so the chat never appears blank
-        const fallback = [
-          { id: 1, sender: { id: 99, name: name }, content: 'Hi! I saw your recent post about your amazing work. We are looking for someone with your expertise for an exciting new role.', created_at: new Date().toISOString() },
-          { id: 2, sender: { id: user?.id, name: 'Me' }, content: 'Hello! Thanks for reaching out. I would love to hear more about the opportunity!', created_at: new Date().toISOString() },
-          { id: 3, sender: { id: 99, name: name }, content: 'Great! We are building a next-gen product and need a strong engineer. Are you available for a quick call this week?', created_at: new Date().toISOString() },
-        ];
-        setMessages([...fallback].reverse());
+        console.warn('Failed to fetch messages:', e);
+        setMessages([]);
       } finally {
         setLoading(false);
       }
@@ -572,10 +552,11 @@ export default function ChatDetailScreen({ route, navigation }: any) {
               <Text fontSize={18} fontWeight="700" color="#050505">Photos</Text>
               <Text fontSize={14} fontWeight="600" color={FB_BLUE}>See all</Text>
             </HStack>
+            {/* Photo Gallery Logic - Cleaned for Production */}
             <HStack flexWrap="wrap" justify="space-between" style={{ gap: 8 }}>
-              {DUMMY_PHOTOS.map((uri, i) => (
+              {messages.filter(m => m.image).slice(0, 6).map((msg, i) => (
                 <Box key={i} style={{ flexBasis: '31%', aspectRatio: 1 }}>
-                  <RNImage source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 8 }} />
+                  <RNImage source={{ uri: msg.image }} style={{ width: '100%', height: '100%', borderRadius: 8 }} />
                 </Box>
               ))}
             </HStack>

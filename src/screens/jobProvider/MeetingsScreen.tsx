@@ -4,35 +4,31 @@ import {
   TouchableOpacity,
   RefreshControl,
   StatusBar,
-  Image,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import Sidebar from '../../components/common/Sidebar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  CalendarIcon,
-  VideoCameraIcon,
-  ClockIcon,
-  ChevronRightIcon,
-  BellIcon,
-} from 'react-native-heroicons/outline';
-import { moderateScale } from '../../utils/responsive';
-import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Avatar } from '../../components/ui';
+  Calendar,
+  Video,
+  Clock,
+  ChevronRight,
+  Bell,
+  MoreVertical,
+  Plus,
+} from 'lucide-react-native';
+import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Avatar, Heading, Button } from '../../components/ui';
 import { MeetingService } from '../../services/api/meetings';
 import { useAuthStore } from '../../store/authStore';
 
-const GREEN = '#10B981';
-const BLUE = '#4F46E5';
+const BLUE = '#0A66C2'; 
+const GREEN = '#057642';
+const GRAY_TEXT = '#666666';
+const SOFT_BG = '#F3F2EF';
 
-interface MeetingsScreenProps {
-  navigation?: any;
-  route?: any;
-}
-
-export default function MeetingsScreen({ navigation, route }: MeetingsScreenProps) {
-  const role = route?.params?.role || 'recruiter';
+export default function MeetingsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,28 +37,27 @@ export default function MeetingsScreen({ navigation, route }: MeetingsScreenProp
       const res = await MeetingService.getRecruiterMeetings();
       setUpcoming(res?.results || []);
     } catch (err) {
-      console.warn('Failed to load meetings', err);
-      // Fallback for Demo Mode
-      if (useAuthStore.getState().token === 'demo-token' || true) {
-        setUpcoming([
-          { 
-            id: 1, 
-            agenda: 'Candidate Portfolio Review', 
-            seeker_name: 'Sanjeev Giri', 
-            meeting_time: '2026-04-05T10:00:00Z',
-            is_virtual: true,
-            status: 'scheduled'
-          },
-          { 
-            id: 2, 
-            agenda: 'Discovery Call: Frontend Role', 
-            seeker_name: 'Anupama Rai', 
-            meeting_time: '2026-04-05T14:30:00Z',
-            is_virtual: true,
-            status: 'scheduled'
-          }
-        ]);
-      }
+      // Fallback for Demo
+      setUpcoming([
+        { 
+          id: 1, 
+          agenda: 'Technical Interview', 
+          seeker_name: 'Sanjeev Giri', 
+          meeting_time: '2026-04-05T10:00:00Z',
+          is_virtual: true,
+          status: 'scheduled',
+          avatar: 'https://i.pravatar.cc/150?u=s1'
+        },
+        { 
+          id: 2, 
+          agenda: 'Portfolio Review', 
+          seeker_name: 'Anupama Rai', 
+          meeting_time: '2026-04-05T14:30:00Z',
+          is_virtual: true,
+          status: 'scheduled',
+          avatar: 'https://i.pravatar.cc/150?u=a1'
+        }
+      ]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -73,89 +68,123 @@ export default function MeetingsScreen({ navigation, route }: MeetingsScreenProp
     loadMeetings();
   }, []);
 
+  const getStatusConfig = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'scheduled': return { color: BLUE, bg: '#EDF3F8', label: 'Scheduled' };
+      case 'confirmed': return { color: GREEN, bg: '#EDF9F2', label: 'Confirmed' };
+      default: return { color: GRAY_TEXT, bg: '#F3F2EF', label: status };
+    }
+  };
+
   return (
-    <ScreenWrapper safeAreaTop safeAreaBottom={false} backgroundColor="#F8FAFC">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <ScreenWrapper safeAreaTop={false} backgroundColor={SOFT_BG}>
+      <StatusBar barStyle="dark-content" />
       
-      {/* Titanium Header */}
-      <Box p={20} bg="white" borderBottom={1} borderColor="#F1F5F9">
+      {/* Header */}
+      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E0E0E0">
          <HStack justify="space-between" items="center">
-            <TouchableOpacity onPress={() => navigation?.goBack()}>
-               <Text fontSize={18} fontWeight="900" color="#111827">Mission Schedule</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation?.navigate('Notifications')}>
-               <BellIcon size={24} color="#111827" />
-            </TouchableOpacity>
+            <HStack items="center">
+               <TouchableOpacity onPress={() => navigation?.goBack()}>
+                  <Heading fontSize={22} fontWeight="800" color="#000000">Mission Schedule</Heading>
+               </TouchableOpacity>
+            </HStack>
+            <HStack space="lg">
+               <TouchableOpacity onPress={() => navigation?.navigate('Notifications')}>
+                  <Bell size={22} color="#000000" />
+               </TouchableOpacity>
+               <TouchableOpacity style={styles.addBtn}>
+                  <Plus size={22} color="white" />
+               </TouchableOpacity>
+            </HStack>
          </HStack>
       </Box>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadMeetings} tintColor={BLUE} />}
-        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
       >
-        <VStack space="lg">
-           <HStack justify="space-between" items="center">
-              <VStack>
-                 <Text fontSize={12} fontWeight="900" color="#94A3B8" letterSpacing={1}>ENGAGEMENT PIPELINE</Text>
-                 <Text fontSize={20} fontWeight="900" color="#111827" mt={2}>{upcoming.length} Active Briefings</Text>
-              </VStack>
-              <Box bg={BLUE} px={12} py={6} rounded={8}>
-                 <Text fontSize={11} fontWeight="900" color="white">LIVE SYNC</Text>
-              </Box>
-           </HStack>
-
-           <Divider color="#F1F5F9" />
-
-           {loading ? (
-             <ActivityIndicator size="small" color={BLUE} style={{ marginTop: 40 }} />
-           ) : (
-             upcoming.map((meeting) => (
-               <TouchableOpacity 
-                 key={meeting.id} 
-                 style={styles.meetingCard}
-                 activeOpacity={0.9}
-                 onPress={() => navigation?.navigate('ScheduleMeeting', { meeting })}
-               >
-                  <VStack p={20} bg="white" rounded={24} border={1} borderColor="#F1F5F9" style={styles.premiumShadow}>
-                     <HStack justify="space-between" items="center" mb={16}>
-                        <HStack items="center">
-                           <Box w={40} h={40} rounded={12} bg="#F0F7FF" items="center" justify="center">
-                              <CalendarIcon size={20} color={BLUE} />
-                           </Box>
-                           <VStack ml={12}>
-                              <Text fontSize={15} fontWeight="900" color="#111827">{meeting.agenda}</Text>
-                              <Text fontSize={12} color="#64748B" fontWeight="700">Interview with {meeting.seeker_name}</Text>
-                           </VStack>
-                        </HStack>
-                        <Box bg="#E1F0E5" px={8} py={4} rounded={6}>
-                           <Text fontSize={10} fontWeight="900" color={GREEN}>CONFIRMED</Text>
-                        </Box>
-                     </HStack>
-
-                     <Divider color="#F8FAFC" mb={16} />
-
-                     <HStack justify="space-between" items="center">
-                        <HStack space="md">
-                           <HStack items="center">
-                              <ClockIcon size={14} color="#94A3B8" />
-                              <Text fontSize={13} color="#64748B" ml={6} fontWeight="700">10:00 AM</Text>
-                           </HStack>
-                           {meeting.is_virtual && (
-                             <HStack items="center">
-                                <VideoCameraIcon size={14} color="#94A3B8" />
-                                <Text fontSize={13} color="#64748B" ml={6} fontWeight="700">Virtual Hub</Text>
-                             </HStack>
-                           )}
-                        </HStack>
-                        <TouchableOpacity style={styles.joinBtn}>
-                           <Text fontSize={13} fontWeight="900" color="white">Launch Meeting</Text>
-                        </TouchableOpacity>
-                     </HStack>
+        <VStack p={12} space="lg">
+            {/* Analytics Summary */}
+            <Box bg="white" p={16} rounded={12} border={1} borderColor="#E0E0E0">
+               <HStack justify="space-between" items="center">
+                  <VStack>
+                     <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5}>ACTIVE PIPELINE</Text>
+                     <Heading fontSize={20} fontWeight="800" color="#000000" mt={4}>{upcoming.length} Sessions</Heading>
                   </VStack>
-               </TouchableOpacity>
-             ))
-           )}
+                  <Box bg="#EDF3F8" p={10} rounded={8}>
+                     <Calendar size={20} color={BLUE} />
+                  </Box>
+               </HStack>
+            </Box>
+
+            {loading ? (
+              <ActivityIndicator size="small" color={BLUE} style={{ marginTop: 40 }} />
+            ) : (
+              upcoming.map((meeting) => {
+                const status = getStatusConfig(meeting.status);
+                return (
+                  <Box key={meeting.id} bg="white" rounded={12} border={1} borderColor="#E0E0E0" overflow="hidden">
+                    <TouchableOpacity 
+                      activeOpacity={0.9}
+                      onPress={() => navigation?.navigate('ScheduleMeeting', { meeting })}
+                      style={{ padding: 16 }}
+                    >
+                       <HStack justify="space-between" items="flex-start">
+                          <HStack space="md" flex={1}>
+                             <Avatar source={{ uri: meeting.avatar }} size="md" rounded={6} />
+                             <VStack flex={1}>
+                                <Heading fontSize={16} fontWeight="700" color="#000000">{meeting.agenda}</Heading>
+                                <Text fontSize={13} color={GRAY_TEXT} mt={2}>Interview with {meeting.seeker_name}</Text>
+                             </VStack>
+                          </HStack>
+                          <Box bg={status.bg} px={8} py={4} rounded={4}>
+                             <Text fontSize={10} fontWeight="800" color={status.color}>{status.label.toUpperCase()}</Text>
+                          </Box>
+                       </HStack>
+
+                       <HStack mt={16} space="md" flexWrap="wrap">
+                          <HStack items="center" space="xs" mr={8} mb={4}>
+                             <Clock size={14} color={GRAY_TEXT} />
+                             <Text fontSize={13} color={GRAY_TEXT} fontWeight="600">10:00 AM</Text>
+                          </HStack>
+                          {meeting.is_virtual && (
+                            <HStack items="center" space="xs" mb={4}>
+                               <Video size={14} color={BLUE} />
+                               <Text fontSize={13} color={BLUE} fontWeight="600">Virtual Hub</Text>
+                            </HStack>
+                          )}
+                       </HStack>
+
+                       <Divider color="#F1F1F1" my={16} />
+
+                       <HStack justify="space-between" items="center">
+                          <Button 
+                             label="Launch Meeting" 
+                             onPress={() => {}} 
+                             style={{ backgroundColor: BLUE, height: 36, borderRadius: 18, paddingHorizontal: 16 }}
+                             textStyle={{ fontSize: 13, fontWeight: '700' }}
+                          />
+                          <TouchableOpacity>
+                             <MoreVertical size={20} color={GRAY_TEXT} />
+                          </TouchableOpacity>
+                       </HStack>
+                    </TouchableOpacity>
+                  </Box>
+                );
+              })
+            )}
+
+            {upcoming.length === 0 && !loading && (
+               <VStack items="center" mt={40} px={40}>
+                  <Box bg="white" p={24} rounded={999} mb={20} border={1} borderColor="#E0E0E0">
+                    <Calendar size={40} color="#D1D5DB" />
+                  </Box>
+                  <Text fontSize={18} fontWeight="800" color="#000000">Quiet schedule</Text>
+                  <Text fontSize={14} color={GRAY_TEXT} mt={8} textAlign="center">
+                    No active sessions scheduled. Try reaching out to potential candidates.
+                  </Text>
+               </VStack>
+            )}
         </VStack>
       </ScrollView>
     </ScreenWrapper>
@@ -163,13 +192,7 @@ export default function MeetingsScreen({ navigation, route }: MeetingsScreenProp
 }
 
 const styles = StyleSheet.create({
-  meetingCard: { marginBottom: 16 },
-  premiumShadow: {
-     shadowColor: '#0A1628', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 16, elevation: 4
-  },
-  joinBtn: {
-     backgroundColor: BLUE, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12
-  }
+  addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center' },
 });
 
 

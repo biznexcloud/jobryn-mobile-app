@@ -10,6 +10,7 @@ import {
 import { Colors } from '../../constants';
 import { moderateScale } from '../../utils/responsive';
 import { useNavigation } from '@react-navigation/native';
+import { MOCK_JOBS } from '../../constants/MockData';
 
 const BLUE = '#0A66C2';
 
@@ -28,13 +29,14 @@ const SearchExploreScreen = () => {
     { id: 4, title: 'Writing', count: '210', color: '#F5F3FF' },
   ];
 
-  const allJobs = [
-    { id: 1, title: 'Senior Frontend Developer', company: 'TechFlow', location: 'New York, US', salary: '$120k - $150k', type: 'Full-time' },
-    { id: 2, title: 'UX/UI Designer', company: 'CreativCo', location: 'Remote', salary: '$90k - $120k', type: 'Contract' },
-    { id: 3, title: 'Backend Engineer', company: 'DataSystems', location: 'Austin, TX', salary: '$130k - $160k', type: 'Full-time' },
-    { id: 4, title: 'Product Manager', company: 'GrowthX', location: 'Remote', salary: '$110k - $140k', type: 'Full-time' },
-    { id: 5, title: 'Graphic Designer', company: 'StudioInk', location: 'Los Angeles, CA', salary: '$70k - $90k', type: 'Part-time' },
-  ];
+  const allJobs = MOCK_JOBS.map(job => ({
+    id: job.id,
+    title: job.title,
+    company: job.company_name,
+    location: job.location,
+    salary: `${job.salary_min} - ${job.salary_max}`,
+    type: job.job_type === 'full_time' ? 'Full-time' : job.job_type === 'contract' ? 'Contract' : job.job_type === 'part_time' ? 'Part-time' : 'Remote'
+  }));
 
   // Rough Search Logic (Fuzzy Filtering)
   const filteredJobs = useMemo(() => {

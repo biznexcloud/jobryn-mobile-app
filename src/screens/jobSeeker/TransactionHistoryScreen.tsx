@@ -6,16 +6,16 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   Search, 
-  Calendar, 
   Filter, 
-  CheckCircle2,
   Clock,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react-native';
-import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Input } from '../../components/ui';
-import { moderateScale, verticalScale } from '../../utils/responsive';
+import { ScreenWrapper, Text, Box, VStack, HStack } from '../../components/ui';
+import { moderateScale } from '../../utils/responsive';
 
 const BLUE = '#4F46E5';
-const GRAY_BG = '#F9FAFB';
+const SOFT_BG = '#F8FAFC';
 
 export default function TransactionHistoryScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -30,68 +30,72 @@ export default function TransactionHistoryScreen({ navigation }: any) {
   ];
 
   const TransactionItem = ({ item }: { item: any }) => (
-    <Box bg="white" p={16} rounded={16} mb={10} border={1} borderColor="#E5E7EB">
+    <TouchableOpacity 
+      activeOpacity={0.7} 
+      style={styles.itemContainer}
+      onPress={() => navigation.navigate('TransactionDetail', { transaction: item })}
+    >
       <HStack items="center">
-        <Box bg={item.type === 'credit' ? '#F0FDFA' : '#FEF2F2'} p={10} rounded={12}>
+        <Box bg={item.type === 'credit' ? '#DCFCE7' : '#F1F5F9'} p={10} rounded={14}>
           {item.type === 'credit' ? (
-            <ArrowDownLeft size={20} color="#14B8A6" />
+            <ArrowDown size={18} color="#16A34A" />
           ) : (
-            <ArrowUpRight size={20} color="#EF4444" />
+            <ArrowUp size={18} color="#475569" />
           )}
         </Box>
         <VStack ml={12} flex={1}>
           <Text fontSize={15} fontWeight="700" color="#1E293B">{item.title}</Text>
-          <HStack items="center" mt={4}>
+          <HStack items="center" mt={2}>
             <Clock size={12} color="#94A3B8" />
             <Text fontSize={12} color="#94A3B8" ml={4}>{item.date} • {item.time}</Text>
           </HStack>
         </VStack>
         <VStack items="flex-end">
-          <Text fontSize={16} fontWeight="800" color={item.type === 'credit' ? '#14B8A6' : '#EF4444'}>
+          <Text fontSize={16} fontWeight="800" color={item.type === 'credit' ? '#16A34A' : '#1E293B'}>
             {item.type === 'credit' ? '+' : '-'}{item.amount}
           </Text>
-          <HStack items="center" mt={4}>
-            <Text fontSize={11} fontWeight="700" color={item.status === 'completed' ? '#059669' : '#D97706'} textTransform="uppercase">
+          <Box bg={item.status === 'completed' ? '#ECFDF5' : '#FFF7ED'} px={8} py={2} rounded={6} mt={4}>
+            <Text fontSize={10} fontWeight="800" color={item.status === 'completed' ? '#059669' : '#D97706'} textTransform="uppercase">
               {item.status}
             </Text>
-          </HStack>
+          </Box>
         </VStack>
       </HStack>
-    </Box>
+    </TouchableOpacity>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} backgroundColor={SOFT_BG}>
       <StatusBar barStyle="dark-content" />
       
-      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
+      <Box px={20} pt={insets.top + 20} pb={16} bg="white">
         <HStack items="center" justify="space-between">
           <HStack items="center">
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <ChevronLeft size={24} color="#1E293B" />
+              <ChevronLeft size={28} color="#1E293B" />
             </TouchableOpacity>
-            <Text fontSize={20} color="#1E293B" fontWeight="700" ml={16}>Activity</Text>
+            <Text fontSize={20} color="#1E293B" fontWeight="800" ml={12}>Activity</Text>
           </HStack>
-          <TouchableOpacity><Filter size={20} color="#64748B" /></TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn}><Filter size={20} color="#64748B" /></TouchableOpacity>
         </HStack>
-      </Box>
-
-      <Box px={16} py={12}>
-        <HStack bg="white" rounded={12} items="center" px={12} py={4} border={1} borderColor="#E2E8F0">
-          <Search size={18} color="#94A3B8" />
-          <TextInput 
-            style={styles.searchInput}
-            placeholder="Search transactions..."
-            placeholderTextColor="#94A3B8"
-          />
-        </HStack>
+        
+        <Box mt={20}>
+          <HStack bg="#F1F5F9" rounded={16} items="center" px={14} py={2}>
+            <Search size={18} color="#94A3B8" />
+            <TextInput 
+              style={styles.searchInput}
+              placeholder="Search history..."
+              placeholderTextColor="#94A3B8"
+            />
+          </HStack>
+        </Box>
       </Box>
 
       <FlatList 
         data={TRANSACTIONS}
         renderItem={TransactionItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
       />
     </ScreenWrapper>
@@ -99,5 +103,7 @@ export default function TransactionHistoryScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  searchInput: { flex: 1, height: 44, marginLeft: 8, fontSize: 14, color: '#1E293B' },
+  searchInput: { flex: 1, height: 44, marginLeft: 10, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+  iconBtn: { padding: 4 },
+  itemContainer: { paddingVertical: 14, borderBottomWidth: 0, marginBottom: 4 },
 });

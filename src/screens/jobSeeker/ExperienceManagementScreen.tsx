@@ -35,14 +35,13 @@ const ExperienceCard = ({ exp, onEdit, onDelete }: any) => (
   </Box>
 );
 
+import { MOCK_EXPERIENCE } from '../../constants/MockData';
+
 export default function ExperienceManagementScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [experiences, setExperiences] = useState([
-    { id: 1, position: 'Senior Software Engineer', company_name: 'TechCorp Solutions', start_date: 'Jan 2022', end_date: 'Present', location: 'London, UK', description: 'Leading the frontend team...' },
-    { id: 2, position: 'Mobile Developer', company_name: 'Innovate Mobile', start_date: 'Jun 2018', end_date: 'Dec 2021', location: 'Remote', description: 'Developed React Native apps...' },
-  ]);
+  const [experiences, setExperiences] = useState(MOCK_EXPERIENCE);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: any) => {
     Alert.alert('Delete Experience', 'Are you sure you want to remove this work history entry?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => setExperiences(experiences.filter(e => e.id !== id)) }

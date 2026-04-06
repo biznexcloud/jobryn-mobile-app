@@ -77,13 +77,13 @@ export default function SeekerLearningScreen({ navigation }: any) {
             <Text fontSize={18} fontWeight="700" color="#111827" mb={16}>Popular missions in Technology</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                <CourseCard 
-                  label="Advanced React Testing: Nexus Flow" 
+                  title="Advanced React Testing: Nexus Flow" 
                   category="Architecture" 
                   duration="2h 15m" 
                   image="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2940&auto=format&fit=crop" 
                />
                <CourseCard 
-                  label="UI Design Fundamentals for JobSeekers" 
+                  title="UI Design Fundamentals for JobSeekers" 
                   category="Design" 
                   duration="4h 30m" 
                   image="https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=2864&auto=format&fit=crop" 

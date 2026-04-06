@@ -46,17 +46,8 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
       const data = await ProfileService.getSeekerProfiles({ search: q });
       setResults(data?.results || []);
     } catch (e) {
-      // Fallback for Demo Mode
-      if (useAuthStore.getState().token === 'demo-token') {
-        const dummyCandidates = [
-          { id: 1, full_name: 'Sanjeev Giri', headline: 'Senior React Native Developer', location: 'Kathmandu', experience_years: 5 },
-          { id: 2, full_name: 'Anjali Sharma', headline: 'UI/UX Product Designer', location: 'Remote', experience_years: 3 },
-          { id: 3, full_name: 'Binod Tamang', headline: 'Node.js Backend Specialist', location: 'Lalitpur', experience_years: 4 },
-        ];
-        setResults(dummyCandidates.filter(c => c.full_name.toLowerCase().includes(q.toLowerCase()) || c.headline.toLowerCase().includes(q.toLowerCase())));
-      } else {
-        setResults([]);
-      }
+      console.warn('Search failed:', e);
+      setResults([]);
     } finally {
       setLoading(false);
     }

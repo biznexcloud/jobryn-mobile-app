@@ -4,7 +4,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'job_seeker' | 'recruiter';
+  role: 'job_seeker' | 'recruiter' | 'job_provider';
   avatar?: string;
   headline?: string;
   location?: string;
@@ -30,6 +30,8 @@ export interface Job {
   requirements: string;
   benefits: string;
   application_deadline: string | null;
+  company_logo?: string;
+  featured_image?: string;
   created_at: string;
 }
 
@@ -90,6 +92,8 @@ export interface Meeting {
   status_display?: string;
   created_at?: string;
   updated_at?: string;
+  avatar?: string;
+  is_virtual?: boolean;
   // Helpful relational data the frontend might inject or expect
   job_title?: string;
   company_name?: string;
@@ -124,9 +128,14 @@ export interface RegisterData {
 }
 
 export interface AuthResponse {
-  access: string;
+  token?: {
+    access: string;
+    refresh: string;
+  };
+  access?: string;
   refresh?: string;
-  user: User;
+  role?: 'job_seeker' | 'recruiter' | 'job_provider';
+  user?: User;
 }
 
 export interface Education {

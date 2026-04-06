@@ -22,17 +22,12 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
 
-const MOCK_NOTIFS = [
-  { id: 1, type: 'job', title: 'New mission match: "Senior Protocol Engineer"', subtitle: 'Nexus Corp is hiring in your area.', time: '2h', unread: true },
-  { id: 2, type: 'conn', title: 'Jhonson King connected with you', subtitle: 'Global Solutions Architect at FiberLink.', time: '4h', unread: true },
-  { id: 3, type: 'post', title: 'Sita Rai liked your post', subtitle: '"Optimizing the grid infrastructure..."', time: '1d', unread: false },
-  { id: 4, type: 'msg', title: 'You have a new message from Rahul', subtitle: '"Hey, are you interested in a new mission?"', time: '2d', unread: false },
-];
+import { MOCK_NOTIFICATIONS } from '../../constants/MockData';
 
 export default function SeekerNotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
-  const [notifs, setNotifs] = useState(MOCK_NOTIFS);
+  const [notifs, setNotifs] = useState(MOCK_NOTIFICATIONS);
 
   const onRefresh = () => {
     setRefreshing(true);

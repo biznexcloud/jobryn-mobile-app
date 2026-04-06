@@ -32,17 +32,11 @@ import { useAuthStore } from '../../store/authStore';
 import { ProfileService } from '../../services/api/profile';
 import { PortfolioService } from '../../services/api/portfolio';
 import { moderateScale } from '../../utils/responsive';
+import { MOCK_EXPERIENCE, MOCK_EDUCATION, MOCK_PROJECTS, MOCK_PHOTOS } from '../../constants/MockData';
 
 const { width } = Dimensions.get('window');
 
-const DUMMY_PHOTOS = [
-  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=400',
-];
+
 
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
@@ -66,12 +60,20 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
         PortfolioService.getExperience(),
         PortfolioService.getProjects(),
       ]);
-      setProfile(seekerProfiles?.results?.[0] || { full_name: authUser?.name || 'Professional', job_title: 'Expert' });
-      setEducation(edu?.results || []);
-      setExperience(exp?.results || []);
-      setProjects(proj?.results || []);
+      setProfile(seekerProfiles?.results?.[0] || { full_name: authUser?.name || 'Professional', job_title: 'Expert', bio: 'Passionate professional looking for new challenges.' });
+      
+      const fetchedEdu = edu?.results || [];
+      const fetchedExp = exp?.results || [];
+      const fetchedProj = proj?.results || [];
+
+      setEducation(fetchedEdu.length > 0 ? fetchedEdu : MOCK_EDUCATION);
+      setExperience(fetchedExp.length > 0 ? fetchedExp : MOCK_EXPERIENCE);
+      setProjects(fetchedProj.length > 0 ? fetchedProj : MOCK_PROJECTS);
     } catch (e) {
-      setProfile({ full_name: authUser?.name || 'Professional', job_title: 'Expert' });
+      setProfile({ full_name: authUser?.name || 'Professional', job_title: 'Expert', bio: 'Passionate professional looking for new challenges.' });
+      setEducation(MOCK_EDUCATION);
+      setExperience(MOCK_EXPERIENCE);
+      setProjects(MOCK_PROJECTS);
     } finally {
       setLoading(false);
     }
@@ -282,7 +284,7 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
               <TouchableOpacity onPress={() => navigation.navigate('PhotoViewer')}><Text fontSize={14} fontWeight="700" color={BLUE}>See all</Text></TouchableOpacity>
            </HStack>
            <HStack flexWrap="wrap" space="xs" justify="space-between">
-              {DUMMY_PHOTOS.map((uri, i) => (
+              {MOCK_PHOTOS.map((uri, i) => (
                  <TouchableOpacity key={i} onPress={() => navigation.navigate('PhotoViewer', { initialIndex: i })} style={styles.photoBox}>
                     <Image source={{ uri }} style={styles.galleryImage} />
                  </TouchableOpacity>

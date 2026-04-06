@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, View } from 'react-native';
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 
 // Layouts
 import { SeekerTabs, ProviderTabs } from './BottomTabs';
@@ -10,6 +11,7 @@ import { SeekerTabs, ProviderTabs } from './BottomTabs';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import VerifyOtpScreen from '../screens/auth/VerifyOtpScreen';
 
 // ─── Seeker Screens ────────────────────────────────────────────────────────────
 import SeekerProfileScreen from '../screens/jobSeeker/ProfileScreen';
@@ -81,6 +83,9 @@ import NotificationSettingsScreen from '../screens/shared/NotificationSettingsSc
 import PrivacySettingsScreen from '../screens/shared/PrivacySettingsScreen';
 import TopUpScreen from '../screens/jobSeeker/TopUpScreen';
 import TransactionHistoryScreen from '../screens/jobSeeker/TransactionHistoryScreen';
+import PayoutScreen from '../screens/jobSeeker/PayoutScreen';
+import TransactionDetailScreen from '../screens/shared/TransactionDetailScreen';
+import InvoiceDetailScreen from '../screens/shared/InvoiceDetailScreen';
 import LikersListScreen from '../screens/shared/LikersListScreen';
 import AIChatbotScreen from '../screens/shared/AIChatbotScreen';
 
@@ -92,7 +97,15 @@ import { Roles } from '../constants/Roles';
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator() {
-  const { user, userRole, token, onboarded, hasHydrated, setHasHydrated } = useAuthStore();
+  const { user, userRole, token, onboarded, hasHydrated, setHasHydrated, logout } = useAuthStore();
+
+  useEffect(() => {
+    // FORCE LOGOUT IF DEMO TOKEN DETECTED (to start professional flow)
+    if (token?.startsWith('demo_') || token === 'demo-token') {
+      console.log('--- PURGING DEMO SESSION ---');
+      logout();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -120,6 +133,7 @@ export default function MainNavigator() {
         <Stack.Group>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       ) : !onboarded ? (
@@ -155,6 +169,8 @@ export default function MainNavigator() {
           <Stack.Screen name="JobDetailProvider" component={JobDetailProviderScreen} />
           <Stack.Screen name="ScheduleMeeting" component={ScheduleMeetingScreen} />
           <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
           <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       ) : (
@@ -202,6 +218,11 @@ export default function MainNavigator() {
           <Stack.Screen name="SecuritySettings" component={SecuritySettingsScreen} />
           <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
           <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+          <Stack.Screen name="TopUp" component={TopUpScreen} />
+          <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
+          <Stack.Screen name="Payout" component={PayoutScreen} />
           <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       )}

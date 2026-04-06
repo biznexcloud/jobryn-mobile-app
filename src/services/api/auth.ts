@@ -36,6 +36,11 @@ export const AuthService = {
     const response = await apiClient.post('/account/reset-password/', { email, otp, new_password });
     return response.data;
   },
+  
+  resendOtp: async (email: string) => {
+    const response = await apiClient.post('/account/resend-otp/', { email });
+    return response.data;
+  },
 };
 
 

@@ -1,0 +1,13 @@
+=== Testing Login API ===
+URL: https://backend.jobryn.com/api/v1/account/login/
+Payload: {
+  "email": "rivanev578@flownue.com",
+  "password": "vilgax@123"
+}
+
+RESULT: FAILED
+Status: 403
+Response: {
+  "msg": "Email not verified. Please verify your OTP."
+}
+Message: Request failed with status code 403

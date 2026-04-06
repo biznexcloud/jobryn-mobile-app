@@ -1,34 +1,34 @@
 import React, { useState } from 'react';
 import {
-  View,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Linking,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ChevronLeft as ChevronLeftIcon,
-  Phone as PhoneIcon,
-  Mail as MailIcon,
-  MapPin as MapPinIcon,
-  GraduationCap as GraduationCapIcon,
-  Briefcase as BriefcaseIcon,
-  MoreVertical as MoreVerticalIcon,
-  CheckCircle as CheckCircleIcon,
-  XCircle as XCircleIcon,
-  Clock as ClockIcon,
+  ChevronLeft,
+  Phone,
+  Mail,
+  MapPin,
+  GraduationCap,
+  Briefcase,
+  MoreVertical,
+  Clock,
+  ExternalLink,
+  MessageSquare,
+  UserPlus,
+  ShieldCheck,
 } from 'lucide-react-native';
-import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
+import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button, Heading } from '../../components/ui';
 import RecruiterActionSheet from '../../components/recruiter/RecruiterActionSheet';
 import { ApplicationStatus } from '../../screens/jobProvider/ApplicantsScreen';
 import Toast from 'react-native-toast-message';
 
 const BLUE = '#0A66C2'; 
-const PROMOTED_GREEN = '#057642';
-const GRAY_BG = '#F3F2EF';
+const GRAY_TEXT = '#666666';
+const SOFT_BG = '#F3F2EF';
 
 export default function ApplicantDetailScreen({ route, navigation }: { route: any; navigation?: any }) {
   const insets = useSafeAreaInsets();
@@ -39,127 +39,158 @@ export default function ApplicantDetailScreen({ route, navigation }: { route: an
   const handleAction = async (status: ApplicationStatus) => {
     setLoading(true);
     try {
-      // Mock API call
       await new Promise(r => setTimeout(r, 1000));
-      Toast.show({ type: 'success', text1: 'Status Updated', text2: `Candidate moved to ${status}` });
+      Toast.show({ type: 'success', text1: 'Success', text2: `Status changed to ${status}` });
       setActionSheetVisible(false);
     } catch (e) {
-      Toast.show({ type: 'error', text1: 'Action failed' });
+      Toast.show({ type: 'error', text1: 'Error updating status' });
     } finally {
       setLoading(false);
     }
   };
 
-  const InfoRow = ({ icon: Icon, label, value, isLink = false }: any) => (
-    <HStack items="flex-start" mb={16} space="md">
-       <Icon size={20} color="#666666" />
-       <VStack flex={1}>
-          <Text fontSize={13} fontWeight="700" color="#666666">{label}</Text>
-          <Text fontSize={15} color={isLink ? BLUE : '#000000'} mt={2} fontWeight={isLink ? '700' : '400'}>
-            {value || 'Not provided'}
-          </Text>
-       </VStack>
-    </HStack>
+  const SectionTitle = ({ title }: { title: string }) => (
+     <HStack items="center" mb={12} space="sm">
+        <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5}>{title.toUpperCase()}</Text>
+     </HStack>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="#FFFFFF">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <ScreenWrapper safeAreaTop={false} backgroundColor="white">
+      <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
-      <Box px={16} pt={insets.top + 12} py={12} bg="white" borderBottom={1} borderColor="#E0E0E0">
-         <HStack items="center" justify="space-between">
-            <HStack items="center">
-               <TouchableOpacity onPress={() => navigation?.goBack()} style={{ marginRight: 16 }}>
-                  <ChevronLeftIcon size={24} color="#000000" strokeWidth={2} />
-               </TouchableOpacity>
-               <Text fontSize={18} fontWeight="700" color="#000000">Application Detail</Text>
-            </HStack>
-            <TouchableOpacity>
-               <MoreVerticalIcon size={24} color="#666666" />
+      {/* Clean Header */}
+      <Box pt={insets.top + 10} pb={12} bg="white" borderBottom={1} borderColor="#E0E0E0">
+        <HStack items="center" justify="space-between" px={16}>
+          <HStack items="center">
+            <TouchableOpacity onPress={() => navigation?.goBack()}>
+              <ChevronLeft size={24} color="#000000" />
             </TouchableOpacity>
-         </HStack>
+            <Heading fontSize={18} fontWeight="700" color="#000000" ml={16}>Candidate Profile</Heading>
+          </HStack>
+          <TouchableOpacity>
+            <MoreVertical size={20} color={GRAY_TEXT} />
+          </TouchableOpacity>
+        </HStack>
       </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100, backgroundColor: GRAY_BG }}>
-         {/* Profile Card */}
-         <Box bg="white" p={20} mb={8}>
-            <HStack items="center">
-               <Avatar source={{ uri: 'https://i.pravatar.cc/150?u=candidate' }} style={{ width: 80, height: 80, borderRadius: 40 }} />
-               <VStack ml={16} flex={1}>
-                  <Text fontSize={20} fontWeight="700" color="#000000">{applicant?.seeker_detail?.full_name || 'Anupama Rai'}</Text>
-                  <Text fontSize={16} color="#000000" mt={4}>{applicant?.seeker_detail?.job_title || 'Product Designer'}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+         {/* Identity Section */}
+         <Box p={20} borderBottom={1} borderColor="#F0F0F0">
+            <HStack items="center" space="lg">
+               <Avatar source={{ uri: applicant?.seeker_detail?.avatar || 'https://i.pravatar.cc/150?u=a1' }} size="xl" rounded={12} />
+               <VStack flex={1}>
+                  <Heading fontSize={22} fontWeight="800" color="#000000">{applicant?.seeker_detail?.full_name || 'Anupama Rai'}</Heading>
+                  <Text fontSize={16} color="#000000" mt={2}>{applicant?.seeker_detail?.job_title || 'Lead Product Designer'}</Text>
                   <HStack mt={8} items="center" space="xs">
-                     <MapPinIcon size={14} color="#666666" />
-                     <Text fontSize={14} color="#666666">Kathmandu, Nepal</Text>
+                     <MapPin size={14} color={GRAY_TEXT} />
+                     <Text fontSize={14} color={GRAY_TEXT}>Kathmandu, Nepal</Text>
                   </HStack>
                </VStack>
             </HStack>
-            
+
             <HStack mt={24} space="md">
                <Button 
-                  label="Update Status" 
+                  label="Update Pipeline" 
                   onPress={() => setActionSheetVisible(true)} 
-                  flex={1} 
-                  bg={BLUE}
-                  h={40}
+                  variant="solid"
+                  style={{ backgroundColor: BLUE, flex: 1, height: 40, borderRadius: 20 }}
+                  textStyle={{ fontWeight: '700', fontSize: 13 }}
                />
-               <Button 
-                  label="Message" 
-                  onPress={() => navigation?.navigate('ChatDetail', { recipientId: applicant?.seeker, recipientName: applicant?.seeker_detail?.full_name || 'Candidate', recipientAvatar: applicant?.seeker_detail?.avatar })} 
-                  flex={1} 
-                  outline 
-                  color={BLUE} 
-                  borderColor={BLUE}
-                  h={40}
-               />
+               <TouchableOpacity 
+                  onPress={() => navigation?.navigate('ChatDetail', { 
+                    recipientId: applicant?.seeker, 
+                    recipientName: applicant?.seeker_detail?.full_name || 'Candidate', 
+                    recipientAvatar: applicant?.seeker_detail?.avatar 
+                  })}
+                  style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: BLUE, alignItems: 'center', justifyContent: 'center' }}
+               >
+                  <MessageSquare size={18} color={BLUE} />
+               </TouchableOpacity>
+               <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: BLUE, alignItems: 'center', justifyContent: 'center' }}>
+                  <UserPlus size={18} color={BLUE} />
+               </TouchableOpacity>
             </HStack>
          </Box>
 
-         {/* Summary Sections */}
-         <Box bg="white" p={20} mb={8}>
-            <Text fontSize={16} fontWeight="700" color="#000000" mb={12}>Candidate Info</Text>
-            <InfoRow icon={PhoneIcon} label="Phone" value="+977 9801234567" isLink />
-            <InfoRow icon={MailIcon} label="Email" value="anupama.rai@example.com" isLink />
-            <InfoRow icon={ClockIcon} label="Applied" value="2 days ago • Job ID #1204" />
-         </Box>
+         {/* Candidate Details */}
+         <VStack p={20} space="xl">
+            <VStack>
+               <SectionTitle title="Application Metadata" />
+               <HStack space="md" flexWrap="wrap">
+                  <HStack bg="#EDF3F8" px={10} py={6} rounded={6} items="center" space="xs" mb={8}>
+                     <Clock size={12} color={BLUE} />
+                     <Text fontSize={12} fontWeight="700" color={BLUE}>Applied 2d ago</Text>
+                  </HStack>
+                  <HStack bg="#F3F2EF" px={10} py={6} rounded={6} items="center" space="xs" mb={8}>
+                     <ShieldCheck size={12} color={GRAY_TEXT} />
+                     <Text fontSize={12} fontWeight="700" color={GRAY_TEXT}>Verified Profile</Text>
+                  </HStack>
+               </HStack>
+            </VStack>
 
-         <Box bg="white" p={20} mb={8}>
-            <Text fontSize={16} fontWeight="700" color="#000000" mb={16}>Professional Brief</Text>
-            <HStack items="flex-start" mb={20} space="md">
-               <BriefcaseIcon size={24} color="#666666" />
-               <VStack flex={1}>
-                  <Text fontSize={15} fontWeight="700" color="#000000">Experience</Text>
-                  <Text fontSize={14} color="#666666" mt={4}>4.5 years total experience</Text>
-                  <VStack mt={12} space="sm">
-                     <VStack>
-                        <Text fontSize={14} fontWeight="700" color="#1C1E21">Lead Designer</Text>
-                        <Text fontSize={13} color="#666666">TechHive • 2 yrs 4 mos</Text>
-                     </VStack>
-                  </VStack>
+            <VStack>
+               <SectionTitle title="Contact Information" />
+               <VStack space="md">
+                  <HStack items="center" space="md">
+                     <Box bg={SOFT_BG} p={8} rounded={8}>
+                        <Phone size={18} color={GRAY_TEXT} />
+                     </Box>
+                     <Text fontSize={15} color="#000000" fontWeight="600">+977 9801234567</Text>
+                  </HStack>
+                  <HStack items="center" space="md">
+                     <Box bg={SOFT_BG} p={8} rounded={8}>
+                        <Mail size={18} color={GRAY_TEXT} />
+                     </Box>
+                     <Text fontSize={15} color="#000000" fontWeight="600">anupama.rai@example.com</Text>
+                  </HStack>
                </VStack>
-            </HStack>
-            
-            <HStack items="flex-start" space="md">
-               <GraduationCapIcon size={24} color="#666666" />
-               <VStack flex={1}>
-                  <Text fontSize={15} fontWeight="700" color="#000000">Education</Text>
-                  <Text fontSize={14} color="#666666" mt={4}>BSc Computer Science</Text>
-                  <Text fontSize={13} color="#666666" mt={2}>Tribhuvan University</Text>
-               </VStack>
-            </HStack>
-         </Box>
+            </VStack>
 
-         <Box bg="white" p={20}>
-            <Text fontSize={16} fontWeight="700" color="#000000" mb={12}>Skills Matching</Text>
-            <HStack style={{ flexWrap: 'wrap', gap: 8 }}>
-               {['Figma', 'React', 'Agile', 'Product Strategy'].map(s => (
-                  <Box key={s} px={12} py={6} rounded={4} bg={GRAY_BG} border={1} borderColor="#E0E0E0">
-                     <Text fontSize={12} fontWeight="700" color="#666666">{s}</Text>
+            <VStack>
+               <SectionTitle title="Experience Highlights" />
+               <HStack space="md" items="flex-start">
+                  <Box bg="#EDF3F8" p={10} rounded={8}>
+                     <Briefcase size={20} color={BLUE} />
                   </Box>
-               ))}
-            </HStack>
-         </Box>
+                  <VStack flex={1}>
+                     <Text fontSize={15} fontWeight="700" color="#000000">4.5 Years of Professional Design</Text>
+                     <Text fontSize={14} color={GRAY_TEXT} mt={4}>Previously Lead Designer at TechHive Systems. Expert in Figma, React components, and user-centric systems.</Text>
+                  </VStack>
+               </HStack>
+            </VStack>
+
+            <VStack>
+               <SectionTitle title="Core Competencies" />
+               <HStack space="sm" flexWrap="wrap">
+                  {['Figma', 'React', 'Product Design', 'Visual Systems', 'Research', 'Agile'].map(skill => (
+                     <Box key={skill} px={12} py={6} rounded={16} bg="white" border={1} borderColor="#E0E0E0">
+                        <Text fontSize={12} fontWeight="700" color={GRAY_TEXT}>{skill}</Text>
+                     </Box>
+                  ))}
+               </HStack>
+            </VStack>
+
+            <VStack>
+               <SectionTitle title="Attached Documents" />
+               <TouchableOpacity style={{ borderStyle: 'dashed', borderWidth: 1, borderColor: BLUE, borderRadius: 12, padding: 16, backgroundColor: '#EDF3F8' }}>
+                  <HStack items="center" justify="space-between">
+                     <HStack items="center" space="md">
+                        <Box bg="white" p={8} rounded={8}>
+                           <ExternalLink size={18} color={BLUE} />
+                        </Box>
+                        <VStack>
+                           <Text fontSize={14} fontWeight="700" color="#000000">Resume_Anupama_Giri.pdf</Text>
+                           <Text fontSize={12} color={GRAY_TEXT}>PDF Document • 1.2 MB</Text>
+                        </VStack>
+                     </HStack>
+                     <Box style={{ transform: [{ rotate: '180deg' }] }}>
+                        <ChevronLeft size={16} color={BLUE} />
+                     </Box>
+                  </HStack>
+               </TouchableOpacity>
+            </VStack>
+         </VStack>
       </ScrollView>
 
       <RecruiterActionSheet 
@@ -175,7 +206,3 @@ export default function ApplicantDetailScreen({ route, navigation }: { route: an
 }
 
 const styles = StyleSheet.create({});
-
-
-
-

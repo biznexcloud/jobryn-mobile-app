@@ -12,18 +12,19 @@ import {
   Pencil,
   Users,
   MapPin,
-  DollarSign,
+  CircleDollarSign,
   Eye,
   Calendar,
   Share2,
   Briefcase,
-  CheckCircle,
+  CheckCircle2,
+  MoreVertical,
 } from 'lucide-react-native';
-import { ScreenWrapper, Text, Box, VStack, HStack, Button, Divider } from '../../components/ui';
-import { moderateScale } from '../../utils/responsive';
+import { ScreenWrapper, Text, Box, VStack, HStack, Button, Divider, Heading } from '../../components/ui';
 
-const BLUE = '#0A66C2';
-const GRAY_BG = '#F3F2EF';
+const BLUE = '#0A66C2'; 
+const GRAY_TEXT = '#666666';
+const SOFT_BG = '#F3F2EF';
 
 export default function JobDetailProviderScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -31,132 +32,127 @@ export default function JobDetailProviderScreen({ route, navigation }: any) {
 
   const DUMMY_JOB = {
     id: job?.id || 1,
-    title: job?.title || 'Senior Protocol Engineer',
-    location: job?.location || 'Remote',
+    title: job?.title || 'Lead Protocol Architect',
+    location: job?.location || 'Remote (Global)',
     salary_min: job?.salary_min || 120000,
-    salary_max: job?.salary_max || 150000,
+    salary_max: job?.salary_max || 155000,
     status: job?.status || 'Active',
-    applicant_count: job?.applicant_count || 24,
-    views: job?.views || 142,
+    applicant_count: job?.applicant_count || 32,
+    views: job?.views || 840,
     posted_at: job?.posted_at || '3 days ago',
     job_type: job?.job_type || 'Full-time',
-    experience_level: job?.experience_level || 'Senior',
-    description: job?.description || 'We are looking for an experienced Protocol Engineer to lead the development of our core infrastructure. You will work closely with a cross-functional team to design, implement, and scale mission-critical systems.\n\nKey Responsibilities:\n• Architect and maintain backend services and APIs\n• Lead code reviews and technical discussions\n• Collaborate with product managers to define technical strategies\n• Mentor junior engineers',
-    requirements: job?.requirements || ['5+ years experience', 'Proficiency in system design', 'Strong communication skills'],
+    experience_level: job?.experience_level || 'Senior-Lead',
+    description: job?.description || 'We are looking for a visionary Protocol Architect to lead our core infrastructure division. You will be responsible for the architectural integrity and scalability of our mission-critical decentralized services.\n\nKey Responsibilities:\n• Lead the technical design of scalable protocols\n• Direct high-impact engineering projects\n• Interface with strategic partners on technical integration\n• Guide the professional growth of senior engineering staff',
   };
 
-  const InfoBadge = ({ icon: Icon, label }: any) => (
-    <HStack items="center" bg="#F3F2EF" px={12} py={6} rounded={20} mr={8} mb={8}>
-      <Icon size={14} color="#666666" />
-      <Text fontSize={13} color="#475569" ml={6} fontWeight="600">{label}</Text>
-    </HStack>
+  const MetricCard = ({ icon: Icon, value, label, color = BLUE }: any) => (
+     <VStack items="center" flex={1}>
+        <Box bg="#EDF3F8" p={8} rounded={8} mb={8}>
+           <Icon size={18} color={color} />
+        </Box>
+        <Text fontSize={18} fontWeight="800" color="#000000">{value}</Text>
+        <Text fontSize={11} fontWeight="700" color={GRAY_TEXT} mt={2}>{label.toUpperCase()}</Text>
+     </VStack>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} backgroundColor="white">
       <StatusBar barStyle="dark-content" />
 
-      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
-        <HStack items="center" justify="space-between">
+      {/* Clean Header */}
+      <Box pt={insets.top + 10} pb={12} bg="white" borderBottom={1} borderColor="#E0E0E0">
+        <HStack items="center" justify="space-between" px={16}>
           <HStack items="center">
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <ChevronLeft size={24} color="#111827" />
+            <TouchableOpacity onPress={() => navigation?.goBack()}>
+              <ChevronLeft size={24} color="#000000" />
             </TouchableOpacity>
-            <Text fontSize={18} fontWeight="700" color="#111827" ml={12}>Job Details</Text>
+            <Heading fontSize={18} fontWeight="700" color="#000000" ml={16}>Opportunity Management</Heading>
           </HStack>
-          <HStack space="sm">
-            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('EditJob', { job: DUMMY_JOB })}>
-              <Pencil size={20} color={BLUE} />
-            </TouchableOpacity>
+          <HStack space="md">
+             <TouchableOpacity onPress={() => navigation?.navigate('EditJob', { job: DUMMY_JOB })}>
+                <Pencil size={20} color={BLUE} />
+             </TouchableOpacity>
+             <TouchableOpacity>
+                <MoreVertical size={20} color={GRAY_TEXT} />
+             </TouchableOpacity>
           </HStack>
         </HStack>
       </Box>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Card */}
-        <Box bg="white" p={20} rounded={16} mb={12}>
-          <HStack items="center" mb={16}>
-            <Box bg="#EDF3F8" p={14} rounded={14}>
-              <Briefcase size={28} color={BLUE} />
-            </Box>
-            <VStack ml={14} flex={1}>
-              <Text fontSize={20} fontWeight="800" color="#111827">{DUMMY_JOB.title}</Text>
-              <HStack items="center" mt={4}>
-                <MapPin size={14} color="#6B7280" />
-                <Text fontSize={14} color="#6B7280" ml={4}>{DUMMY_JOB.location}</Text>
-              </HStack>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+         {/* Identity Section */}
+         <Box p={20} borderBottom={1} borderColor="#F0F0F0">
+            <HStack space="md" items="flex-start" mb={20}>
+               <Box bg="#EDF3F8" p={12} rounded={12}>
+                  <Briefcase size={28} color={BLUE} />
+               </Box>
+               <VStack flex={1}>
+                  <Heading fontSize={22} fontWeight="800" color="#000000">{DUMMY_JOB.title}</Heading>
+                  <HStack items="center" mt={4} space="xs">
+                     <MapPin size={14} color={GRAY_TEXT} />
+                     <Text fontSize={14} color={GRAY_TEXT}>{DUMMY_JOB.location} • {DUMMY_JOB.job_type}</Text>
+                  </HStack>
+               </VStack>
+            </HStack>
+
+            <Divider color="#F0F0F0" mb={20} />
+
+            {/* Performance Metrics */}
+            <HStack justify="space-between" items="center">
+               <MetricCard icon={Users} value={DUMMY_JOB.applicant_count} label="Candidates" />
+               <MetricCard icon={Eye} value={DUMMY_JOB.views} label="Reach" />
+               <MetricCard icon={CheckCircle2} value={DUMMY_JOB.status} label="Status" color="#057642" />
+            </HStack>
+         </Box>
+
+         <VStack p={20} space="xl">
+            {/* Comp Section */}
+            <VStack>
+               <HStack items="center" space="sm" mb={12}>
+                  <CircleDollarSign size={16} color={GRAY_TEXT} />
+                  <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5}>COMPENSATION RANGE</Text>
+               </HStack>
+               <Text fontSize={20} fontWeight="800" color="#057642">
+                  ${(DUMMY_JOB.salary_min / 1000).toFixed(0)}k – ${(DUMMY_JOB.salary_max / 1000).toFixed(0)}k <Text fontSize={14} color={GRAY_TEXT}>/ Annual</Text>
+               </Text>
             </VStack>
-          </HStack>
 
-          <View style={styles.badgeRow}>
-            <InfoBadge icon={Briefcase} label={DUMMY_JOB.job_type} />
-            <InfoBadge icon={CheckCircle} label={DUMMY_JOB.experience_level} />
-            <InfoBadge icon={Calendar} label={`Posted ${DUMMY_JOB.posted_at}`} />
-          </View>
+            <Divider color="#F0F0F0" />
 
-          <Divider color="#F3F2EF" my={16} />
-
-          {/* Metrics */}
-          <HStack justify="space-around">
-            <VStack items="center">
-              <Text fontSize={24} fontWeight="800" color={BLUE}>{DUMMY_JOB.applicant_count}</Text>
-              <Text fontSize={12} color="#6B7280" mt={2}>Applicants</Text>
+            {/* Description Section */}
+            <VStack>
+               <Text fontSize={16} fontWeight="800" color="#000000" mb={12}>Mission Description</Text>
+               <Text fontSize={15} color="#000000" lineHeight={24}>
+                  {DUMMY_JOB.description}
+               </Text>
             </VStack>
-            <Box w={1} bg="#E5E7EB" />
-            <VStack items="center">
-              <Text fontSize={24} fontWeight="800" color="#111827">{DUMMY_JOB.views}</Text>
-              <Text fontSize={12} color="#6B7280" mt={2}>View</Text>
+
+            {/* Admin Actions */}
+            <VStack mt={20} space="md">
+               <Button 
+                  title={`Manage ${DUMMY_JOB.applicant_count} Candidates`} 
+                  onPress={() => navigation?.navigate('Applicants', { jobId: DUMMY_JOB.id })} 
+                  style={{ backgroundColor: BLUE, height: 48, borderRadius: 24 }}
+                  textStyle={{ fontWeight: '800' }}
+               />
+               <Button 
+                  title="Update Posting" 
+                  onPress={() => navigation?.navigate('EditJob', { job: DUMMY_JOB })} 
+                  variant="outline"
+                  style={{ borderColor: BLUE, height: 48, borderRadius: 24 }}
+                  textStyle={{ color: BLUE, fontWeight: '800' }}
+               />
+               <Button 
+                  label="Share Opportunity" 
+                  onPress={() => {}} 
+                  variant="ghost"
+                  textStyle={{ color: GRAY_TEXT, fontWeight: '700' }}
+               />
             </VStack>
-            <Box w={1} bg="#E5E7EB" />
-            <VStack items="center">
-              <Text fontSize={24} fontWeight="800" color="#059669">{DUMMY_JOB.status === 'Active' ? '✓' : '✗'}</Text>
-              <Text fontSize={12} color="#6B7280" mt={2}>{DUMMY_JOB.status}</Text>
-            </VStack>
-          </HStack>
-        </Box>
-
-        {/* Salary */}
-        <Box bg="white" p={16} rounded={16} mb={12}>
-          <HStack items="center" mb={4}>
-            <DollarSign size={18} color={BLUE} />
-            <Text fontSize={16} fontWeight="700" color="#111827" ml={8}>Compensation</Text>
-          </HStack>
-          <Text fontSize={22} fontWeight="800" color="#059669" mt={8}>
-            ${(DUMMY_JOB.salary_min / 1000).toFixed(0)}k – ${(DUMMY_JOB.salary_max / 1000).toFixed(0)}k / year
-          </Text>
-          <Text fontSize={12} color="#6B7280" mt={4}>Based on experience and role</Text>
-        </Box>
-
-        {/* Description */}
-        <Box bg="white" p={16} rounded={16} mb={12}>
-          <Text fontSize={16} fontWeight="700" color="#111827" mb={12}>Job Description</Text>
-          <Text fontSize={14} color="#475569" lineHeight={22}>{DUMMY_JOB.description}</Text>
-        </Box>
-
-        {/* Action Buttons */}
-        <VStack space="md" mb={40}>
-          <Button
-            label={`View ${DUMMY_JOB.applicant_count} Applicants`}
-            onPress={() => navigation.navigate('Applicants', { jobId: DUMMY_JOB.id })}
-            style={{ backgroundColor: BLUE, height: 52, borderRadius: 26 }}
-            textStyle={{ fontSize: 16, fontWeight: '800' }}
-          />
-          <Button
-            label="Edit This Posting"
-            variant="outline"
-            onPress={() => navigation.navigate('EditJob', { job: DUMMY_JOB })}
-            style={{ borderColor: BLUE, height: 52, borderRadius: 26 }}
-            textStyle={{ color: BLUE, fontSize: 16, fontWeight: '800' }}
-          />
-        </VStack>
+         </VStack>
       </ScrollView>
     </ScreenWrapper>
   );
 }
 
-const styles = StyleSheet.create({
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#EDF3F8', alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { padding: 16 },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
-});
+const styles = StyleSheet.create({});

@@ -3,19 +3,8 @@ const fs = require('fs');
 
 async function testAuth() {
   const email = 'chaudharyhoney543@gmail.com';
-  const password = 'Vilgax@123';
-  let out = { signup: null, login: null };
-
-  try {
-    const signup = await axios.post('https://backend.jobryn.com/api/v1/account/register/', {
-      email,
-      password,
-      role: 'recruiter'
-    });
-    out.signup = { status: signup.status, data: signup.data };
-  } catch (err) {
-    out.signup = { status: err.response?.status, data: err.response?.data };
-  }
+  const password = 'vilgax@123';
+  let out = { login: null };
 
   try {
     const login = await axios.post('https://backend.jobryn.com/api/v1/account/login/', {

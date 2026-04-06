@@ -61,13 +61,11 @@ export default function ProviderDashboardScreen() {
             SocialService.getFeed(),
             SocialService.getStories(),
          ]);
-         setJobs(jobsData?.results || []);
-         setFeed(feedData?.results || []);
-         setStories(storiesData || []);
+         setJobs(Array.isArray(jobsData) ? jobsData : (jobsData as any)?.results || []);
+         setFeed(Array.isArray(feedData) ? feedData : (feedData as any)?.results || []);
+         setStories(Array.isArray(storiesData) ? storiesData : (storiesData as any)?.results || []);
       } catch (e) {
-         if (!token?.startsWith('demo_') && token !== 'demo-token') {
-            console.warn('Sync failed');
-         }
+         console.warn('Sync failed:', e);
       } finally {
          setLoading(false);
          setRefreshing(false);

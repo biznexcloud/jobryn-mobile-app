@@ -22,22 +22,7 @@ import { moderateScale, verticalScale } from '../../utils/responsive';
 
 const BLUE = '#4F46E5';
 
-const MOCK_COMMENTS = [
-  {
-    id: 'c1',
-    author: { name: 'Priya K.', avatar: 'https://i.pravatar.cc/150?img=5', role: 'Job Seeker' },
-    text: 'Sounds like a great opportunity! Do you have remote options?',
-    time: '30m',
-    likes: 3,
-  },
-  {
-    id: 'c2',
-    author: { name: 'Anish Shrestha', avatar: 'https://i.pravatar.cc/150?u=anish', role: 'Backend Developer' },
-    text: 'I applied just now! Looking forward to the process.',
-    time: '20m',
-    likes: 1,
-  },
-];
+
 
 export default function PostDetailScreen({ navigation, route }: { navigation: any; route: any }) {
   const insets = useSafeAreaInsets();
@@ -59,12 +44,7 @@ export default function PostDetailScreen({ navigation, route }: { navigation: an
       setPost(data);
       setComments(data.comments || []);
     } catch (e) {
-      console.warn('Failed to load post details');
-      // Fallback for Demo Mode
-      if (useAuthStore.getState().token === 'demo-token') {
-        if (!post.content) setPost({ ...postFromParams, content: 'Fallback update for recruiters.' });
-        setComments(MOCK_COMMENTS);
-      }
+      console.warn('Failed to load post details:', e);
     } finally {
       setLoading(false);
     }

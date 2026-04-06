@@ -130,7 +130,7 @@ export default function Sidebar({ isOpen, onClose, navigation, role }: SidebarPr
                       key={idx} 
                       label={item.label} 
                       icon={item.icon} 
-                      onPress={() => navigateTo(item.screen, item.params)} 
+                      onPress={() => item.screen && navigateTo(item.screen, item.params)} 
                    />
                 );
              })}

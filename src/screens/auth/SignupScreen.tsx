@@ -40,21 +40,25 @@ export default function SignupScreen({ navigation }: any) {
 
   const handleSignup = async () => {
     setError('');
+    if (!formData.name.trim()) { setError('Please enter your full name.'); return; }
     if (!isValidEmail(formData.email)) { setError('Please enter a valid email.'); return; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (role === 'recruiter' && !formData.company_name.trim()) { setError('Please enter your company name.'); return; }
 
     setLoading(true);
     try {
       await AuthService.register({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
-        name: formData.name,
+        name: formData.name.trim(),
         role: role,
-        company_name: role === 'recruiter' ? formData.company_name : undefined,
+        company_name: role === 'recruiter' ? formData.company_name.trim() : undefined,
       });
-      setStep(3); // Success step
+      // Navigate to OTP verification instead of just showing success step
+      navigation.navigate('VerifyOtp', { email: formData.email.trim() });
     } catch (err: any) {
-      setError('Registration failed. This email may already be in use.');
+      const apiError = err.response?.data?.email?.[0] || err.response?.data?.error || err.response?.data?.message || 'Registration failed. This email may already be in use.';
+      setError(apiError);
     } finally {
       setLoading(false);
     }
@@ -191,11 +195,11 @@ export default function SignupScreen({ navigation }: any) {
                </Box>
                <Text fontSize={24} fontWeight="900" color="#111827" textAlign="center">Registration Complete</Text>
                <Text fontSize={16} color="#666666" textAlign="center" mt={12} px={10}>
-                  Welcome to Jobryn! Please sign in to initialize your professional portal.
+                  Welcome to Jobryn! Please verify your email address to initialize your professional portal.
                </Text>
                <Button 
-                  label="Go to Sign In" 
-                  onPress={() => navigation.navigate('Login')}
+                  label="Verify Email" 
+                  onPress={() => navigation.navigate('VerifyOtp', { email: formData.email.trim() })}
                   style={{ backgroundColor: BLUE, width: '100%', height: 52, borderRadius: 26, marginTop: 40 }}
                />
             </VStack>

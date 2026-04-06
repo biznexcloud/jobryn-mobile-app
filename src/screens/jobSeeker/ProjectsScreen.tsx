@@ -10,23 +10,10 @@ import {
 } from 'lucide-react-native';
 import { Colors } from '../../constants';
 
+import { MOCK_PROJECTS } from '../../constants/MockData';
+
 const ProjectsScreen = () => {
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      title: 'Jobryn Mobile App',
-      description: 'A professional networking and job search application built with React Native and Expo.',
-      tech: ['React Native', 'TypeScript', 'Zustand'],
-      links: 1
-    },
-    {
-      id: 2,
-      title: 'E-commerce Dashboard',
-      description: 'Real-time analytics dashboard for e-commerce platforms with inventory management.',
-      tech: ['React', 'D3.js', 'Firebase'],
-      links: 1
-    }
-  ]);
+  const [projects, setProjects] = useState(MOCK_PROJECTS);
 
   return (
     <Box flex={1} bg={Colors.white}>
@@ -55,16 +42,18 @@ const ProjectsScreen = () => {
             </HStack>
 
             <VStack space="xs" mt={15}>
-                <Text fontWeight="bold" fontSize={18}>{project.title}</Text>
+                <Text fontWeight="bold" fontSize={18}>{project.name}</Text>
                 <Text color={Colors.textSecondary} style={{ lineHeight: 20 }}>{project.description}</Text>
             </VStack>
 
             <HStack style={{ flexWrap: 'wrap', gap: 8, marginTop: 15 }}>
-              {project.tech.map((t, i) => (
+              {(project as any).tech ? (project as any).tech.map((t: string, i: number) => (
                 <Box key={i} bg="#F8FAFC" px={12} py={4} rounded={6}>
                   <Text fontSize={12} color={Colors.textSecondary}>{t}</Text>
                 </Box>
-              ))}
+              )) : (
+                 <Text fontSize={12} color={Colors.textSecondary}>Used: Various Web Technologies</Text>
+              )}
             </HStack>
           </Box>
         ))}

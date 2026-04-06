@@ -26,6 +26,7 @@ import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../../store/authStore';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
 import { moderateScale, verticalScale } from '../../utils/responsive';
+import { MOCK_NETWORK_SUGGESTIONS } from '../../constants/MockData';
 
 const { width } = Dimensions.get('window');
 const GRID_SPACING = 12;
@@ -42,12 +43,7 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [connections, setConnections] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<any[]>([
-    { id: '1', name: 'Sanjiv Mahat', role: 'CTO at TechHive', avatar: 'https://i.pravatar.cc/150?u=12', mutual: 12, banner: 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=400' },
-    { id: '2', name: 'Priya Sharma', role: 'HR Director @ Jobryn', avatar: 'https://i.pravatar.cc/150?u=18', mutual: 5, banner: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=400' },
-    { id: '3', name: 'Rohan Gupta', role: 'Staff Product Designer', avatar: 'https://i.pravatar.cc/150?u=4', mutual: 8, banner: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=400' },
-    { id: '4', name: 'Aashish Rai', role: 'Frontend Architect', avatar: 'https://i.pravatar.cc/150?u=9', mutual: 21, banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400' },
-  ]);
+  const [suggestions, setSuggestions] = useState<any[]>(MOCK_NETWORK_SUGGESTIONS);
 
   const fetchData = async () => {
     try {

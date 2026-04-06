@@ -20,11 +20,7 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
 
-const MESSAGES_DATA = [
-  { id: '1', name: 'Sarah Jenkins', role: 'Talent Acquisition @ Nexus', last_msg: 'We checked your sync profile. Impressive.', time: '2h', unread: true, avatar: 'https://i.pravatar.cc/150?u=s1', online: true },
-  { id: '2', name: 'Dev Ops Group', role: 'Engineering Team', last_msg: 'A: The protocol is optimized.', time: '5h', unread: false, avatar: 'https://i.pravatar.cc/150?u=g1', online: false },
-  { id: '3', name: 'Alex Rivers', role: 'Fullstack Operative', last_msg: 'Let me know when you are back in the grid.', time: '1d', unread: false, avatar: 'https://i.pravatar.cc/150?u=a1', online: true },
-];
+import { MOCK_CONVERSATIONS } from '../../constants/MockData';
 
 export default function MessagesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -85,7 +81,7 @@ export default function MessagesScreen({ navigation }: any) {
       </Box>
 
       <FlatList 
-         data={MESSAGES_DATA}
+         data={MOCK_CONVERSATIONS}
          renderItem={renderChatItem}
          keyExtractor={(item) => item.id}
          showsVerticalScrollIndicator={false}

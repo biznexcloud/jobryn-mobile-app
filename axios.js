@@ -20,9 +20,6 @@ apiClient.interceptors.request.use(
 
     if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else if (!token && !isAuthPath) {
-      console.log('--- AXIOS: BLOCKED REQUEST DUE TO MISSING TOKEN ---', config.url);
-      return Promise.reject({ message: 'No auth token found, blocking request.', isManualCancel: true });
     }
     return config;
   },

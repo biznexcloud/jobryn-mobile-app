@@ -35,6 +35,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { JobService } from '../../services/api/jobs';
 import { SocialService } from '../../services/api/social';
+import { MOCK_FEED_POSTS, MOCK_STORIES, MOCK_JOBS } from '../../constants/MockData';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
 import { PostCard } from '../../components/cards/PostCard';
 import Sidebar from '../../components/common/Sidebar';
@@ -54,109 +55,6 @@ export default function SeekerDashboardScreen() {
   const [feed, setFeed] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
 
-const DUMMY_FEED = [
-  {
-    id: 'f1',
-    created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    content: 'Just launched my new portfolio website built with React Native and Expo! The performance on both iOS and Android is incredible. Would love some feedback from the community! 🚀📱',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
-    likes: 124,
-    comments: 18,
-    reposts: 5,
-    user: { name: 'Alex Developer', avatar: 'https://i.pravatar.cc/150?img=11', role: 'Frontend Engineer' }
-  },
-  {
-    id: 'f2',
-    created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    content: 'Looking for a Senior Backend Developer role focusing on Node.js and PostgreSQL. Over 5 years of experience! #OpenToWork',
-    image: null,
-    likes: 56,
-    comments: 8,
-    reposts: 12,
-    user: { name: 'Sarah Backend', avatar: 'https://i.pravatar.cc/150?img=5', role: 'Senior Backend Developer' }
-  },
-  {
-    id: 'f3',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    content: 'Our team at TechNova is expanding! We are hiring for 3 new positions. Check out our jobs board for more info! 💼✨',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80',
-    likes: 342,
-    comments: 45,
-    reposts: 89,
-    user: { name: 'TechNova HR', avatar: 'https://i.pravatar.cc/150?img=33', role: 'Talent Acquisition' }
-  },
-  {
-    id: 'f4',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    content: 'Here is a quick tip for nailing your system design interviews: Always start by clarifying requirements! Dont jump straight into drawing architecture diagrams. Take 5 minutes to gather functional and non-functional requirements. It shows seniority and structured thinking. 💡',
-    image: null,
-    likes: 892,
-    comments: 112,
-    reposts: 245,
-    user: {
-      name: 'Elena System',
-      avatar: 'https://i.pravatar.cc/150?img=44',
-      role: 'Tech Lead @ Prisma'
-    }
-  },
-  {
-    id: 'f5',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    content: 'Just finished an incredible workshop on AI integration in modern web apps. The future of user interfaces is definitely going to be driven by dynamic, context-aware LLMs. Heres a screenshot of the dashboard we built today! 🤖',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
-    likes: 215,
-    comments: 34,
-    reposts: 15,
-    user: {
-      name: 'James AI',
-      avatar: 'https://i.pravatar.cc/150?img=55',
-      role: 'Full Stack Developer'
-    }
-  },
-  {
-    id: 'f6',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    content: 'I am thrilled to announce that I have accepted an offer as a Software Engineer at Google! A huge thank you to everyone who supported me through the rigorous interview process. Looking forward to this new chapter! 🎉👨‍💻',
-    image: null,
-    likes: 1540,
-    comments: 230,
-    reposts: 42,
-    user: {
-      name: 'David Grad',
-      avatar: 'https://i.pravatar.cc/150?img=60',
-      role: 'Software Engineer @ Google'
-    }
-  }
-];
-
-const DUMMY_STORIES = [
-  {
-    id: 's1',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=800&q=80',
-    user: { name: 'TechNova HR', avatar: 'https://i.pravatar.cc/150?img=33' }
-  },
-  {
-    id: 's2',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=800&q=80',
-    user: { name: 'Alex Dev', avatar: 'https://i.pravatar.cc/150?img=11' }
-  },
-  {
-    id: 's3',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=800&q=80',
-    user: { name: 'Sarah Tech', avatar: 'https://i.pravatar.cc/150?img=5' }
-  },
-  {
-    id: 's4',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=800&q=80',
-    user: { name: 'Elena Code', avatar: 'https://i.pravatar.cc/150?img=44' }
-  },
-  {
-    id: 's5',
-    image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=800&q=80',
-    user: { name: 'James AI', avatar: 'https://i.pravatar.cc/150?img=55' }
-  },
-];
-
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
   const fetchData = async () => {
@@ -166,15 +64,18 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
         SocialService.getFeed(),
         SocialService.getStories(),
       ]);
-      setJobs(jobsData?.results || []);
-      setFeed(DUMMY_FEED);
-      setStories(DUMMY_STORIES);
+      const fetchedJobs = Array.isArray(jobsData) ? jobsData : (jobsData as any)?.results || [];
+      const fetchedFeed = Array.isArray(feedData) ? feedData : (feedData as any)?.results || [];
+      const fetchedStories = Array.isArray(storiesData) ? storiesData : (storiesData as any)?.results || [];
+      // Always show mock data as fallback so the dashboard looks populated
+      setJobs(fetchedJobs.length > 0 ? fetchedJobs : MOCK_JOBS);
+      setFeed(fetchedFeed.length > 0 ? fetchedFeed : MOCK_FEED_POSTS);
+      setStories(fetchedStories.length > 0 ? fetchedStories : MOCK_STORIES);
     } catch (e) {
-      if (!token?.startsWith('demo_') && token !== 'demo-token') {
-        console.warn('Sync failed');
-      }
-      setFeed(DUMMY_FEED);
-      setStories(DUMMY_STORIES);
+      console.warn('Sync failed, using mock data:', e);
+      setJobs(MOCK_JOBS);
+      setFeed(MOCK_FEED_POSTS);
+      setStories(MOCK_STORIES);
     } finally {
       setLoading(false);
       setRefreshing(false);
