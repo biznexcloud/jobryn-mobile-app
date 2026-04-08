@@ -26,24 +26,33 @@ import {
 } from 'lucide-react-native';
 import { BillingService } from '../../services/api/billing';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MOCK_TRANSACTIONS, MOCK_INVOICES } from '../../constants/MockData';
+import { useAuthStore } from '../../store/authStore';
 
 const BLUE = '#4F46E5';
 const SOFT_BG = '#F8FAFC';
 
 export default function WalletScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [wallet, setWallet] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
 
   useEffect(() => { loadWallet(); }, []);
 
   const loadWallet = async () => {
     setRefreshing(true);
     try {
-      const resp = await BillingService.getWallet();
-      setWallet(resp);
+      const [walletData, txData, invData] = await Promise.all([
+        BillingService.getWallet(),
+        BillingService.getTransactions({ limit: 5 }),
+        BillingService.getInvoices({ limit: 3 }),
+      ]);
+      setWallet(walletData);
+      setTransactions(txData.results || txData);
+      setInvoices(invData.results || invData);
     } catch (err) {
       console.warn('Wallet fetch error:', err);
     } finally {
@@ -78,9 +87,9 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
                  </TouchableOpacity>
                  <Heading style={styles.headerTitle}>Finance</Heading>
               </HStack>
-              <TouchableOpacity style={styles.profileBtn}>
-                 <Image source={{ uri: 'https://i.pravatar.cc/100' }} style={styles.profileImg} />
-              </TouchableOpacity>
+               <TouchableOpacity style={styles.profileBtn}>
+                  <Image source={{ uri: user?.profile_image || 'https://i.pravatar.cc/100' }} style={styles.profileImg} />
+               </TouchableOpacity>
            </HStack>
 
            <Box mt={24}>
@@ -95,7 +104,9 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
                       <Text color="rgba(255,255,255,0.7)" fontSize={12} fontWeight="700">BALANCE</Text>
                       <CreditCard size={20} color="white" opacity={0.6} />
                    </HStack>
-                   <Text color="white" fontSize={32} fontWeight="900" mt={4}>{wallet?.balance || '$1,245.00'}</Text>
+                    <Text color="white" fontSize={32} fontWeight="900" mt={4}>
+                      {wallet?.currency_symbol || '$'}{wallet?.balance || '0.00'}
+                    </Text>
                    <HStack justify="space-between" items="center" mt={20}>
                       <Text color="white" opacity={0.8} fontSize={14} fontWeight="600" letterSpacing={1}>**** 4210</Text>
                       <Text color="white" opacity={0.8} fontSize={12} fontWeight="700">VISA</Text>
@@ -143,7 +154,7 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
                <Text style={styles.sectionTitle}>Invoices from Recruiters</Text>
                <TouchableOpacity><Text style={styles.seeAllText}>Manage</Text></TouchableOpacity>
             </HStack>
-            {MOCK_INVOICES.map((inv) => (
+            {invoices.map((inv) => (
               <TouchableOpacity 
                 key={inv.id} 
                 onPress={() => navigation.navigate('InvoiceDetail', { invoice: inv })}
@@ -163,8 +174,10 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
                            </HStack>
                         </VStack>
                      </HStack>
-                     <VStack items="flex-end">
-                        <Text fontSize={16} fontWeight="800" color="#1E293B">{inv.amount}</Text>
+                      <VStack items="flex-end">
+                         <Text fontSize={16} fontWeight="800" color="#1E293B">
+                            {inv.amount_display || `${inv.currency || '$'}${inv.amount}`}
+                         </Text>
                         <Box bg="#FEF3C7" px={8} py={2} rounded={6} mt={4}>
                            <Text fontSize={10} fontWeight="800" color="#92400E" textTransform="uppercase">{inv.status}</Text>
                         </Box>
@@ -177,12 +190,12 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
 
           {/* Recent Activity */}
           <View style={[styles.section, { marginTop: 24 }]}>
-             <HStack justify="space-between" items="center" mb={16}>
-                <Text style={styles.sectionTitle}>Recent Activity</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('TransactionHistory')}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
-             </HStack>
-
-             {MOCK_TRANSACTIONS.map((tx) => (
+              <HStack justify="space-between" items="center" mb={16}>
+                 <Text style={styles.sectionTitle}>Recent Activity</Text>
+                 <TouchableOpacity onPress={() => navigation.navigate('TransactionHistory')}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
+              </HStack>
+ 
+              {transactions.map((tx) => (
                 <TouchableOpacity 
                    key={tx.id} 
                    style={styles.txRow} 
@@ -194,13 +207,13 @@ export default function WalletScreen({ navigation }: { navigation?: any }) {
                    <View style={[styles.txIconWrap, { backgroundColor: tx.type === 'incoming' ? '#DCFCE7' : '#F1F5F9' }]}>
                       {tx.type === 'incoming' ? <ArrowDown size={18} color="#16A34A" /> : <ArrowUp size={18} color="#475569" />}
                    </View>
-                   <View style={styles.txInfo}>
-                      <Text style={styles.txTitle}>{tx.label}</Text>
-                      <Text style={styles.txDate}>{tx.date}</Text>
-                   </View>
-                   <Text style={[styles.txAmount, { color: tx.type === 'incoming' ? '#16A34A' : '#1E293B' }]}>
-                      {tx.type === 'incoming' ? '+' : '-'}{tx.amount}
-                   </Text>
+                    <View style={styles.txInfo}>
+                       <Text style={styles.txTitle}>{tx.label || tx.description || 'Transaction'}</Text>
+                       <Text style={styles.txDate}>{new Date(tx.created_at).toLocaleDateString()}</Text>
+                    </View>
+                    <Text style={[styles.txAmount, { color: tx.type === 'incoming' || tx.amount > 0 ? '#16A34A' : '#1E293B' }]}>
+                       {tx.type === 'incoming' || tx.amount > 0 ? '+' : ''}{tx.amount_display || tx.amount}
+                    </Text>
                 </TouchableOpacity>
              ))}
           </View>

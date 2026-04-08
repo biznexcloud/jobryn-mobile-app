@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Image,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenWrapper, Text, HStack, VStack } from '../../components/ui';
-import { ChevronLeftIcon, UserGroupIcon, BadgeCheckIcon as CheckIcon, XIcon } from 'react-native-heroicons/outline';
+import { ScreenWrapper, Text, HStack, VStack, Box } from '../../components/ui';
+import { ChevronLeftIcon, UserGroupIcon } from 'react-native-heroicons/outline';
 import { ConnectionService } from '../../services/api/connections';
-import { moderateScale, verticalScale } from '../../utils/responsive';
+import { useAuthStore } from '../../store/authStore';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 
-const BLUE = '#4F46E5';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 const TABS = ['Connections', 'Requests'];
 
@@ -36,13 +38,36 @@ const MOCK_REQUESTS = [
 
 export default function ProviderNetworkScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('Connections');
-  const [requests, setRequests] = useState(MOCK_REQUESTS);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNetwork = async () => {
+    if (!user?.id) return;
+    try {
+      const [following, followers] = await Promise.all([
+        ConnectionService.getFollowing(user.id),
+        ConnectionService.getFollowers(user.id),
+      ]);
+      setConnections(following?.results || (Array.isArray(following) ? following : []));
+      setRequests(followers?.results || (Array.isArray(followers) ? followers : []));
+    } catch (err) {
+      console.warn('Network load failed');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => { fetchNetwork(); }, []);
 
   const acceptRequest = async (id: number) => {
     try {
       await ConnectionService.acceptRequest(id);
-      setRequests(prev => prev.filter(r => r.id !== id));
+      setRequests(prev => prev.filter((r: any) => r.id !== id));
     } catch (e) {
       console.warn('Accept failed');
     }
@@ -58,152 +83,119 @@ export default function ProviderNetworkScreen({ navigation }: { navigation: any 
   };
 
   return (
-    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="#F9FAFB">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + moderateScale(8) }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeftIcon size={moderateScale(22)} color="#111827" strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text fontSize={moderateScale(17)} fontWeight="800" color="#111827">Network</Text>
-        <View style={{ width: moderateScale(36) }} />
-      </View>
+      <Box pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+        <HStack px={16} items="center" justify="space-between">
+          <HStack items="center">
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+              <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
+            </TouchableOpacity>
+            <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>My Network</Text>
+          </HStack>
+          <Box w={36} h={36} />
+        </HStack>
+      </Box>
 
       {/* Tabs */}
-      <View style={styles.tabBar}>
+      <HStack bg="white" borderBottom={1} borderColor="#F0F2F5">
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab}
             style={[styles.tab, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text fontSize={moderateScale(14)} fontWeight="700" color={activeTab === tab ? BLUE : '#6B7280'}>
+            <Text fontSize={14} fontWeight="700" color={activeTab === tab ? FB_BLUE : GRAY_TEXT}>
               {tab}{tab === 'Requests' ? ` (${requests.length})` : ''}
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </HStack>
 
-      {activeTab === 'Connections' ? (
-        <FlatList
-          data={MOCK_CONNECTIONS}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{
-            padding: moderateScale(16),
-            paddingBottom: Math.max(insets.bottom + moderateScale(20), moderateScale(40)),
-          }}
-          ItemSeparatorComponent={() => <View style={{ height: moderateScale(10) }} />}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <HStack items="center">
-                <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                <VStack ml={moderateScale(12)} flex={1}>
-                  <Text fontSize={moderateScale(15)} fontWeight="700" color="#111827">{item.name}</Text>
-                  <Text fontSize={moderateScale(13)} color="#6B7280" mt={2}>{item.role}</Text>
-                  <HStack items="center" mt={4}>
-                    <UserGroupIcon size={moderateScale(13)} color="#9CA3AF" />
-                    <Text fontSize={moderateScale(12)} color="#9CA3AF" ml={3}>{item.mutual} mutual</Text>
-                  </HStack>
-                </VStack>
-                <TouchableOpacity style={styles.msgBtn}>
-                  <Text fontSize={moderateScale(13)} fontWeight="700" color={BLUE}>Message</Text>
-                </TouchableOpacity>
-              </HStack>
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{
-            padding: moderateScale(16),
-            paddingBottom: Math.max(insets.bottom + moderateScale(20), moderateScale(40)),
-          }}
-          ItemSeparatorComponent={() => <View style={{ height: moderateScale(10) }} />}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyState}>
-              <UserGroupIcon size={moderateScale(40)} color="#E5E7EB" />
-              <Text fontSize={moderateScale(15)} fontWeight="700" color="#9CA3AF" mt={moderateScale(12)}>No pending requests</Text>
-            </View>
-          )}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <HStack items="flex-start">
-                <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                <VStack ml={moderateScale(12)} flex={1}>
-                  <Text fontSize={moderateScale(15)} fontWeight="700" color="#111827">{item.name}</Text>
-                  <Text fontSize={moderateScale(13)} color="#6B7280" mt={2}>{item.role}</Text>
-                  {item.message && (
-                    <View style={styles.msgBubble}>
-                      <Text fontSize={moderateScale(12)} color="#4B5563" style={{ fontStyle: 'italic' }}>"{item.message}"</Text>
-                    </View>
-                  )}
-                  <HStack mt={moderateScale(14)} style={{ gap: moderateScale(10) }}>
-                    <TouchableOpacity style={styles.acceptBtn} onPress={() => acceptRequest(item.id)}>
-                      <CheckIcon size={moderateScale(16)} color="#FFFFFF" strokeWidth={2.5} />
-                      <Text fontSize={moderateScale(13)} fontWeight="700" color="#FFFFFF" ml={moderateScale(6)}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.declineBtn} onPress={() => declineRequest(item.id)}>
-                      <XIcon size={moderateScale(16)} color="#6B7280" strokeWidth={2.5} />
-                      <Text fontSize={moderateScale(13)} fontWeight="700" color="#6B7280" ml={moderateScale(6)}>Decline</Text>
-                    </TouchableOpacity>
-                  </HStack>
-                </VStack>
-              </HStack>
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+       <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={{ paddingBottom: 60 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNetwork(); }} tintColor={FB_BLUE} />}
+       >
+          {loading ? (
+             <Box py={100} justify="center" items="center">
+                <ActivityIndicator size="large" color={FB_BLUE} />
+             </Box>
+          ) : activeTab === 'Connections' ? (
+          <VStack p={16} space="md">
+            {connections.map((item, idx) => (
+              <Box key={item.id || idx} bg="white" rounded={16} p={16} border={1} borderColor="#F0F2F5">
+                <HStack items="center">
+                  <Image source={{ uri: item.avatar || 'https://i.pravatar.cc/150?u=' + idx }} style={styles.avatar} />
+                  <VStack ml={12} flex={1}>
+                    <Text fontSize={15} fontWeight="700" color="#111827">{item.following_email ? item.following_email.split('@')[0] : 'Professional'}</Text>
+                    <Text fontSize={13} color={GRAY_TEXT} mt={1}>{item.follow_type_display || 'Interested Party'}</Text>
+                    <HStack items="center" mt={4}>
+                      <UserGroupIcon size={12} color="#9CA3AF" />
+                      <Text fontSize={11} color="#9CA3AF" ml={4}>Active Connection</Text>
+                    </HStack>
+                  </VStack>
+                  <TouchableOpacity style={styles.msgBtn}>
+                    <Text fontSize={13} fontWeight="700" color={FB_BLUE}>Message</Text>
+                  </TouchableOpacity>
+                </HStack>
+              </Box>
+            ))}
+            {connections.length === 0 && (
+               <VStack items="center" py={100} px={40}>
+                  <UserGroupIcon size={48} color="#D1D5DB" />
+                  <Text fontSize={17} fontWeight="700" color="#111827" mt={16}>No connections yet</Text>
+                  <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8}>Grow your professional network by following candidates and peers.</Text>
+               </VStack>
+            )}
+          </VStack>
+        ) : (
+          <VStack p={16} space="md">
+            {requests.length > 0 ? requests.map((item, idx) => (
+              <Box key={item.id || idx} bg="white" rounded={16} p={16} border={1} borderColor="#F0F2F5">
+                <HStack items="flex-start">
+                  <Image source={{ uri: item.avatar || 'https://i.pravatar.cc/150?u=' + idx }} style={styles.avatar} />
+                  <VStack ml={12} flex={1}>
+                    <Text fontSize={15} fontWeight="700" color="#111827">{item.follower_email ? item.follower_email.split('@')[0] : 'New Request'}</Text>
+                    <Text fontSize={13} color={GRAY_TEXT} mt={1}>{item.follow_type_display || 'Job Seeker'}</Text>
+                    {item.message && (
+                      <Box bg="#F3F4F6" rounded={12} p={10} mt={10}>
+                        <Text fontSize={13} color="#4B5563" style={{ fontStyle: 'italic' }}>"{item.message}"</Text>
+                      </Box>
+                    )}
+                    <HStack mt={16} space="md">
+                      <TouchableOpacity style={styles.acceptBtn} onPress={() => acceptRequest(item.id)}>
+                        <Text fontSize={13} fontWeight="700" color="white">Accept</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.declineBtn} onPress={() => declineRequest(item.id)}>
+                        <Text fontSize={13} fontWeight="700" color="#111827">Decline</Text>
+                      </TouchableOpacity>
+                    </HStack>
+                  </VStack>
+                </HStack>
+              </Box>
+            )) : (
+              <VStack items="center" py={100} px={40}>
+                <UserGroupIcon size={48} color="#D1D5DB" />
+                <Text fontSize={17} fontWeight="700" color="#111827" mt={16}>No pending requests</Text>
+                <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8}>We'll notify you when candidates want to connect.</Text>
+              </VStack>
+            )}
+          </VStack>
+        )}
+      </ScrollView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF', paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(14), borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  backBtn: {
-    width: moderateScale(36), height: moderateScale(36), borderRadius: moderateScale(18),
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
-  },
-  tabBar: {
-    flexDirection: 'row', backgroundColor: '#FFFFFF',
-    paddingHorizontal: moderateScale(16), borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  tab: { paddingVertical: moderateScale(12), marginRight: moderateScale(24), borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: BLUE },
-  card: {
-    backgroundColor: '#FFFFFF', borderRadius: moderateScale(14), padding: moderateScale(16),
-    borderWidth: 1, borderColor: '#F3F4F6',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
-  },
-  avatar: { width: moderateScale(52), height: moderateScale(52), borderRadius: moderateScale(26), backgroundColor: '#F3F4F6' },
-  msgBtn: {
-    borderWidth: 1.5, borderColor: BLUE, paddingHorizontal: moderateScale(14),
-    paddingVertical: moderateScale(7), borderRadius: moderateScale(20),
-  },
-  msgBubble: {
-    backgroundColor: '#F3F4F6', borderRadius: moderateScale(10),
-    padding: moderateScale(10), marginTop: moderateScale(10),
-  },
-  acceptBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: BLUE, height: moderateScale(40), borderRadius: moderateScale(10),
-  },
-  declineBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F3F4F6', height: moderateScale(40), borderRadius: moderateScale(10),
-  },
-  emptyState: { alignItems: 'center', paddingTop: verticalScale(60) },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F0F2F5' },
+  tab: { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
+  tabActive: { borderBottomColor: FB_BLUE },
+  msgBtn: { borderWidth: 1.5, borderColor: FB_BLUE, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  acceptBtn: { flex: 1, height: 36, backgroundColor: FB_BLUE, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  declineBtn: { flex: 1, height: 36, backgroundColor: '#F3F4F6', borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });
-
-
-
-
-

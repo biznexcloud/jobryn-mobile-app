@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ScrollView, 
   TouchableOpacity, 
@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   View,
   Dimensions,
+  Modal,
+  Animated,
 } from 'react-native';
 import { Colors, Fonts, Strings, Roles, UserRole } from '../../constants';
 import { Heading, Text, Input, Button, VStack, HStack, Box, ScreenWrapper, Divider } from '../../components/ui';
@@ -35,6 +37,24 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [successRole, setSuccessRole] = useState<'job_provider' | 'job_seeker'>('job_seeker');
+  const [successName, setSuccessName] = useState('');
+
+  // Animation values for the popup
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  const showSuccessPopup = (roleName: 'job_provider' | 'job_seeker', name: string) => {
+    setSuccessRole(roleName);
+    setSuccessName(name);
+    setSuccessVisible(true);
+    // Animate in
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 7, useNativeDriver: true }),
+    ]).start();
+  };
 
   const handleLogin = async () => {
     setError('');
@@ -45,8 +65,8 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
     try {
       const resp = await AuthService.login(email, password);
       
-      // Support both { token: { access }, role } and older { access, user } formats to be safe
-      const access = resp.token?.access || resp.access;
+      // Support token string, or { token: { access } }, or { access }
+      const access = typeof resp.token === 'string' ? resp.token : (resp.token?.access || resp.access);
       const rawRole = resp.role || resp.user?.role;
       
       // Map backend role to app role
@@ -55,9 +75,17 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
          : Roles.JOB_SEEKER;
          
       const userData = resp.user || { email, role: rawRole };
+      const displayName = (userData as any)?.name || email.split('@')[0];
+      const roleKey = (rawRole === 'recruiter' || rawRole === 'job_provider') ? 'job_provider' : 'job_seeker';
 
-      // Existing users logging in are already onboarded — set true so they land on dashboard
-      login(targetRole, access, userData, true);
+      // Show success popup first, then login (which triggers navigation reactively)
+      showSuccessPopup(roleKey, displayName);
+      setLoading(false);
+
+      // Short delay so user sees the popup, then auth store triggers navigation
+      setTimeout(() => {
+        login(targetRole, access, userData, true);
+      }, 1600);
     } catch (err: any) {
       setLoading(false);
       const apiError = err.response?.data?.msg || err.response?.data?.error || err.response?.data?.detail || 'Invalid credentials. Please check your email and password.';
@@ -72,8 +100,69 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
     }
   };
 
+  const isProvider = successRole === 'job_provider';
+
   return (
     <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="white">
+
+      {/* ─── Login Success Popup Modal ─────────────────────────────────────── */}
+      <Modal
+        visible={successVisible}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.successCard,
+              { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            ]}
+          >
+            {/* Gradient Top Bar */}
+            <View style={[styles.successTopBar, { backgroundColor: isProvider ? '#0A66C2' : '#059669' }]} />
+
+            {/* Icon Circle */}
+            <View style={[styles.successIconCircle, { backgroundColor: isProvider ? '#EBF5FF' : '#D1FAE5' }]}>
+              <View style={[styles.successIconInner, { backgroundColor: isProvider ? '#0A66C2' : '#059669' }]}>
+                <Text style={styles.successIconCheck}>✓</Text>
+              </View>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.successTitle}>Login Successful!</Text>
+
+            {/* Subtitle */}
+            <Text style={styles.successSubtitle}>
+              Welcome back,{' '}
+              <Text style={[styles.successName, { color: isProvider ? '#0A66C2' : '#059669' }]}>
+                {successName}
+              </Text>
+              {'!'}
+            </Text>
+
+            {/* Role Badge */}
+            <View style={[styles.roleBadge, { backgroundColor: isProvider ? '#EBF5FF' : '#D1FAE5' }]}>
+              <Text style={[styles.roleBadgeText, { color: isProvider ? '#0A66C2' : '#059669' }]}>
+                {isProvider ? '🏢  Job Provider Dashboard' : '👤  Job Seeker Dashboard'}
+              </Text>
+            </View>
+
+            {/* Redirect note */}
+            <Text style={styles.successRedirect}>Navigating to your dashboard...</Text>
+
+            {/* Loading dots */}
+            <View style={styles.dotsRow}>
+              {[0, 1, 2].map((i) => (
+                <View
+                  key={i}
+                  style={[styles.dot, { backgroundColor: isProvider ? '#0A66C2' : '#059669', opacity: 0.4 + i * 0.3 }]}
+                />
+              ))}
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
       <StatusBar barStyle="dark-content" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -161,5 +250,96 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BLUE,
     backgroundColor: 'white',
+  },
+  // ─── Success Popup Styles ───────────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  successCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    alignItems: 'center',
+    paddingBottom: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 20,
+  },
+  successTopBar: {
+    width: '100%',
+    height: 6,
+    marginBottom: 0,
+  },
+  successIconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 28,
+    marginBottom: 20,
+  },
+  successIconInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successIconCheck: {
+    color: 'white',
+    fontSize: 30,
+    fontWeight: '900',
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#111827',
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  successSubtitle: {
+    fontSize: 15,
+    color: '#4B5563',
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  successName: {
+    fontWeight: '800',
+  },
+  roleBadge: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 30,
+    marginBottom: 20,
+  },
+  roleBadgeText: {
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  successRedirect: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    marginBottom: 12,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

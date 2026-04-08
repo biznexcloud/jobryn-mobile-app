@@ -21,6 +21,9 @@ import {
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Button } from '../../components/ui';
 import { moderateScale } from '../../utils/responsive';
+import { BillingService } from '../../services/api/billing';
+import Toast from 'react-native-toast-message';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 
 const BLUE = '#4F46E5';
 const SOFT_BG = '#F8FAFC';
@@ -29,8 +32,33 @@ export default function PayoutScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('100.00');
   const [selectedMethod, setSelectedMethod] = useState('bank');
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [wallet, setWallet] = useState<any>(null);
+
+  const loadBalance = async () => {
+    setFetching(true);
+    try {
+      const data = await BillingService.getWallet();
+      setWallet(data);
+    } catch (e) {
+      console.warn('Balance fetch failed:', e);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  React.useEffect(() => { loadBalance(); }, []);
 
   const handlePayout = () => {
+    const available = parseFloat(wallet?.balance || '0');
+    const requested = parseFloat(amount);
+
+    if (requested > available) {
+      Alert.alert('Insufficient Balance', 'You cannot withdraw more than your current balance.');
+      return;
+    }
+
     Alert.alert(
       'Confirm Payout',
       `Are you sure you want to withdraw $${amount} to your ${selectedMethod === 'bank' ? 'Bank Account' : 'Digital Wallet'}?`,
@@ -38,10 +66,17 @@ export default function PayoutScreen({ navigation }: any) {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Confirm', 
-          onPress: () => {
-            Alert.alert('Payout Initiated', 'Your withdrawal request has been sent and will be processed within 24-48 hours.', [
-              { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await BillingService.createPayout({ amount, payout_method: selectedMethod });
+              Toast.show({ type: 'success', text1: 'Payout Initiated', text2: 'Your request is being processed.' });
+              navigation.goBack();
+            } catch (e) {
+              Toast.show({ type: 'error', text1: 'Withdrawal failed' });
+            } finally {
+              setLoading(false);
+            }
           } 
         }
       ]
@@ -84,11 +119,19 @@ export default function PayoutScreen({ navigation }: any) {
         </HStack>
       </Box>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={fetching} onRefresh={loadBalance} tintColor={BLUE} />}
+      >
         <Box bg="white" p={24} rounded={28} mb={24} shadow={0.5} border={1} borderColor="#F1F5F9">
           <HStack justify="space-between" mb={12}>
             <Text fontSize={13} color="#64748B" fontWeight="800" letterSpacing={1}>AVAILABLE BALANCE</Text>
-            <Text fontSize={13} color={BLUE} fontWeight="800">$1,245.00</Text>
+            {fetching ? (
+               <ActivityIndicator size="small" color={BLUE} />
+            ) : (
+               <Text fontSize={13} color={BLUE} fontWeight="800">{wallet?.currency_symbol || '$'}{wallet?.balance || '0.00'}</Text>
+            )}
           </HStack>
           <HStack items="center" borderBottom={2} borderColor="#F1F5F9" pb={12}>
             <Text fontSize={36} fontWeight="900" color="#1E293B">$</Text>
@@ -125,11 +168,12 @@ export default function PayoutScreen({ navigation }: any) {
 
         <Button 
           onPress={handlePayout}
+          disabled={loading || fetching}
           style={styles.withdrawBtn}
         >
           <HStack space="sm" items="center">
-             <Text style={styles.withdrawBtnText}>Withdraw Now</Text>
-             <ArrowUpRight size={20} color="white" />
+             <Text style={styles.withdrawBtnText}>{loading ? "Withdrawing..." : "Withdraw Now"}</Text>
+             {!loading && <ArrowUpRight size={20} color="white" />}
           </HStack>
         </Button>
 

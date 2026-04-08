@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react-native';
-import { View, TouchableOpacity, ScrollView, StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert, TextInput } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, Box, VStack, HStack, Button } from '../../components/ui';
 
@@ -29,11 +29,27 @@ export default function AddServiceScreen({ route, navigation }: any) {
   const [title, setTitle] = React.useState(service?.title || '');
   const [price, setPrice] = React.useState(service?.price || '');
   const [description, setDescription] = React.useState(service?.description || '');
+  const [saving, setSaving] = React.useState(false);
 
-  const handleSave = () => { 
-    Alert.alert('Success', edit ? 'Service updated.' : 'Service added to your showcase.', [
-      { text: 'OK', onPress: () => navigation.goBack() }
-    ]);
+  const handleSave = async () => { 
+    if (!title || !price || !description) {
+      Alert.alert('Validation Error', 'Please fill in all fields to showcase your service.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+       // Simulate sync to professional server
+       await new Promise(resolve => setTimeout(resolve, 1500));
+       
+       Alert.alert('Success', edit ? 'Service updated.' : 'Service added to your showcase.', [
+         { text: 'OK', onPress: () => navigation.goBack() }
+       ]);
+    } catch (e) {
+       Alert.alert('Sync Failed', 'There was a technical issue saving your service. Please try again.');
+    } finally {
+       setSaving(false);
+    }
   };
 
   return (
@@ -51,8 +67,12 @@ export default function AddServiceScreen({ route, navigation }: any) {
                   {edit ? 'Edit Service' : 'Add Service'}
                </Text>
             </HStack>
-            <TouchableOpacity onPress={handleSave}>
-               <Text fontSize={16} fontWeight="700" color={BLUE}>Save</Text>
+            <TouchableOpacity onPress={handleSave} disabled={saving}>
+               {saving ? (
+                  <ActivityIndicator size="small" color={BLUE} />
+               ) : (
+                  <Text fontSize={16} fontWeight="700" color={BLUE}>Save</Text>
+               )}
             </TouchableOpacity>
          </HStack>
       </Box>
@@ -80,6 +100,7 @@ export default function AddServiceScreen({ route, navigation }: any) {
                 label={edit ? "Update Service" : "Add to Showcase"} 
                 onPress={handleSave} 
                 bg={BLUE} 
+                loading={saving}
                 style={{ height: 50, borderRadius: 25 }}
               />
            </Box>

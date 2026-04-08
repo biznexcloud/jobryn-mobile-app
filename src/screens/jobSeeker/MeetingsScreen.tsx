@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FlatList,
   TouchableOpacity,
@@ -8,6 +8,12 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Linking,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+} from 'react-native';
 import {
   Calendar,
   Video,
@@ -19,6 +25,7 @@ import {
   FileText,
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
+import { MeetingService } from '../../services/api/meetings';
 
 const BLUE = '#3B82F6'; 
 const GRAY_TEXT = '#6B7280';
@@ -67,75 +74,118 @@ const MEETINGS_DATA = [
 export default function MeetingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filteredMeetings = MEETINGS_DATA.filter(m => activeTab === 'upcoming' ? m.status === 'upcoming' : m.status === 'completed');
+  const fetchMeetings = useCallback(async () => {
+    try {
+      const data = await MeetingService.getSeekerMeetings();
+      setMeetings(data.results || data);
+    } catch (e) {
+      console.warn('Meetings fetch failed:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
-  const renderMeeting = ({ item }: { item: typeof MEETINGS_DATA[0] }) => (
-    <View style={styles.card}>
-       {/* Visual Cover Header */}
-       <View style={styles.imageContainer}>
-          <Image source={{ uri: item.cover_image }} style={styles.coverImage} />
-          <Box style={styles.timeBadge}>
-             <HStack items="center" space="xs">
-                <Clock size={12} color="white" />
-                <Text fontSize={12} fontWeight="800" color="white">{item.date} • {item.time}</Text>
-             </HStack>
-          </Box>
-          <Box style={[styles.typeBadge, item.type === 'online' ? { backgroundColor: BLUE } : { backgroundColor: DARK_TEXT }]}>
-             <HStack items="center" space="xs">
-                {item.type === 'online' ? <Video size={12} color="white" /> : <MapPin size={12} color="white" />}
-                <Text fontSize={10} fontWeight="900" color="white" textTransform="uppercase">{item.type}</Text>
-             </HStack>
-          </Box>
-       </View>
+  useEffect(() => {
+    fetchMeetings();
+  }, [fetchMeetings]);
 
-       {/* Content Details */}
-       <VStack p={16}>
-          <HStack items="center" space="md" mb={12}>
-             <Avatar source={{ uri: item.avatar }} size="md" rounded={12} style={styles.companyLogo} />
-             <VStack flex={1}>
-                <Text fontSize={18} fontWeight="900" color={DARK_TEXT} numberOfLines={1}>{item.title}</Text>
-                <Text fontSize={14} fontWeight="600" color={GRAY_TEXT} mt={2}>{item.company}</Text>
-             </VStack>
-          </HStack>
+  const filteredMeetings = meetings.filter(m => {
+     const isPast = m.status === 'completed' || m.status === 'cancelled';
+     return activeTab === 'upcoming' ? !isPast : isPast;
+  });
 
-          <HStack items="center" bg="#F3F4F6" p={12} rounded={16} space="sm" mb={16}>
-             <View style={{ width: 4, height: 24, backgroundColor: BLUE, borderRadius: 2 }} />
-             <VStack flex={1}>
-                <Text fontSize={12} color={GRAY_TEXT} fontWeight="700">Duration Scheduled</Text>
-                <Text fontSize={14} fontWeight="900" color={DARK_TEXT}>{item.duration}</Text>
-             </VStack>
-             {item.type === 'onsite' && (
-                <VStack items="flex-end">
-                   <Text fontSize={12} color={GRAY_TEXT} fontWeight="700">Location</Text>
-                   <Text fontSize={14} fontWeight="800" color={DARK_TEXT}>HQ Building</Text>
-                </VStack>
-             )}
-          </HStack>
+  const handleJoin = async (url: string) => {
+    if (!url) {
+       Alert.alert('Link ready soon', 'The organizer hasn\'t shared the meeting link yet.');
+       return;
+    }
+    try { await Linking.openURL(url); } catch { Alert.alert('Error', 'Unable to open link'); }
+  };
 
-          {/* Contextual CTA */}
-          {item.status === 'upcoming' && (
-             <TouchableOpacity style={item.type === 'online' ? styles.primaryBtn : styles.secondaryBtn}>
-                <HStack items="center" justify="center" space="xs">
-                   {item.type === 'online' ? <Video size={18} color="white" /> : <MapPin size={18} color={DARK_TEXT} />}
-                   <Text fontSize={15} fontWeight="800" color={item.type === 'online' ? 'white' : DARK_TEXT}>
-                      {item.type === 'online' ? 'Join Video Hub' : 'Get Directions'}
-                   </Text>
-                </HStack>
-             </TouchableOpacity>
-          )}
+  const renderMeeting = ({ item }: { item: any }) => {
+    const meetTime = new Date(item.scheduled_at);
+    const timeStr = meetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = meetTime.toDateString() === new Date().toDateString() ? 'Today' : meetTime.toLocaleDateString();
 
-          {item.status === 'completed' && (
-             <TouchableOpacity style={styles.secondaryBtn}>
-                <HStack items="center" justify="center" space="xs">
-                   <FileText size={18} color={DARK_TEXT} />
-                   <Text fontSize={15} fontWeight="800" color={DARK_TEXT}>View Summary</Text>
-                </HStack>
-             </TouchableOpacity>
-          )}
-       </VStack>
-    </View>
-  );
+    return (
+      <View style={styles.card}>
+         {/* Visual Cover Header */}
+         <View style={styles.imageContainer}>
+            <Image source={{ uri: item.cover_image || 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80' }} style={styles.coverImage} />
+            <Box style={styles.timeBadge}>
+               <HStack items="center" space="xs">
+                  <Clock size={12} color="white" />
+                  <Text fontSize={12} fontWeight="800" color="white">{dateStr} • {timeStr}</Text>
+               </HStack>
+            </Box>
+            <Box style={[styles.typeBadge, item.meeting_type === 'online' ? { backgroundColor: BLUE } : { backgroundColor: DARK_TEXT }]}>
+               <HStack items="center" space="xs">
+                  {item.meeting_type === 'online' ? <Video size={12} color="white" /> : <MapPin size={12} color="white" />}
+                  <Text fontSize={10} fontWeight="900" color="white" textTransform="uppercase">{item.meeting_type_display || item.meeting_type}</Text>
+               </HStack>
+            </Box>
+         </View>
+
+         {/* Content Details */}
+         <VStack p={16}>
+            <HStack items="center" space="md" mb={12}>
+               <Avatar source={{ uri: item.organizer_avatar || 'https://i.pravatar.cc/150?u=org' }} size="md" rounded={12} style={styles.companyLogo} />
+               <VStack flex={1}>
+                  <Text fontSize={18} fontWeight="900" color={DARK_TEXT} numberOfLines={1}>{item.agenda}</Text>
+                  <Text fontSize={14} fontWeight="600" color={GRAY_TEXT} mt={2}>
+                    {item.company_name || 'Hiring Session'}
+                  </Text>
+               </VStack>
+            </HStack>
+
+            <HStack items="center" bg="#F3F4F6" p={12} rounded={16} space="sm" mb={16}>
+               <View style={{ width: 4, height: 24, backgroundColor: BLUE, borderRadius: 2 }} />
+               <VStack flex={1}>
+                  <Text fontSize={12} color={GRAY_TEXT} fontWeight="700">Duration Scheduled</Text>
+                  <Text fontSize={14} fontWeight="900" color={DARK_TEXT}>{item.duration_minutes || '--'} Min</Text>
+               </VStack>
+               {(item.meeting_type === 'onsite' || item.meeting_type === 'in_person') && (
+                  <VStack items="flex-end">
+                     <Text fontSize={12} color={GRAY_TEXT} fontWeight="700">Location</Text>
+                     <Text fontSize={14} fontWeight="800" color={DARK_TEXT} numberOfLines={1}>
+                        {item.location_address || 'TBD'}
+                     </Text>
+                  </VStack>
+               )}
+            </HStack>
+
+            {/* Contextual CTA */}
+            {activeTab === 'upcoming' && (
+               <TouchableOpacity 
+                  onPress={() => item.meeting_type === 'online' ? handleJoin(item.meeting_link) : null}
+                  style={item.meeting_type === 'online' ? styles.primaryBtn : styles.secondaryBtn}
+               >
+                  <HStack items="center" justify="center" space="xs">
+                     {item.meeting_type === 'online' ? <Video size={18} color="white" /> : <MapPin size={18} color={DARK_TEXT} />}
+                     <Text fontSize={15} fontWeight="800" color={item.meeting_type === 'online' ? 'white' : DARK_TEXT}>
+                        {item.meeting_type === 'online' ? 'Join Video Hub' : 'View Placement'}
+                     </Text>
+                  </HStack>
+               </TouchableOpacity>
+            )}
+
+            {activeTab === 'past' && (
+               <TouchableOpacity style={styles.secondaryBtn}>
+                  <HStack items="center" justify="center" space="xs">
+                     <FileText size={18} color={DARK_TEXT} />
+                     <Text fontSize={15} fontWeight="800" color={DARK_TEXT}>{item.status_display || 'Session Ended'}</Text>
+                  </HStack>
+               </TouchableOpacity>
+            )}
+         </VStack>
+      </View>
+    );
+  };
 
   return (
     <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={SOFT_BG}>
@@ -176,8 +226,10 @@ export default function MeetingsScreen({ navigation }: any) {
       <FlatList 
          data={filteredMeetings}
          renderItem={renderMeeting}
-         keyExtractor={(item) => item.id}
+         keyExtractor={(item) => item.id.toString()}
          showsVerticalScrollIndicator={false}
+         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchMeetings(); }} tintColor={BLUE} />}
+         ListHeaderComponent={loading ? <ActivityIndicator size="large" color={BLUE} style={{ marginTop: 24 }} /> : null}
          contentContainerStyle={[styles.feedContainer, { paddingBottom: insets.bottom + 120 }]}
          ListEmptyComponent={
             <VStack items="center" mt={60} px={40}>

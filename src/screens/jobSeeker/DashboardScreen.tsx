@@ -35,7 +35,6 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { JobService } from '../../services/api/jobs';
 import { SocialService } from '../../services/api/social';
-import { MOCK_FEED_POSTS, MOCK_STORIES, MOCK_JOBS } from '../../constants/MockData';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
 import { PostCard } from '../../components/cards/PostCard';
 import Sidebar from '../../components/common/Sidebar';
@@ -44,12 +43,14 @@ const { width } = Dimensions.get('window');
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
 
+import { useFocusEffect } from '@react-navigation/native';
+
 export default function SeekerDashboardScreen() {
   const insets = useSafeAreaInsets();
   const navigation: any = useNavigation();
   const { user, token } = useAuthStore();
   const { isSidebarOpen, setSidebarOpen } = useUIStore();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
   const [feed, setFeed] = useState<any[]>([]);
@@ -58,31 +59,45 @@ export default function SeekerDashboardScreen() {
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [jobsData, feedData, storiesData] = await Promise.all([
-        JobService.getJobs(),
-        SocialService.getFeed(),
-        SocialService.getStories(),
+        JobService.getJobs().catch(err => {
+          console.error('[Dashboard] Jobs API error:', err.response?.data || err.message);
+          return { results: [] };
+        }),
+        SocialService.getFeed().catch(err => {
+          console.error('[Dashboard] Feed API error:', err.response?.data || err.message);
+          return { results: [] };
+        }),
+        SocialService.getStories().catch(err => {
+          console.error('[Dashboard] Stories API error:', err.response?.data || err.message);
+          return { results: [] };
+        }),
       ]);
-      const fetchedJobs = Array.isArray(jobsData) ? jobsData : (jobsData as any)?.results || [];
-      const fetchedFeed = Array.isArray(feedData) ? feedData : (feedData as any)?.results || [];
-      const fetchedStories = Array.isArray(storiesData) ? storiesData : (storiesData as any)?.results || [];
-      // Always show mock data as fallback so the dashboard looks populated
-      setJobs(fetchedJobs.length > 0 ? fetchedJobs : MOCK_JOBS);
-      setFeed(fetchedFeed.length > 0 ? fetchedFeed : MOCK_FEED_POSTS);
-      setStories(fetchedStories.length > 0 ? fetchedStories : MOCK_STORIES);
-    } catch (e) {
-      console.warn('Sync failed, using mock data:', e);
-      setJobs(MOCK_JOBS);
-      setFeed(MOCK_FEED_POSTS);
-      setStories(MOCK_STORIES);
+
+      const fetchedJobs = jobsData?.results || [];
+      const fetchedFeed = feedData?.results || [];
+      const fetchedStories = storiesData?.results || [];
+      
+      // Update states with real data only. Empty states handled naturally
+      setJobs(fetchedJobs);
+      setFeed(fetchedFeed);
+      setStories(fetchedStories);
+
+    } catch (e: any) {
+      console.error('[Dashboard] Global sync failed:', e.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
   const lastScrollY = useSharedValue(0);
@@ -130,7 +145,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
                <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Messages')}>
                   <MessageSquare size={20} color="black" />
                </TouchableOpacity>
-               <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('SeekerNotifications')}>
+               <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Notifications')}>
                   <Bell size={20} color="black" />
                </TouchableOpacity>
                <TouchableOpacity style={styles.headerIcon} onPress={() => setSidebarOpen(true)}>
@@ -165,15 +180,15 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
            </HStack>
            <Divider color="#F0F2F5" mt={12} mb={12} />
            <HStack justify="space-around">
-              <TouchableOpacity style={styles.shortcut}>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost')}>
                  <Video size={18} color="#F3425F" />
                  <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Live Video</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.shortcut}>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost', { autoPickImage: true })}>
                  <ImageIcon size={18} color="#45BD62" />
                  <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Photo</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.shortcut}>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost')}>
                  <Smile size={18} color="#F7B928" />
                  <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Feeling</Text>
               </TouchableOpacity>
@@ -196,50 +211,30 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
                  </View>
               </TouchableOpacity>
 
-              {stories.map((story, i) => (
-                 <TouchableOpacity key={i} style={styles.storyCard} onPress={() => navigation.navigate('StoryViewer', { stories: stories, initialIndex: i })}>
-                    <Image source={{ uri: story.image }} style={styles.storyImgFull} />
-                    <View style={styles.storyAvatarOverlay}>
-                       <Avatar source={{ uri: story.user?.avatar }} size={32} style={{ borderWidth: 2, borderColor: FB_BLUE }} />
-                    </View>
-                    <View style={styles.storyNameOverlay}>
-                       <Text fontSize={11} fontWeight="700" color="white" numberOfLines={2}>{story.user?.name}</Text>
-                    </View>
-                 </TouchableOpacity>
-              ))}
+               {stories.map((story, i) => (
+                  <TouchableOpacity key={story.id || i} style={styles.storyCard} onPress={() => navigation.navigate('StoryViewer', { stories, initialIndex: i })}>
+                     <Image source={{ uri: story.image || story.images }} style={styles.storyImgFull} />
+                     <View style={styles.storyAvatarOverlay}>
+                        <Avatar source={{ uri: story.user?.avatar || story.user_avatar || `https://i.pravatar.cc/150?u=${story.id}` }} size={32} style={{ borderWidth: 2, borderColor: FB_BLUE }} />
+                     </View>
+                     <View style={styles.storyNameOverlay}>
+                        <Text fontSize={11} fontWeight="700" color="white" numberOfLines={2}>{story.user?.name || story.user_name || story.author_email || 'User'}</Text>
+                     </View>
+                  </TouchableOpacity>
+               ))}
            </ScrollView>
         </Box>
 
         {/* Feed Section */}
-        {loading ? (
-          <ActivityIndicator color={FB_BLUE} style={{ marginTop: 40 }} />
-        ) : (
-          feed.map((post) => (
+         {feed.map((post) => (
             <PostCard 
               key={post.id} 
-              post={{
-                ...post,
-                postedAt: post.created_at,
-                author: {
-                   name: post.user?.name || 'User',
-                   avatar: post.user?.avatar || `https://i.pravatar.cc/150?u=${post.id}`,
-                   headline: post.user?.role || 'Member'
-                }
-              }} 
+              post={post} 
               onLikersPress={() => navigation.navigate('LikersList', { postId: post.id })}
-              onComment={() => navigation.navigate('PostDetail', { 
-                post: {
-                  ...post,
-                  user: {
-                    name: post.user?.name || 'User',
-                    avatar: post.user?.avatar || `https://i.pravatar.cc/150?u=${post.id}`,
-                    role: post.user?.role || 'Member'
-                  }
-                }
-              })}
+              onComment={() => navigation.navigate('PostDetail', { post })}
             />
-          ))
-        )}
+          ))}
+          {loading && <ActivityIndicator color={FB_BLUE} style={{ marginVertical: 20 }} />}
       </AnimatedScrollView>
 
       {/* AI Chat FAB */}

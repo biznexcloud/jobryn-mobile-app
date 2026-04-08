@@ -1,22 +1,38 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, StatusBar, TextInput, FlatList, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button, Input } from '../../components/ui';
-import { ChevronLeft, Search, MessageSquare, UserMinus, UserPlus, MoreVertical } from 'lucide-react-native';
+import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
+import { ChevronLeft, Search, MessageSquare, MoreVertical } from 'lucide-react-native';
+import { ConnectionService } from '../../services/api/connections';
 
 const BLUE = '#1066C2';
 const FB_GRAY = '#F0F2F5';
 
-import { MOCK_NETWORK_SUGGESTIONS } from '../../constants/MockData';
-
 export default function ConnectionsListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
-  const [connections, setConnections] = useState(MOCK_NETWORK_SUGGESTIONS);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredConnections = connections.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.role.toLowerCase().includes(search.toLowerCase())
+  const fetchConnections = async () => {
+    setLoading(true);
+    try {
+      const resp = await ConnectionService.getConnections();
+      setConnections(resp?.results || []);
+    } catch (e) {
+      console.warn('Failed to fetch connections:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const filteredConnections = (connections || []).filter(c => 
+    (c.name || '').toLowerCase().includes(search.toLowerCase()) || 
+    (c.role || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const ConnectionItem = ({ item }: any) => (

@@ -41,6 +41,11 @@ export const AuthService = {
     const response = await apiClient.post('/account/resend-otp/', { email });
     return response.data;
   },
+  
+  deleteAccount: async () => {
+    const response = await apiClient.delete('/account/profile/');
+    return response.data;
+  },
 };
 
 

@@ -5,6 +5,7 @@ import MainNavigator from '../src/navigation/MainNavigator';
 import Toast from 'react-native-toast-message';
 
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import '../src/global.css';
 
 export default function RootLayout() {
   return (

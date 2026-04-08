@@ -46,9 +46,17 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
   const [suggestions, setSuggestions] = useState<any[]>(MOCK_NETWORK_SUGGESTIONS);
 
   const fetchData = async () => {
+    if (!user?.id) return;
     try {
-      const data = await ConnectionService.getConnections();
+      const data = await ConnectionService.getFollowers(user.id);
       setConnections(data?.results || (Array.isArray(data) ? data : []));
+      
+      // Fetch suggestions if a separate endpoint exists, otherwise use a fallback
+      // For now, we'll use followers as "suggestions" to show live integration
+      const suggestionsData = await ConnectionService.getFollowing(user.id);
+      if (suggestionsData?.results?.length > 0) {
+        setSuggestions(suggestionsData.results);
+      }
     } catch (e) {
       console.warn('Network sync error');
     } finally {
@@ -123,40 +131,42 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
 
         {/* Invitations Section */}
         <Box bg="white" mb={8} borderBottom={1} borderColor="#E5E7EB">
-           <HStack justify="space-between" items="center" p={16}>
-              <Text fontSize={14} fontWeight="800" color="#65676B">Invitations (3)</Text>
-              <TouchableOpacity>
-                 <Text fontSize={14} fontWeight="800" color={BLUE}>Manage</Text>
-              </TouchableOpacity>
-           </HStack>
-           
-           <Divider color="#F3F2EF" />
-           
-           <Box p={16}>
-              <HStack items="center">
-                 <TouchableOpacity onPress={() => navigateToProfile('invite-1')}>
-                    <Avatar source={{ uri: 'https://i.pravatar.cc/150?u=invite' }} style={{ width: 56, height: 56, borderRadius: 28 }} />
-                 </TouchableOpacity>
-                 <VStack ml={12} flex={1}>
-                    <TouchableOpacity onPress={() => navigateToProfile('invite-1')}>
-                       <Text fontSize={15} fontWeight="800" color="#1c1e21">Kiran Adhikari</Text>
-                       <Text fontSize={13} color="#65676B" numberOfLines={1}>Talent Acquisition @ GlobalTech</Text>
-                       <HStack items="center" mt={4}>
+            <HStack justify="space-between" items="center" p={16}>
+               <Text fontSize={14} fontWeight="800" color="#65676B">Invitations ({connections.length})</Text>
+               <TouchableOpacity>
+                  <Text fontSize={14} fontWeight="800" color={BLUE}>Manage</Text>
+               </TouchableOpacity>
+            </HStack>
+            
+            <Divider color="#F3F2EF" />
+            
+            {connections.slice(0, 3).map((item, idx) => (
+              <Box p={16} key={item.id || idx}>
+                <HStack items="center">
+                  <TouchableOpacity onPress={() => navigateToProfile(item.follower || item.id)}>
+                    <Avatar source={{ uri: item.avatar || 'https://i.pravatar.cc/150?u=' + idx }} style={{ width: 56, height: 56, borderRadius: 28 }} />
+                  </TouchableOpacity>
+                  <VStack ml={12} flex={1}>
+                    <TouchableOpacity onPress={() => navigateToProfile(item.follower || item.id)}>
+                      <Text fontSize={15} fontWeight="800" color="#1c1e21">{item.follower_email ? item.follower_email.split('@')[0] : 'Kiran'}</Text>
+                      <Text fontSize={13} color="#65676B" numberOfLines={1}>{item.follow_type_display || 'Interested in your profile'}</Text>
+                      <HStack items="center" mt={4}>
                           <UserCheck size={12} color="#65676B" />
-                          <Text fontSize={12} color="#65676B" ml={4}>8 mutual connections</Text>
-                       </HStack>
+                          <Text fontSize={12} color="#65676B" ml={4}>New request</Text>
+                      </HStack>
                     </TouchableOpacity>
-                 </VStack>
-                 <HStack space="sm">
-                    <TouchableOpacity style={styles.actionIconCircle}>
-                       <X size={20} color="#65676B" />
+                  </VStack>
+                  <HStack space="sm">
+                    <TouchableOpacity style={styles.actionIconCircle} onPress={() => ConnectionService.unfollow(item.id)}>
+                        <X size={20} color="#65676B" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionIconCircle, { borderColor: BLUE }]}>
-                       <Check size={20} color={BLUE} />
+                    <TouchableOpacity style={[styles.actionIconCircle, { borderColor: BLUE }]} onPress={() => ConnectionService.acceptRequest(item.follower)}>
+                        <Check size={20} color={BLUE} />
                     </TouchableOpacity>
-                 </HStack>
-              </HStack>
-           </Box>
+                  </HStack>
+                </HStack>
+              </Box>
+            ))}
         </Box>
 
         {/* People You May Know - Grid Layout */}
@@ -189,14 +199,14 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
                     </Box>
 
                     <VStack items="center" p={12} pt={40} flex={1} justify="space-between">
-                       <VStack items="center">
-                          <Text fontSize={15} fontWeight="900" color="#1c1e21" textAlign="center" numberOfLines={1}>
-                             {item.name}
-                          </Text>
-                          <Text fontSize={12} color="#65676B" mt={2} textAlign="center" numberOfLines={2} h={moderateScale(34)}>
-                             {item.role}
-                          </Text>
-                       </VStack>
+                        <VStack items="center">
+                           <Text fontSize={15} fontWeight="900" color="#1c1e21" textAlign="center" numberOfLines={1}>
+                              {item.following_email ? item.following_email.split('@')[0] : (item.name || 'User')}
+                           </Text>
+                           <Text fontSize={12} color="#65676B" mt={2} textAlign="center" numberOfLines={2} h={moderateScale(34)}>
+                              {item.role || 'Professional Seeker'}
+                           </Text>
+                        </VStack>
                        
                        <HStack mt={8} items="center">
                           <Users size={12} color="#65676B" />

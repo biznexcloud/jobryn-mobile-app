@@ -26,7 +26,10 @@ export const ProfileService = {
   },
 
   updateSeekerProfile: async (id: number | string, data: any) => {
-    const response = await apiClient.patch(`/profiles/seeker/${id}/`, data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.patch(`/profiles/seeker/${id}/`, data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     return response.data;
   },
 
@@ -76,7 +79,10 @@ export const ProfileService = {
   },
 
   updateAccountProfile: async (data: any) => {
-    const response = await apiClient.put('/account/profile/', data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.put('/account/profile/', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     return response.data;
   },
 };

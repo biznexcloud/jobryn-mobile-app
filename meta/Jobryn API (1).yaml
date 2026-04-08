@@ -124,6 +124,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Register'
           description: ''
+  /api/v1/account/resend-otp/:
+    post:
+      operationId: v1_account_resend_otp_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendOTP'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResendOTP'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResendOTP'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendOTP'
+          description: ''
   /api/v1/account/reset-password/:
     post:
       operationId: v1_account_reset_password_create
@@ -1404,6 +1431,100 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/follows/follow/:
+    post:
+      operationId: v1_follows_follow_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Follow'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Follow'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Follow'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/v1/follows/followers/{id}/:
+    get:
+      operationId: v1_follows_followers_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFollowList'
+          description: ''
+  /api/v1/follows/following/{id}/:
+    get:
+      operationId: v1_follows_following_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFollowList'
+          description: ''
+  /api/v1/follows/unfollow/{id}/:
+    delete:
+      operationId: v1_follows_unfollow_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/jobs/recruiter/:
     get:
       operationId: v1_jobs_recruiter_list
@@ -2144,6 +2265,477 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobSeeker_Meeting'
+          description: ''
+  /api/v1/posts/comments/:
+    get:
+      operationId: v1_posts_comments_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCommentList'
+          description: ''
+    post:
+      operationId: v1_posts_comments_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+  /api/v1/posts/comments/{id}/:
+    get:
+      operationId: v1_posts_comments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    put:
+      operationId: v1_posts_comments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    patch:
+      operationId: v1_posts_comments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    delete:
+      operationId: v1_posts_comments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/posts/likes/:
+    get:
+      operationId: v1_posts_likes_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLikeList'
+          description: ''
+    post:
+      operationId: v1_posts_likes_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Like'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Like'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Like'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Like'
+          description: ''
+  /api/v1/posts/likes/{id}/:
+    get:
+      operationId: v1_posts_likes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this like.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Like'
+          description: ''
+    put:
+      operationId: v1_posts_likes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this like.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Like'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Like'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Like'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Like'
+          description: ''
+    patch:
+      operationId: v1_posts_likes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this like.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLike'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLike'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLike'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Like'
+          description: ''
+    delete:
+      operationId: v1_posts_likes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this like.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/posts/post/:
+    get:
+      operationId: v1_posts_post_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostList'
+          description: ''
+    post:
+      operationId: v1_posts_post_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Post'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Post'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+  /api/v1/posts/post/{id}/:
+    get:
+      operationId: v1_posts_post_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    put:
+      operationId: v1_posts_post_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Post'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Post'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    patch:
+      operationId: v1_posts_post_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    delete:
+      operationId: v1_posts_post_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/posts/post/{id}/like/:
+    post:
+      operationId: v1_posts_post_like_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this post.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Post'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Post'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
           description: ''
   /api/v1/profiles/recruiter/:
     get:
@@ -3047,6 +3639,586 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/stories/stori/:
+    get:
+      operationId: v1_stories_stori_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStoriList'
+          description: ''
+    post:
+      operationId: v1_stories_stori_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stori'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Stori'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Stori'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stori'
+          description: ''
+  /api/v1/stories/stori-comments/:
+    get:
+      operationId: v1_stories_stori_comments_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStoriCommentList'
+          description: ''
+    post:
+      operationId: v1_stories_stori_comments_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriComment'
+          description: ''
+  /api/v1/stories/stori-comments/{id}/:
+    get:
+      operationId: v1_stories_stori_comments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori comment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriComment'
+          description: ''
+    put:
+      operationId: v1_stories_stori_comments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori comment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriComment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriComment'
+          description: ''
+    patch:
+      operationId: v1_stories_stori_comments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori comment.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriComment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriComment'
+          description: ''
+    delete:
+      operationId: v1_stories_stori_comments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori comment.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/stories/stori-likes/:
+    get:
+      operationId: v1_stories_stori_likes_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStoriLikeList'
+          description: ''
+    post:
+      operationId: v1_stories_stori_likes_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriLike'
+          description: ''
+  /api/v1/stories/stori-likes/{id}/:
+    get:
+      operationId: v1_stories_stori_likes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori like.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriLike'
+          description: ''
+    put:
+      operationId: v1_stories_stori_likes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori like.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriLike'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriLike'
+          description: ''
+    patch:
+      operationId: v1_stories_stori_likes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori like.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriLike'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriLike'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriLike'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriLike'
+          description: ''
+    delete:
+      operationId: v1_stories_stori_likes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori like.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/stories/stori-views/:
+    get:
+      operationId: v1_stories_stori_views_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStoriViewList'
+          description: ''
+    post:
+      operationId: v1_stories_stori_views_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriView'
+          description: ''
+  /api/v1/stories/stori-views/{id}/:
+    get:
+      operationId: v1_stories_stori_views_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori view.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriView'
+          description: ''
+    put:
+      operationId: v1_stories_stori_views_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori view.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoriView'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriView'
+          description: ''
+    patch:
+      operationId: v1_stories_stori_views_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori view.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriView'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriView'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStoriView'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoriView'
+          description: ''
+    delete:
+      operationId: v1_stories_stori_views_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori view.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/stories/stori/{id}/:
+    get:
+      operationId: v1_stories_stori_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stori'
+          description: ''
+    put:
+      operationId: v1_stories_stori_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stori'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Stori'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Stori'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stori'
+          description: ''
+    patch:
+      operationId: v1_stories_stori_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStori'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStori'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStori'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stori'
+          description: ''
+    delete:
+      operationId: v1_stories_stori_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stori.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
 components:
   schemas:
     BlankEnum:
@@ -3086,6 +4258,17 @@ components:
         issuing_organization:
           type: string
           maxLength: 255
+        description:
+          type: string
+        score:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        field_of_study:
+          type: string
+          maxLength: 255
         issue_date:
           type: string
           format: date
@@ -3111,6 +4294,31 @@ components:
       - issuing_organization
       - name
       - user
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        author_email:
+          type: string
+          format: email
+          readOnly: true
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - author_email
+      - content
+      - created_at
+      - id
     Company:
       type: object
       properties:
@@ -3146,6 +4354,15 @@ components:
         tagline:
           type: string
           maxLength: 255
+        mission:
+          type: string
+        vision:
+          type: string
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          nullable: true
         location:
           type: string
           maxLength: 255
@@ -3295,6 +4512,15 @@ components:
         grade:
           type: string
           maxLength: 50
+        city:
+          type: string
+          maxLength: 255
+        certificate:
+          type: string
+          format: uri
+          nullable: true
+        is_public:
+          type: boolean
         activities_societies:
           type: string
         gpa_score:
@@ -3403,6 +4629,14 @@ components:
           type: boolean
         description:
           type: string
+        responsibilities:
+          type: string
+        achievements:
+          type: string
+        skills_used:
+          type: string
+        is_public:
+          type: boolean
         employment_type:
           $ref: '#/components/schemas/EmploymentTypeEnum'
         location_type:
@@ -3434,6 +4668,46 @@ components:
         * `senior` - Senior Level
         * `lead` - Lead / Principal
         * `executive` - Executive
+    Follow:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        follower:
+          type: integer
+          readOnly: true
+        follower_email:
+          type: string
+          format: email
+          readOnly: true
+        following:
+          type: integer
+        following_email:
+          type: string
+          format: email
+          readOnly: true
+        follow_type:
+          $ref: '#/components/schemas/FollowTypeEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - follower
+      - follower_email
+      - following
+      - following_email
+      - id
+    FollowTypeEnum:
+      enum:
+      - user
+      - company
+      type: string
+      description: |-
+        * `user` - User
+        * `company` - Company
     ForgotPassword:
       type: object
       properties:
@@ -3639,6 +4913,12 @@ components:
         pronouns:
           type: string
           maxLength: 50
+        user_strength:
+          type: string
+          maxLength: 255
+        user_weakness:
+          type: string
+          maxLength: 255
         city:
           type: string
           nullable: true
@@ -3692,6 +4972,11 @@ components:
         featured_items: {}
         languages: {}
         interests: {}
+        view_count:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
         visibility_settings:
           $ref: '#/components/schemas/VisibilitySettingsEnum'
         available_for_freelance:
@@ -3733,6 +5018,26 @@ components:
         * `beginner` - Beginner
         * `intermediate` - Intermediate
         * `advanced` - Advanced
+    Like:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        post:
+          type: integer
+        user:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - post
+      - user
     LocationTypeEnum:
       enum:
       - on-site
@@ -3787,6 +5092,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Certification'
+    PaginatedCommentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
     PaginatedCompanyList:
       type: object
       required:
@@ -3925,6 +5253,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Experience'
+    PaginatedFollowList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Follow'
     PaginatedJobSeeker_ApplicationList:
       type: object
       required:
@@ -4017,6 +5368,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/JobSeeker_Profile'
+    PaginatedLikeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Like'
+    PaginatedPostList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
     PaginatedProjectList:
       type: object
       required:
@@ -4201,6 +5598,98 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Skill'
+    PaginatedStoriCommentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoriComment'
+    PaginatedStoriLikeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoriLike'
+    PaginatedStoriList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stori'
+    PaginatedStoriViewList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoriView'
     PaginatedUserSkillList:
       type: object
       required:
@@ -4236,6 +5725,17 @@ components:
         issuing_organization:
           type: string
           maxLength: 255
+        description:
+          type: string
+        score:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        field_of_study:
+          type: string
+          maxLength: 255
         issue_date:
           type: string
           format: date
@@ -4254,6 +5754,25 @@ components:
           type: boolean
         user:
           type: integer
+          readOnly: true
+    PatchedComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        author_email:
+          type: string
+          format: email
+          readOnly: true
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
           readOnly: true
     PatchedCompany:
       type: object
@@ -4290,6 +5809,15 @@ components:
         tagline:
           type: string
           maxLength: 255
+        mission:
+          type: string
+        vision:
+          type: string
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          nullable: true
         location:
           type: string
           maxLength: 255
@@ -4354,6 +5882,15 @@ components:
         grade:
           type: string
           maxLength: 50
+        city:
+          type: string
+          maxLength: 255
+        certificate:
+          type: string
+          format: uri
+          nullable: true
+        is_public:
+          type: boolean
         activities_societies:
           type: string
         gpa_score:
@@ -4433,6 +5970,14 @@ components:
           type: boolean
         description:
           type: string
+        responsibilities:
+          type: string
+        achievements:
+          type: string
+        skills_used:
+          type: string
+        is_public:
+          type: boolean
         employment_type:
           $ref: '#/components/schemas/EmploymentTypeEnum'
         location_type:
@@ -4513,6 +6058,12 @@ components:
         pronouns:
           type: string
           maxLength: 50
+        user_strength:
+          type: string
+          maxLength: 255
+        user_weakness:
+          type: string
+          maxLength: 255
         city:
           type: string
           nullable: true
@@ -4566,6 +6117,11 @@ components:
         featured_items: {}
         languages: {}
         interests: {}
+        view_count:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
         visibility_settings:
           $ref: '#/components/schemas/VisibilitySettingsEnum'
         available_for_freelance:
@@ -4578,6 +6134,73 @@ components:
         user:
           type: integer
           readOnly: true
+    PatchedLike:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        post:
+          type: integer
+        user:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        author_email:
+          type: string
+          format: email
+          readOnly: true
+        content:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        video:
+          type: string
+          format: uri
+          nullable: true
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        likes_count:
+          type: integer
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        is_edited:
+          type: boolean
+          readOnly: true
+        shared_post:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_deleted:
+          type: boolean
+        is_liked:
+          type: string
+          readOnly: true
+        is_saved:
+          type: boolean
     PatchedProject:
       type: object
       properties:
@@ -4597,6 +6220,10 @@ components:
           type: string
           maxLength: 100
         technologies: {}
+        status:
+          type: string
+          maxLength: 50
+        tasks: {}
         repository_url:
           type: string
           format: uri
@@ -4725,6 +6352,15 @@ components:
           type: string
           format: date-time
           nullable: true
+        payment_reference:
+          type: string
+          maxLength: 255
+        invoice_pdf:
+          type: string
+          format: uri
+          nullable: true
+        notes:
+          type: string
         tax_id:
           type: string
           maxLength: 50
@@ -4732,6 +6368,9 @@ components:
           type: string
         invoice_notes:
           type: string
+        invoice_no:
+          type: string
+          maxLength: 100
         khalti_pidx:
           type: string
           nullable: true
@@ -4865,6 +6504,16 @@ components:
           type: string
         candidate_no_show:
           type: boolean
+        rating:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        meeting_documents:
+          type: string
+          format: uri
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -4944,6 +6593,83 @@ components:
           format: date-time
           readOnly: true
           nullable: true
+    PatchedStori:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        caption:
+          type: string
+        images:
+          type: string
+          format: uri
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        is_active:
+          type: boolean
+        views_count:
+          type: integer
+          readOnly: true
+        likes_count:
+          type: integer
+          readOnly: true
+    PatchedStoriComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        content:
+          type: string
+        parent:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedStoriLike:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedStoriView:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        viewed_at:
+          type: string
+          format: date-time
+          readOnly: true
     PatchedUserSkill:
       type: object
       properties:
@@ -4994,6 +6720,69 @@ components:
       description: |-
         * `fixed` - Fixed Price
         * `payroll` - Monthly Payroll
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        author_email:
+          type: string
+          format: email
+          readOnly: true
+        content:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        video:
+          type: string
+          format: uri
+          nullable: true
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        likes_count:
+          type: integer
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        is_edited:
+          type: boolean
+          readOnly: true
+        shared_post:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_deleted:
+          type: boolean
+        is_liked:
+          type: string
+          readOnly: true
+        is_saved:
+          type: boolean
+      required:
+      - author
+      - author_email
+      - comments_count
+      - content
+      - created_at
+      - id
+      - is_edited
+      - is_liked
+      - likes_count
+      - updated_at
     ProficiencyLevelEnum:
       enum:
       - beginner
@@ -5025,6 +6814,10 @@ components:
           type: string
           maxLength: 100
         technologies: {}
+        status:
+          type: string
+          maxLength: 50
+        tasks: {}
         repository_url:
           type: string
           format: uri
@@ -5181,6 +6974,15 @@ components:
           type: string
           format: date-time
           nullable: true
+        payment_reference:
+          type: string
+          maxLength: 255
+        invoice_pdf:
+          type: string
+          format: uri
+          nullable: true
+        notes:
+          type: string
         tax_id:
           type: string
           maxLength: 50
@@ -5188,6 +6990,9 @@ components:
           type: string
         invoice_notes:
           type: string
+        invoice_no:
+          type: string
+          maxLength: 100
         khalti_pidx:
           type: string
           nullable: true
@@ -5341,6 +7146,16 @@ components:
           type: string
         candidate_no_show:
           type: boolean
+        rating:
+          type: integer
+          maximum: 4294967295
+          minimum: 0
+          format: int64
+          nullable: true
+        meeting_documents:
+          type: string
+          format: uri
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -5429,6 +7244,10 @@ components:
           type: string
           format: email
           maxLength: 254
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
         password:
           type: string
           writeOnly: true
@@ -5437,6 +7256,14 @@ components:
       required:
       - email
       - password
+    ResendOTP:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
     ResetPassword:
       type: object
       properties:
@@ -5517,6 +7344,105 @@ components:
         * `hired` - Hired
         * `rejected` - Rejected
         * `withdrawn` - Withdrawn
+    Stori:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        caption:
+          type: string
+        images:
+          type: string
+          format: uri
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        is_active:
+          type: boolean
+        views_count:
+          type: integer
+          readOnly: true
+        likes_count:
+          type: integer
+          readOnly: true
+      required:
+      - author
+      - id
+      - images
+      - likes_count
+      - views_count
+    StoriComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        author:
+          type: integer
+          readOnly: true
+        content:
+          type: string
+        parent:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - content
+      - created_at
+      - id
+      - story
+    StoriLike:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - story
+      - user
+    StoriView:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        story:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        viewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - story
+      - user
+      - viewed_at
     User:
       type: object
       properties:
@@ -5587,6 +7513,16 @@ components:
       required:
       - email
       - otp
+    VisibilityEnum:
+      enum:
+      - public
+      - connections
+      - private
+      type: string
+      description: |-
+        * `public` - Public
+        * `connections` - Connections
+        * `private` - Only Me
     VisibilitySettingsEnum:
       enum:
       - public

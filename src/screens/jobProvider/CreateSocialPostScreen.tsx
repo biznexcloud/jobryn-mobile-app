@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import {
-  View,
   StyleSheet,
   TouchableOpacity,
   Image,
   StatusBar,
   Alert,
-  Dimensions,
   TextInput,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
+import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
 import {
   X,
   ChevronLeft,
@@ -23,14 +19,16 @@ import {
   Smile,
   MapPin,
   Users,
-  Video,
   ChevronDown,
 } from 'lucide-react-native';
 import { SocialService } from '../../services/api/social';
 import { useAuthStore } from '../../store/authStore';
-import { moderateScale } from '../../utils/responsive';
+import Toast from 'react-native-toast-message';
 
-const FB_BLUE = '#1877F2';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
+
 const BG_COLORS = [
   '#FFFFFF', 
   '#FF4B2B',
@@ -63,74 +61,75 @@ export default function ProviderCreateSocialPostScreen({ navigation }: any) {
 
   const handlePost = async () => {
     if (!content.trim() && !image) {
-      Alert.alert('Empty Post', 'Share a company update or insight.');
+      Alert.alert('Required', 'Please share a post update.');
       return;
     }
     setLoading(true);
     try {
       await SocialService.createPost({ 
         content, 
-        image, 
-        backgroundColor: bgIndex > 0 ? BG_COLORS[bgIndex] : undefined 
+        image,
+        visibility: 'public',
       });
-      Alert.alert('Published', 'Company update shared!', [{ text: 'Great', onPress: () => navigation.goBack() }]);
+      Toast.show({ type: 'success', text1: 'Post published' });
+      navigation.goBack();
     } catch (e) {
-      Alert.alert('Error', 'Failed to publish post.');
-    } finally {
       setLoading(false);
     }
   };
 
   const ToolOption = ({ icon: Icon, label, color, onPress }: any) => (
     <TouchableOpacity style={styles.toolRow} onPress={onPress}>
-       <Icon size={22} color={color} />
-       <Text fontSize={16} color="#1C1E21" ml={12}>{label}</Text>
+       <Box w={36} h={36} rounded={18} bg={FB_GRAY} items="center" justify="center">
+          <Icon size={18} color={color} />
+       </Box>
+       <Text fontSize={15} fontWeight="600" color="#111827" ml={12}>{label}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor="white">
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="white">
       <StatusBar barStyle="dark-content" />
       
-      <Box pt={insets.top + 10} pb={12} bg="white" borderBottom={1} borderColor="#E5E7EB">
-         <HStack items="center" justify="space-between" px={16}>
+      {/* Header */}
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+         <HStack items="center" justify="space-between">
             <HStack items="center">
-               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-                  <ChevronLeft size={26} color="#1C1E21" />
+               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+                  <ChevronLeft size={22} color="black" strokeWidth={2.5} />
                </TouchableOpacity>
-               <Text fontSize={18} fontWeight="700" color="#1C1E21" ml={16}>Corporate Update</Text>
+               <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Create Post</Text>
             </HStack>
-            <Button 
-               label={loading ? '...' : 'Publish'} 
-               onPress={handlePost}
+            <TouchableOpacity 
                disabled={loading || (!content.trim() && !image)}
-               style={{ 
-                  backgroundColor: (!content.trim() && !image) ? '#F0F2F5' : FB_BLUE, 
-                  paddingHorizontal: 16, 
-                  height: 36, 
-                  borderRadius: 6 
-               }}
-               textStyle={{ color: (!content.trim() && !image) ? '#8E9194' : 'white', fontWeight: '800' }}
-            />
+               onPress={handlePost}
+               style={[styles.postBtn, (!content.trim() && !image) && { opacity: 0.5 }]}
+            >
+               <Text fontSize={14} fontWeight="700" color="white">{loading ? "..." : "Post"}</Text>
+            </TouchableOpacity>
          </HStack>
       </Box>
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
          <Box p={16}>
             <HStack items="center" mb={16}>
-               <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="lg" />
+               <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="md" />
                <VStack ml={12}>
-                  <Text fontSize={16} fontWeight="800" color="#1C1E21">{user?.name || 'Recruiter'}</Text>
-                  <HStack space="sm" mt={4}>
-                     <TouchableOpacity style={styles.audienceSelector}>
-                        <Globe size={11} color="#65676B" />
-                        <Text fontSize={11} fontWeight="800" color="#65676B" ml={4}>Public</Text>
-                        <ChevronDown size={11} color="#65676B" style={{ marginLeft: 3 }} />
+                  <Text fontSize={15} fontWeight="700" color="#111827">{user?.name || 'Recruiter'}</Text>
+                  <HStack space="xs" mt={2}>
+                     <TouchableOpacity style={styles.selector}>
+                        <Box items="center" flexDirection="row">
+                           <Globe size={11} color={GRAY_TEXT} />
+                           <Text fontSize={10} fontWeight="700" color={GRAY_TEXT} ml={4}>Public</Text>
+                        </Box>
+                        <ChevronDown size={11} color={GRAY_TEXT} style={{ marginLeft: 2 }} />
                      </TouchableOpacity>
-                     <TouchableOpacity style={styles.audienceSelector}>
-                        <Users size={11} color="#65676B" />
-                        <Text fontSize={11} fontWeight="800" color="#65676B" ml={4}>Talent Hub</Text>
-                        <ChevronDown size={11} color="#65676B" style={{ marginLeft: 3 }} />
+                     <TouchableOpacity style={styles.selector}>
+                        <Box items="center" flexDirection="row">
+                           <Users size={11} color={GRAY_TEXT} />
+                           <Text fontSize={10} fontWeight="700" color={GRAY_TEXT} ml={4}>Candidates</Text>
+                        </Box>
+                        <ChevronDown size={11} color={GRAY_TEXT} style={{ marginLeft: 2 }} />
                      </TouchableOpacity>
                   </HStack>
                </VStack>
@@ -138,63 +137,61 @@ export default function ProviderCreateSocialPostScreen({ navigation }: any) {
 
             <Box 
               bg={bgIndex > 0 ? BG_COLORS[bgIndex] : 'transparent'} 
-              rounded={12} 
+              rounded={16} 
               p={bgIndex > 0 ? 30 : 0}
-              minHeight={bgIndex > 0 ? 300 : 150}
+              minHeight={bgIndex > 0 ? 250 : 120}
               items={bgIndex > 0 ? 'center' : 'stretch'}
               justify={bgIndex > 0 ? 'center' : 'flex-start'}
             >
                <TextInput 
                   multiline
-                  placeholder="Share a workplace update..."
-                  placeholderTextColor="#8E9194"
+                  placeholder="What's happening at the company?"
+                  placeholderTextColor="#9CA3AF"
                   value={content}
                   onChangeText={setContent}
                   style={[
-                    styles.postInput,
-                    bgIndex > 0 && { color: 'white', textAlign: 'center', fontWeight: '800', width: '100%', fontSize: 24 }
+                    styles.input,
+                    bgIndex > 0 && { color: 'white', textAlign: 'center', fontWeight: '800', width: '100%', fontSize: 22 }
                   ]}
                />
             </Box>
 
             {image && (
-               <Box mt={16} position="relative">
-                  <Image source={{ uri: image }} style={styles.previewImage} resizeMode="cover" />
-                  <TouchableOpacity onPress={() => setImage(undefined)} style={styles.removeImg}>
-                     <X size={18} color="white" />
+               <Box mt={16} position="relative" rounded={16} overflow="hidden">
+                  <Image source={{ uri: image }} style={styles.preview} resizeMode="cover" />
+                  <TouchableOpacity onPress={() => setImage(undefined)} style={styles.removeBtn}>
+                     <X size={16} color="white" />
                   </TouchableOpacity>
                </Box>
             )}
          </Box>
 
          {!image && (
-           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bgScroll}>
-              <HStack space="md" px={16} py={10}>
-                 {BG_COLORS.map((bg, idx) => (
-                    <TouchableOpacity 
-                      key={idx} 
-                      onPress={() => setBgIndex(idx)}
-                      style={[
-                        styles.bgChip, 
-                        { backgroundColor: bg === '#FFFFFF' ? '#F0F2F5' : bg },
-                        bgIndex === idx && styles.activeBgChip
-                      ]}
-                    >
-                       {idx === 0 && <X size={14} color="#65676B" />}
-                    </TouchableOpacity>
-                 ))}
-              </HStack>
-           </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 60, marginBottom: 12 }}>
+               <HStack space="sm" px={16} items="center">
+                  {BG_COLORS.map((bg, idx) => (
+                     <TouchableOpacity 
+                       key={idx} 
+                       onPress={() => setBgIndex(idx)}
+                       style={[
+                         styles.bgChip, 
+                         { backgroundColor: bg === '#FFFFFF' ? '#F0F2F5' : bg },
+                         bgIndex === idx && { borderWidth: 2, borderColor: FB_BLUE }
+                       ]}
+                     >
+                        {idx === 0 && <X size={14} color={GRAY_TEXT} />}
+                     </TouchableOpacity>
+                  ))}
+               </HStack>
+            </ScrollView>
          )}
 
-         <Box borderTop={1} borderColor="#E5E7EB" bg="white" style={{ marginTop: 20 }}>
-            <Text fontSize={14} fontWeight="700" color="#1C1E21" p={16}>Add to your post</Text>
-            <Divider color="#F0F2F5" />
-            <VStack>
-               <ToolOption icon={ImageIcon} label="Company Photo/video" color="#45BD62" onPress={pickImage} />
-               <ToolOption icon={Users} label="Tag team members" color="#1877F2" />
-               <ToolOption icon={Smile} label="Workplace feeling" color="#F7B928" />
-               <ToolOption icon={MapPin} label="Office location" color="#F5533D" />
+         <Box borderTop={1} borderColor="#F0F2F5" mt={12}>
+            <VStack mt={12}>
+               <ToolOption icon={ImageIcon} label="Photo / Video" color="#10B981" onPress={pickImage} />
+               <ToolOption icon={Users} label="Tag team members" color={FB_BLUE} />
+               <ToolOption icon={Smile} label="Feeling / Activity" color="#F59E0B" />
+               <ToolOption icon={MapPin} label="Check in" color="#EF4444" />
             </VStack>
          </Box>
       </ScrollView>
@@ -203,13 +200,12 @@ export default function ProviderCreateSocialPostScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  headerBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  audienceSelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F2F5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  postInput: { fontSize: 18, color: '#1C1E21', minHeight: 100, padding: 0, textAlignVertical: 'top' },
-  previewImage: { width: '100%', height: 260, borderRadius: 12 },
-  removeImg: { position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  toolRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  bgScroll: { maxHeight: 60, marginBottom: 20 },
-  bgChip: { width: 36, height: 36, borderRadius: 6, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  activeBgChip: { borderWidth: 3, borderColor: '#1877F2' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  postBtn: { backgroundColor: FB_BLUE, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 18 },
+  selector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F2F5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  input: { fontSize: 18, color: '#111827', minHeight: 100, padding: 0, textAlignVertical: 'top' },
+  preview: { width: '100%', height: 260 },
+  removeBtn: { position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  toolRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+  bgChip: { width: 36, height: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#F0F2F5' },
 });

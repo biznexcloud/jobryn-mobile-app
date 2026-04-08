@@ -54,8 +54,8 @@ export default function SignupScreen({ navigation }: any) {
         role: role,
         company_name: role === 'recruiter' ? formData.company_name.trim() : undefined,
       });
-      // Navigate to OTP verification instead of just showing success step
-      navigation.navigate('VerifyOtp', { email: formData.email.trim() });
+      // Navigate to OTP verification — pass password so we can auto-login after verify
+      navigation.navigate('VerifyOtp', { email: formData.email.trim(), password: formData.password });
     } catch (err: any) {
       const apiError = err.response?.data?.email?.[0] || err.response?.data?.error || err.response?.data?.message || 'Registration failed. This email may already be in use.';
       setError(apiError);

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { JobService } from '../../services/api/jobs';
+import { ProfileService } from '../../services/api/profile';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
 
 const { width } = Dimensions.get('window');
@@ -37,6 +38,35 @@ export default function ProviderProfileScreen({ navigation }: any) {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [activeJobs, setActiveJobs] = useState(8);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const data = await ProfileService.getRecruiterProfiles();
+        if (data?.results && data.results.length > 0) {
+          setProfile(data.results[0]);
+        }
+      } catch (e) {
+        // use dummy fallback below
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const displayData = {
+    companyName: profile?.user_detail?.name || user?.company_name || 'Nexus Corporation',
+    headline: profile?.headline || 'Pioneering the Future of Nexus Grid Infrastructure',
+    location: profile?.location || 'Kathmandu, Nepal',
+    followers: profile?.followers_count || '10,240',
+    about: profile?.about || 'Nexus Corporation is a leader in protocol optimization and grid reliability. Our team of mission-driven operatives work across the globe to ensure the security of international communication channels.',
+    website: profile?.website || 'nexuscorp.intel',
+    employees: profile?.company_size || '51-200 employees',
+    banner_image: profile?.banner_image || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2938&auto=format&fit=crop'
+  };
 
   return (
     <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
@@ -45,7 +75,7 @@ export default function ProviderProfileScreen({ navigation }: any) {
        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
           {/* Banner & Logo */}
           <Box height={160} bg="#CCD3D9">
-             <Image source={{ uri: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2938&auto=format&fit=crop' }} style={StyleSheet.absoluteFill} />
+             <Image source={{ uri: displayData.banner_image }} style={StyleSheet.absoluteFill} />
              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { top: insets.top + 10 }]}>
                 <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
              </TouchableOpacity>
@@ -63,9 +93,9 @@ export default function ProviderProfileScreen({ navigation }: any) {
              </HStack>
 
              <VStack mt={20}>
-                <Text fontSize={24} fontWeight="900" color="#000000">{user?.company_name || 'Nexus Corporation'}</Text>
-                <Text fontSize={16} color="#000000" mt={4}>Pioneering the Future of Nexus Grid Infrastructure</Text>
-                <Text fontSize={14} color="#666666" mt={8}>Information Services • Kathmandu, Nepal • 10,240 followers</Text>
+                <Text fontSize={24} fontWeight="900" color="#000000">{displayData.companyName}</Text>
+                <Text fontSize={16} color="#000000" mt={4}>{displayData.headline}</Text>
+                <Text fontSize={14} color="#666666" mt={8}>Information Services • {displayData.location} • {displayData.followers} followers</Text>
              </VStack>
 
              <HStack mt={20} space="sm">
@@ -81,21 +111,21 @@ export default function ProviderProfileScreen({ navigation }: any) {
                 <TouchableOpacity><EditIcon size={20} color="#666666" /></TouchableOpacity>
              </HStack>
              <Text fontSize={14} color="#000000" lineHeight={20}>
-                Nexus Corporation is a leader in protocol optimization and grid reliability. Our team of mission-driven operatives work across the globe to ensure the security of international communication channels.
+                {displayData.about}
              </Text>
              <Divider color="#F1F5F9" mt={16} mb={16} />
              <VStack space="sm">
                 <HStack items="center">
                    <GlobeAltIcon size={18} color="#666666" />
-                   <Text fontSize={14} color={BLUE} ml={12} fontWeight="700">nexuscorp.intel</Text>
+                   <Text fontSize={14} color={BLUE} ml={12} fontWeight="700">{displayData.website}</Text>
                 </HStack>
                 <HStack items="center">
                    <UsersIcon size={18} color="#666666" />
-                   <Text fontSize={14} color="#666666" ml={12}>51-200 employees</Text>
+                   <Text fontSize={14} color="#666666" ml={12}>{displayData.employees}</Text>
                 </HStack>
                 <HStack items="center">
                    <LocationIcon size={18} color="#666666" />
-                   <Text fontSize={14} color="#666666" ml={12}>HQ: Nexus Park, Kathmandu</Text>
+                   <Text fontSize={14} color="#666666" ml={12}>HQ: {displayData.location}</Text>
                 </HStack>
              </VStack>
           </Box>

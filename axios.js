@@ -3,6 +3,7 @@ import { useAuthStore } from './src/store/authStore';
 
 const apiClient = axios.create({
   baseURL: 'https://backend.jobryn.com/api/v1',
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,15 +22,34 @@ apiClient.interceptors.request.use(
     if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Diagnostic logging
+    console.log(`[API REQUEST] => ${config.method?.toUpperCase()} ${config.url}`);
+    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for token expiry
+// Response interceptor for logging and token expiry
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[API SUCCESS] <= ${response.config.method?.toUpperCase()} ${response.config.url} [${response.status}]`);
+    
+    // Log the token/response data specifically for login so you can see it in the terminal
+    if (response.config.url?.includes('/login/')) {
+       console.log('--- LOGIN RESPONSE DATA (including token) ---');
+       console.log(JSON.stringify(response.data, null, 2));
+    }
+    
+    return response;
+  },
   (error) => {
+    console.log(`[API ERROR] <= ${error.config?.method?.toUpperCase()} ${error.config?.url} [${error.response?.status}]`);
+    if (error.response?.data) {
+      console.log('Error Details:', JSON.stringify(error.response.data));
+    }
+    
     const token = useAuthStore.getState().token;
     if (error.response && error.response.status === 401) {
       console.log('--- AXIOS: 401 DETECTED ---', error.config.url, 'Token:', token);

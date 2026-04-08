@@ -1,39 +1,27 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Button } from '../../components/ui';
-import { ChevronLeft, Plus, Briefcase, Pencil, Trash2, Calendar, MapPin } from 'lucide-react-native';
+import { ChevronLeft, Plus, GraduationCap, Pencil, Trash2 } from 'lucide-react-native';
+import { PortfolioService } from '../../services/api/portfolio';
+import { useFocusEffect } from '@react-navigation/native';
 
 const BLUE = '#1066C2';
 const FB_GRAY = '#F0F2F5';
 
-import { PortfolioService } from '../../services/api/portfolio';
-import { useFocusEffect } from '@react-navigation/native';
-import { ActivityIndicator } from 'react-native';
-
-const ExperienceCard = ({ exp, onEdit, onDelete }: any) => (
+const EducationCard = ({ edu, onEdit, onDelete }: any) => (
   <Box bg="white" p={16} mb={12} rounded={8} border={1} borderColor="#CED0D4">
      <HStack justify="space-between" items="flex-start">
         <HStack flex={1} items="flex-start">
            <Box w={48} h={48} bg="#F2F3F5" rounded={4} items="center" justify="center">
-              <Briefcase size={26} color="#65676B" />
+              <GraduationCap size={26} color="#65676B" />
            </Box>
            <VStack ml={12} flex={1}>
-              <Text fontSize={17} fontWeight="700" color="#1C1E21">{exp.position}</Text>
-              <Text fontSize={15} color="#1C1E21" mt={1}>{exp.company_name}</Text>
-              <HStack mt={4} items="center">
-                 <Text fontSize={13} color="#65676B">
-                    {exp.start_date} - {exp.current ? 'Present' : exp.end_date}
-                 </Text>
-                 {exp.employment_type && (
-                   <Box bg="#E7F3FF" px={8} py={2} rounded={4} ml={8}>
-                     <Text fontSize={10} fontWeight="700" color={BLUE}>
-                        {exp.employment_type.replace('_', ' ').toUpperCase()}
-                     </Text>
-                   </Box>
-                 )}
-              </HStack>
-              <Text fontSize={13} color="#65676B" mt={2}>{exp.location}</Text>
+              <Text fontSize={17} fontWeight="700" color="#1C1E21">{edu.school}</Text>
+              <Text fontSize={15} color="#1C1E21" mt={1}>{edu.degree}, {edu.field}</Text>
+              <Text fontSize={13} color="#65676B" mt={4}>
+                 {edu.start_date} - {edu.current ? 'Present' : edu.end_date}
+              </Text>
            </VStack>
         </HStack>
         <HStack space="md">
@@ -48,18 +36,18 @@ const ExperienceCard = ({ exp, onEdit, onDelete }: any) => (
   </Box>
 );
 
-export default function ExperienceManagementScreen({ navigation }: any) {
+export default function EducationManagementScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [experiences, setExperiences] = useState<any[]>([]);
+  const [education, setEducation] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchExperience = async () => {
+  const fetchEducation = async () => {
     setLoading(true);
     try {
-      const resp = await PortfolioService.getExperience();
-      setExperiences(resp?.results || []);
+      const resp = await PortfolioService.getEducation();
+      setEducation(resp?.results || []);
     } catch (e) {
-      console.warn('Failed to fetch experiences:', e);
+      console.warn('Failed to fetch education:', e);
     } finally {
       setLoading(false);
     }
@@ -67,19 +55,19 @@ export default function ExperienceManagementScreen({ navigation }: any) {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchExperience();
+      fetchEducation();
     }, [])
   );
 
   const handleDelete = (id: any) => {
-    Alert.alert('Delete Experience', 'Are you sure you want to remove this work history entry?', [
+    Alert.alert('Delete Education', 'Are you sure you want to remove this education entry?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
-          await PortfolioService.deleteExperience(id);
-          fetchExperience();
+          await PortfolioService.deleteEducation(id);
+          fetchEducation();
         } catch (e) {
-          Alert.alert('Error', 'Failed to delete experience.');
+          Alert.alert('Error', 'Failed to delete education.');
         }
       }}
     ]);
@@ -96,9 +84,9 @@ export default function ExperienceManagementScreen({ navigation }: any) {
                <TouchableOpacity onPress={() => navigation.goBack()}>
                   <ChevronLeft size={28} color="#1C1E21" />
                </TouchableOpacity>
-               <Text fontSize={18} fontWeight="700" color="#1C1E21" ml={16}>Work Experience</Text>
+               <Text fontSize={18} fontWeight="700" color="#1C1E21" ml={16}>Education</Text>
             </HStack>
-            <TouchableOpacity onPress={() => navigation.navigate('AddExperience')}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddEducation')}>
                <Plus size={26} color={BLUE} strokeWidth={2.5} />
             </TouchableOpacity>
          </HStack>
@@ -111,26 +99,26 @@ export default function ExperienceManagementScreen({ navigation }: any) {
             </Box>
          ) : (
             <VStack mb={20}>
-               {experiences.map(exp => (
-                  <ExperienceCard 
-                     key={exp.id} 
-                     exp={exp} 
-                     onEdit={() => navigation.navigate('AddExperience', { edit: true, experience: exp })}
-                     onDelete={() => handleDelete(exp.id)}
+               {education.map(edu => (
+                  <EducationCard 
+                     key={edu.id} 
+                     edu={edu} 
+                     onEdit={() => navigation.navigate('AddEducation', { edit: true, education: edu })}
+                     onDelete={() => handleDelete(edu.id)}
                   />
                ))}
-               {experiences.length === 0 && (
+               {education.length === 0 && (
                   <Box py={40} items="center">
-                     <Text color="#65676B">No work experience found.</Text>
+                     <Text color="#65676B">No education history found.</Text>
                   </Box>
                )}
             </VStack>
          )}
 
          <Button 
-            label="Add Position" 
+            label="Add Education" 
             variant="outline"
-            onPress={() => navigation.navigate('AddExperience')}
+            onPress={() => navigation.navigate('AddEducation')}
             style={{ height: 44, borderRadius: 22, borderColor: BLUE }}
             textStyle={{ color: BLUE, fontWeight: '700' }}
          />

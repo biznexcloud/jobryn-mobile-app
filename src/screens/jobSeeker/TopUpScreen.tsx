@@ -12,6 +12,9 @@ import {
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Button } from '../../components/ui';
 import { moderateScale } from '../../utils/responsive';
+import { BillingService } from '../../services/api/billing';
+import Toast from 'react-native-toast-message';
+import { ActivityIndicator } from 'react-native';
 
 const BLUE = '#4F46E5';
 const SOFT_BG = '#F8FAFC';
@@ -20,6 +23,23 @@ export default function TopUpScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = React.useState('50.00');
   const [selectedMethod, setSelectedMethod] = React.useState('khalti');
+  const [loading, setLoading] = React.useState(false);
+
+  const handlePay = async () => {
+    setLoading(true);
+    try {
+      await BillingService.createTopUp({ 
+        amount, 
+        payment_method: selectedMethod 
+      });
+      Toast.show({ type: 'success', text1: 'Payment Initiated', text2: 'Please follow the instructions in your wallet app.' });
+      navigation.goBack();
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Payment failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const MethodRow = ({ id, icon: Icon, label, subtitle, isImage }: any) => (
     <TouchableOpacity 
@@ -103,11 +123,14 @@ export default function TopUpScreen({ navigation }: any) {
         </Box>
 
         <Button 
-          title={`Pay $${amount}`}
-          onPress={() => navigation.goBack()}
+          title={loading ? "" : `Pay $${amount}`}
+          onPress={handlePay}
+          disabled={loading}
           style={styles.payBtn}
           textStyle={styles.payBtnText}
-        />
+        >
+          {loading && <ActivityIndicator color="white" />}
+        </Button>
       </ScrollView>
     </ScreenWrapper>
   );

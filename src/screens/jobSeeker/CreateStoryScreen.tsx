@@ -146,13 +146,17 @@ export default function CreateStoryScreen({ navigation }: any) {
   };
 
   const handleUpload = async () => {
+    if (!image && !typedText.trim()) {
+      Alert.alert('Empty Story', 'Add something to your story.');
+      return;
+    }
     setLoading(true);
     try {
       await SocialService.uploadStory({ 
-        uri: image || undefined, 
-        text: typedText,
-        bg: mode === 'text' ? BG_GRADIENTS[bgIndex] : undefined,
-        user 
+        images: image || 'https://via.placeholder.com/1080x1920?text=' + encodeURIComponent(typedText || 'Story'), 
+        caption: typedText || undefined,
+        visibility: privacy,
+        is_active: true
       });
       Alert.alert('Success', 'Story shared!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {

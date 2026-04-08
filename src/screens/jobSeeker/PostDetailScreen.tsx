@@ -1,159 +1,468 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
-  ActivityIndicator,
   FlatList,
   Image,
+  Animated,
+  Keyboard,
+  Share,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   ThumbsUp,
   MessageSquare,
-  Share2,
+  Repeat2,
   MoreVertical,
+  Heart,
+  Bookmark,
   Send,
-  Plus,
-  Image as ImageIcon,
-  Smile,
+  CornerDownRight,
 } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
-import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
+import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
+import { moderateScale, verticalScale } from '../../utils/responsive';
+import { SocialService } from '../../services/api/social';
 
-const BLUE = '#1877F2'; 
+const BLUE = '#1877F2';
 const GRAY_BG = '#F0F2F5';
+const SOFT_GRAY = '#65676B';
+
+const QUICK_REACTIONS = ['❤️', '🙌', '🔥', '👏', '😍', '😂', '💡', '😮'];
+
+type Comment = {
+  id: string;
+  author: { name: string; avatar: string; role: string };
+  text: string;
+  time: string;
+  likes: number;
+  isLiked?: boolean;
+  isPinned?: boolean;
+  repliesCount?: number;
+  replies?: Comment[];
+  showReplies?: boolean;
+};
 
 export default function PostDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { post } = route.params || { post: { id: 1, user: { name: 'Alex Rivers', avatar: 'https://i.pravatar.cc/150?u=a1', role: 'Fullstack Dev' }, content: 'Sharing some thoughts on the future of the Nexus Grid protocol.', created_at: '2h ago', likes_count: 24, comments_count: 5 } };
+  const initialPost = route.params?.post || {};
+  
+  const [post, setPost] = useState(initialPost);
   const { user } = useAuthStore();
-  const [comments, setComments] = useState([
-    { id: '1', author: { name: 'Sarah Mission', avatar: 'https://i.pravatar.cc/150?u=s1', role: 'Talent Acquisition' }, text: 'Great insights! This modular approach is exactly what modern teams need.', time: '1h ago', likes: 5 },
-    { id: '2', author: { name: 'Dev Ops', avatar: 'https://i.pravatar.cc/150?u=d1', role: 'System Architect' }, text: 'Totally agree. The scalability here is impressive.', time: '30m ago', likes: 2 }
-  ]);
-  const [newComment, setNewComment] = useState('');
+  const inputRef = useRef<TextInput>(null);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const handlePostComment = () => {
-    if (!newComment.trim()) return;
-    const comment = {
-      id: Date.now().toString(),
-      author: { name: user?.name || 'You', avatar: user?.profile_picture || 'https://i.pravatar.cc/150?u=me', role: 'Operative' },
-      text: newComment,
-      time: 'Just now',
-      likes: 0
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
+  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isSaved, setIsSaved] = useState(post.is_saved || false);
+  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [expandedContent, setExpandedContent] = useState(false);
+  const [sendingComment, setSendingComment] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const refreshPost = async () => {
+      if (!post.id) return;
+      setLoading(true);
+      try {
+        const freshPost = await SocialService.getPostDetail(post.id);
+        setPost(freshPost);
+        setIsLiked(freshPost.is_liked);
+        setIsSaved(freshPost.is_saved);
+        setLikesCount(freshPost.likes);
+        // Sync comments from API (normalized by SocialService)
+        if (Array.isArray(freshPost.comments)) {
+          setComments(freshPost.comments);
+        }
+      } catch (e) {
+        console.warn('Failed to refresh post detail');
+      } finally {
+        setLoading(false);
+      }
     };
-    setComments([comment, ...comments]);
-    setNewComment('');
+    refreshPost();
+  }, [post.id]);
+
+  const animateLike = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, { toValue: 1.3, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start();
   };
 
+  const handleToggleLike = async () => {
+    animateLike();
+    const prev = isLiked;
+    setIsLiked(!prev);
+    setLikesCount(prev ? likesCount - 1 : likesCount + 1);
+    try {
+      await SocialService.likePost(post.id);
+    } catch {
+      // revert on error
+      setIsLiked(prev);
+      setLikesCount(likesCount);
+    }
+  };
+
+  const handleToggleSave = async () => {
+    const prev = isSaved;
+    setIsSaved(!prev);
+    try {
+      await SocialService.savePost(post.id);
+    } catch {
+      setIsSaved(prev);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({ message: `${post.content}\n\nShared via Jobryn` });
+      if (result.action === Share.sharedAction) {
+        await SocialService.sharePost(post.id);
+      }
+    } catch {
+      /* no-op */
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!newComment.trim()) return;
+    setSendingComment(true);
+    Keyboard.dismiss();
+
+    const optimistic: Comment = {
+      id: `temp-${Date.now()}`,
+      author: {
+        name: user?.name || 'You',
+        avatar: user?.profile_picture || 'https://i.pravatar.cc/150?u=me',
+        role: 'Member',
+      },
+      text: newComment.trim(),
+      time: 'Just now',
+      likes: 0,
+      isLiked: false,
+      isPinned: false,
+      repliesCount: 0,
+    };
+
+    setComments(prev => [...prev, optimistic]);
+    setNewComment('');
+    setReplyingTo(null);
+
+    try {
+      await SocialService.addComment(post.id, newComment.trim());
+    } catch {
+      /* fallback already shown via optimistic update */
+    } finally {
+      setSendingComment(false);
+    }
+  };
+
+  const handleEmojiReaction = async (emoji: string) => {
+    await handlePostComment();
+    // Also send emoji as comment
+    if (!newComment.trim()) {
+      const optimistic: Comment = {
+        id: `temp-emoji-${Date.now()}`,
+        author: {
+          name: user?.name || 'You',
+          avatar: user?.profile_picture || 'https://i.pravatar.cc/150?u=me',
+          role: 'Member',
+        },
+        text: emoji,
+        time: 'Just now',
+        likes: 0,
+      };
+      setComments(prev => [...prev, optimistic]);
+      try {
+        await SocialService.addComment(post.id, emoji);
+      } catch {/* no-op */}
+    }
+  };
+
+  const handleCommentLike = (commentId: string) => {
+    setComments(prev =>
+      prev.map(c =>
+        c.id === commentId
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? c.likes - 1 : c.likes + 1 }
+          : c
+      )
+    );
+  };
+
+  const handleReply = (commentId: string, name: string) => {
+    setReplyingTo({ id: commentId, name });
+    setNewComment(`@${name} `);
+    inputRef.current?.focus();
+  };
+
+  const toggleReplies = (commentId: string) => {
+    setComments(prev =>
+      prev.map(c => (c.id === commentId ? { ...c, showReplies: !c.showReplies } : c))
+    );
+  };
+
+  const formatCount = (n: number) => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`;
+    return n.toString();
+  };
+
+  // ─── Comment Bubble ─────────────────────────────────────────────────────────
+  const renderComment = useCallback(({ item, isReply = false }: { item: Comment; isReply?: boolean }) => (
+    <View style={[styles.commentRow, isReply && styles.replyRow]}>
+      {isReply && <CornerDownRight size={14} color="#BCC0C4" style={{ marginTop: 6, marginRight: 6 }} />}
+      <Image source={{ uri: item.author.avatar }} style={isReply ? styles.replyAvatar : styles.commentAvatar} />
+      <VStack flex={1}>
+        {/* Bubble */}
+        <View style={styles.commentBubble}>
+          <HStack items="center" mb={2}>
+            <Text fontSize={moderateScale(13)} fontWeight="800" color="#111827">{item.author.name}</Text>
+            {item.isPinned && (
+              <Box ml={6} px={6} py={1} bg="#EEF2FF" rounded={6}>
+                <Text fontSize={moderateScale(10)} color={BLUE} fontWeight="700">📌 Pinned</Text>
+              </Box>
+            )}
+          </HStack>
+          <Text fontSize={moderateScale(14)} color="#1C1E21" lineHeight={20}>{item.text}</Text>
+        </View>
+
+        {/* Meta Row */}
+        <HStack items="center" mt={4} ml={4} space="md">
+          <Text fontSize={moderateScale(11)} color={SOFT_GRAY}>{item.time}</Text>
+          <TouchableOpacity onPress={() => handleCommentLike(item.id)}>
+            <Text
+              fontSize={moderateScale(12)}
+              fontWeight="800"
+              color={item.isLiked ? BLUE : SOFT_GRAY}
+            >
+              Like{item.likes > 0 ? ` · ${item.likes}` : ''}
+            </Text>
+          </TouchableOpacity>
+          {!isReply && (
+            <TouchableOpacity onPress={() => handleReply(item.id, item.author.name)}>
+              <Text fontSize={moderateScale(12)} fontWeight="800" color={SOFT_GRAY}>Reply</Text>
+            </TouchableOpacity>
+          )}
+        </HStack>
+
+        {/* View / Collapse Replies */}
+        {!isReply && (item.repliesCount || 0) > 0 && (
+          <TouchableOpacity style={styles.viewRepliesBtn} onPress={() => toggleReplies(item.id)}>
+            <View style={styles.replyLine} />
+            <Text fontSize={moderateScale(12)} fontWeight="700" color={SOFT_GRAY}>
+              {item.showReplies ? 'Hide' : `View ${item.repliesCount}`} {item.repliesCount === 1 ? 'reply' : 'replies'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Inline Replies */}
+        {item.showReplies && item.replies?.map(reply => (
+          <View key={reply.id}>
+            {renderComment({ item: reply, isReply: true })}
+          </View>
+        ))}
+      </VStack>
+    </View>
+  ), []);
+
+  // ─── Post Header (ListHeaderComponent) ──────────────────────────────────────
   const PostHeader = () => (
-    <Box bg="white" borderBottom={1} borderColor="#E5E7EB">
-       <HStack p={16} items="center" justify="space-between">
-          <HStack items="center">
-             <TouchableOpacity style={{ marginRight: 12 }} onPress={() => navigation.goBack()}>
-                <ChevronLeft size={24} color="#111827" />
-             </TouchableOpacity>
-             <Avatar source={{ uri: post.user.avatar }} size="lg" />
-             <VStack ml={12}>
-                <Text fontSize={16} fontWeight="700" color="#111827">{post.user.name}</Text>
-                <Text fontSize={13} color="#666666">{post.user.role} • {post.created_at}</Text>
-             </VStack>
-          </HStack>
-          <TouchableOpacity><MoreVertical size={20} color="#666666" /></TouchableOpacity>
-       </HStack>
-       
-       <Box px={16} pb={16}>
-          <Text fontSize={15} color="#111827" lineHeight={22}>{post.content}</Text>
-          {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
-       </Box>
+    <Box bg="white" mb={8}>
+      {/* Nav bar */}
+      <HStack px={14} pt={insets.top + 4} pb={10} items="center" justify="space-between" borderBottom={1} borderColor="#E5E7EB">
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ChevronLeft size={26} color="#111827" strokeWidth={2.5} />
+        </TouchableOpacity>
+        <Text fontSize={16} fontWeight="800" color="#111827">Post</Text>
+        <TouchableOpacity onPress={handleToggleSave}>
+          <Bookmark size={22} color={isSaved ? BLUE : '#111827'} fill={isSaved ? BLUE : 'transparent'} />
+        </TouchableOpacity>
+      </HStack>
 
-       <HStack px={16} py={12} justify="space-between" borderTop={1} borderColor="#F3F2EF">
-          <HStack items="center">
-             <Text fontSize={13} color="#666666">{post.likes_count} reactions</Text>
-             <Divider color="#E5E7EB" h={12} mx={8} />
-             <Text fontSize={13} color="#666666">{comments.length} syncs</Text>
-          </HStack>
-       </HStack>
-
-       <Divider color="#F3F2EF" />
-       
-       <HStack px={4} py={4} justify="space-around">
-          <TouchableOpacity style={styles.actionBtn}><ThumbsUp size={20} color={BLUE} /><Text fontSize={14} fontWeight="700" color={BLUE} ml={8}>Like</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}><MessageSquare size={20} color="#666666" /><Text fontSize={14} fontWeight="700" color="#666666" ml={8}>Comment</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}><Share2 size={20} color="#666666" /><Text fontSize={14} fontWeight="700" color="#666666" ml={8}>Share</Text></TouchableOpacity>
-       </HStack>
-    </Box>
-  );
-
-  const renderComment = ({ item }: { item: any }) => (
-    <Box px={16} py={12} bg="white">
-       <HStack items="flex-start">
-          <Avatar source={{ uri: item.author.avatar }} size="md" />
-          <VStack ml={12} flex={1} bg="#F3F2EF" p={12} rounded={12}>
-             <HStack justify="space-between">
-                <Text fontSize={14} fontWeight="700" color="#111827">{item.author.name}</Text>
-                <Text fontSize={11} color="#666666">{item.time}</Text>
-             </HStack>
-             <Text fontSize={13} color="#111827" mt={4}>{item.text}</Text>
+      {/* Author */}
+      <HStack px={14} pt={14} pb={10} items="center" justify="space-between">
+        <HStack items="center" flex={1}>
+          <Image source={{ uri: post.author?.avatar }} style={styles.authorAvatar} />
+          <VStack ml={10} flex={1}>
+            <Text fontSize={15} fontWeight="800" color="#111827">{post.author?.name}</Text>
+            <Text fontSize={12} color={SOFT_GRAY} numberOfLines={1}>{post.author?.headline}</Text>
+            <Text fontSize={11} color={SOFT_GRAY}>{post.postedAt}</Text>
           </VStack>
-       </HStack>
+        </HStack>
+        <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <MoreVertical size={20} color={SOFT_GRAY} />
+        </TouchableOpacity>
+      </HStack>
+
+      {/* Content */}
+      <Box px={14} pb={12}>
+        <Text fontSize={15} color="#1C1E21" lineHeight={22}>
+          {expandedContent ? post.content : post.content?.substring(0, 140)}
+          {!expandedContent && (post.content?.length ?? 0) > 140 && (
+            <Text fontSize={15} color={BLUE} onPress={() => setExpandedContent(true)}> ...see more</Text>
+          )}
+        </Text>
+      </Box>
+
+      {/* Image */}
+      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} resizeMode="cover" />}
+
+      {/* Stats */}
+      <HStack px={14} py={10} justify="space-between" items="center">
+        <HStack items="center">
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <HStack style={styles.reactionBubbles}>
+              <View style={[styles.reactionBadge, { backgroundColor: BLUE }]}>
+                <ThumbsUp size={10} color="white" />
+              </View>
+              <View style={[styles.reactionBadge, { backgroundColor: '#E0245E', marginLeft: -4 }]}>
+                <Heart size={10} color="white" />
+              </View>
+            </HStack>
+          </Animated.View>
+          <Text fontSize={13} color={SOFT_GRAY} ml={6}>{formatCount(likesCount)}</Text>
+        </HStack>
+        <HStack>
+          <Text fontSize={13} color={SOFT_GRAY}>{formatCount(post.comments || 0)} comments</Text>
+          <Text fontSize={13} color={SOFT_GRAY} mx={4}>·</Text>
+          <Text fontSize={13} color={SOFT_GRAY}>{formatCount(post.reposts || 0)} reposts</Text>
+        </HStack>
+      </HStack>
+
+      <Divider color="#E4E6EB" />
+
+      {/* Action Bar */}
+      <HStack px={4} py={2} justify="space-around">
+        <TouchableOpacity style={styles.actionBtn} onPress={handleToggleLike}>
+          <ThumbsUp size={20} color={isLiked ? BLUE : SOFT_GRAY} fill={isLiked ? BLUE : 'transparent'} />
+          <Text fontSize={13} fontWeight="800" color={isLiked ? BLUE : SOFT_GRAY} ml={6}>Like</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => inputRef.current?.focus()}>
+          <MessageSquare size={20} color={SOFT_GRAY} />
+          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={6}>Comment</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
+          <Repeat2 size={20} color={SOFT_GRAY} />
+          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={6}>Share</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleToggleSave}>
+          <Bookmark size={20} color={isSaved ? BLUE : SOFT_GRAY} fill={isSaved ? BLUE : 'transparent'} />
+          <Text fontSize={13} fontWeight="800" color={isSaved ? BLUE : SOFT_GRAY} ml={6}>Save</Text>
+        </TouchableOpacity>
+      </HStack>
+
+      <Divider color="#E4E6EB" />
+
+      {/* Comments Header */}
+      <HStack px={14} py={12} items="center" justify="space-between">
+        <Text fontSize={15} fontWeight="800" color="#111827">Most relevant</Text>
+        <TouchableOpacity>
+          <Text fontSize={13} fontWeight="700" color={BLUE}>All comments ▾</Text>
+        </TouchableOpacity>
+      </HStack>
     </Box>
   );
 
   return (
     <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
       <StatusBar barStyle="dark-content" />
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={0}
       >
         <FlatList
           data={comments}
           keyExtractor={(item) => item.id}
-          ListHeaderComponent={PostHeader}
-          renderItem={renderComment}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          ListHeaderComponent={<PostHeader />}
+          renderItem={({ item }) => renderComment({ item })}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          contentContainerStyle={{ paddingBottom: moderateScale(160) }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         />
 
-        {/* Comment Input */}
-        <Box 
-          position="absolute" 
-          bottom={0} 
-          left={0} 
-          right={0} 
-          bg="white" 
-          borderTop={1} 
-          borderColor="#E5E7EB"
-          pb={insets.bottom + 8}
-          pt={8}
-          px={16}
+        {/* Bottom Input Area */}
+        <Box
+          position="absolute"
+          bottom={0}
+          left={0}
+          right={0}
+          bg="white"
+          borderTop={1}
+          borderColor="#E4E6EB"
+          style={{ paddingBottom: Math.max(insets.bottom, 8) }}
         >
-          <HStack items="center">
-             <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150?u=me' }} size="md" />
-             <TextInput
-               style={styles.input}
-               placeholder="Write a comment..."
-               value={newComment}
-               onChangeText={setNewComment}
-               multiline
-             />
-             <TouchableOpacity onPress={handlePostComment}>
-                <Send size={24} color={newComment.trim() ? BLUE : '#94A3B8'} />
-             </TouchableOpacity>
+          {/* Replying To Banner */}
+          {replyingTo && (
+            <HStack px={14} pt={8} pb={4} items="center" justify="space-between">
+              <Text fontSize={12} color={SOFT_GRAY}>
+                Replying to <Text fontWeight="700" color={BLUE}>{replyingTo.name}</Text>
+              </Text>
+              <TouchableOpacity onPress={() => { setReplyingTo(null); setNewComment(''); }}>
+                <Text fontSize={12} color="#E53E3E" fontWeight="700">✕ Cancel</Text>
+              </TouchableOpacity>
+            </HStack>
+          )}
+
+          {/* Quick emoji bar */}
+          <HStack px={14} pt={8} pb={6} style={{ gap: moderateScale(8) }}>
+            {QUICK_REACTIONS.map((emoji, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.emojiBtn}
+                onPress={() => {
+                  setNewComment(emoji);
+                  setTimeout(handleEmojiReaction, 100);
+                }}
+              >
+                <Text fontSize={moderateScale(22)}>{emoji}</Text>
+              </TouchableOpacity>
+            ))}
           </HStack>
-          <HStack mt={8} space="md">
-             <TouchableOpacity><ImageIcon size={20} color="#666666" /></TouchableOpacity>
-             <TouchableOpacity><Plus size={20} color="#666666" /></TouchableOpacity>
-             <TouchableOpacity><Smile size={20} color="#666666" /></TouchableOpacity>
+
+          <Divider color="#E4E6EB" />
+
+          {/* Input */}
+          <HStack px={12} pt={8} pb={4} items="flex-end">
+            <Image
+              source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150?u=me' }}
+              style={styles.inputAvatar}
+            />
+            <HStack flex={1} items="flex-end" style={styles.inputWrap} ml={10}>
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                placeholder={replyingTo ? `Reply to ${replyingTo.name}…` : `Comment as ${user?.name || 'You'}…`}
+                placeholderTextColor="#8A8D91"
+                value={newComment}
+                onChangeText={setNewComment}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[styles.sendBtn, !newComment.trim() && { opacity: 0.4 }]}
+                onPress={handlePostComment}
+                disabled={!newComment.trim() || sendingComment}
+              >
+                {sendingComment ? (
+                  <ActivityIndicator size="small" color={BLUE} />
+                ) : (
+                  <Send size={18} color={BLUE} />
+                )}
+              </TouchableOpacity>
+            </HStack>
           </HStack>
         </Box>
       </KeyboardAvoidingView>
@@ -162,7 +471,103 @@ export default function PostDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  postImage: { width: '100%', height: 250, borderRadius: 12, marginTop: 12 },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
-  input: { flex: 1, backgroundColor: '#F3F2EF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginHorizontal: 12, maxHeight: 100, fontSize: 14 },
+  postImage: { width: '100%', height: verticalScale(200), backgroundColor: '#E4E6EB' },
+  authorAvatar: {
+    width: moderateScale(46),
+    height: moderateScale(46),
+    borderRadius: moderateScale(23),
+    backgroundColor: '#E4E6EB',
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: moderateScale(10),
+  },
+  reactionBubbles: { flexDirection: 'row', alignItems: 'center' },
+  reactionBadge: {
+    width: moderateScale(20),
+    height: moderateScale(20),
+    borderRadius: moderateScale(10),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'white',
+  },
+  // ─── Comment styles ────────────────────────────────────────────────────────
+  commentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: moderateScale(14),
+    paddingVertical: moderateScale(10),
+    backgroundColor: 'white',
+  },
+  replyRow: {
+    paddingLeft: moderateScale(14),
+    paddingTop: moderateScale(6),
+  },
+  commentAvatar: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
+    backgroundColor: '#E4E6EB',
+    marginRight: moderateScale(8),
+  },
+  replyAvatar: {
+    width: moderateScale(28),
+    height: moderateScale(28),
+    borderRadius: moderateScale(14),
+    backgroundColor: '#E4E6EB',
+    marginRight: moderateScale(8),
+  },
+  commentBubble: {
+    backgroundColor: '#F0F2F5',
+    borderRadius: moderateScale(16),
+    paddingHorizontal: moderateScale(14),
+    paddingVertical: moderateScale(10),
+    alignSelf: 'flex-start',
+    maxWidth: '95%',
+  },
+  viewRepliesBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: moderateScale(6),
+    marginLeft: moderateScale(4),
+  },
+  replyLine: {
+    width: moderateScale(24),
+    height: 1.5,
+    backgroundColor: '#BCC0C4',
+    marginRight: moderateScale(6),
+  },
+  separator: { height: 1, backgroundColor: '#F0F2F5' },
+  // ─── Input styles ──────────────────────────────────────────────────────────
+  inputAvatar: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
+    backgroundColor: '#E4E6EB',
+  },
+  inputWrap: {
+    backgroundColor: '#F0F2F5',
+    borderRadius: moderateScale(24),
+    paddingHorizontal: moderateScale(14),
+    paddingVertical: moderateScale(6),
+    minHeight: moderateScale(42),
+    maxHeight: moderateScale(120),
+  },
+  input: {
+    flex: 1,
+    fontSize: moderateScale(14),
+    color: '#1C1E21',
+    maxHeight: moderateScale(100),
+    paddingTop: moderateScale(4),
+  },
+  sendBtn: {
+    paddingLeft: moderateScale(8),
+    paddingBottom: moderateScale(4),
+    alignSelf: 'flex-end',
+  },
+  emojiBtn: { alignItems: 'center', justifyContent: 'center' },
 });

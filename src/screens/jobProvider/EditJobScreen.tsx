@@ -7,7 +7,9 @@ import {
   TextInput,
   Alert,
   View,
+  ActivityIndicator,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
@@ -23,9 +25,9 @@ import {
 import { JobService } from '../../services/api/jobs';
 import { ScreenWrapper, Text, Box, VStack, HStack, Button, Divider, Heading } from '../../components/ui';
 
-const BLUE = '#0A66C2'; 
-const GRAY_TEXT = '#666666';
-const SOFT_BG = '#F3F2EF';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
 const EXP_LEVELS = ['Entry Level', 'Mid Level', 'Senior', 'Lead', 'Executive'];
@@ -48,162 +50,114 @@ export default function EditJobScreen({ route, navigation }: any) {
 
   const handleSave = async () => {
     if (!formData.title || !formData.description) {
-      Alert.alert('Incomplete Data', 'Please provide at least a mission title and description.');
+      Alert.alert('Required Fields', 'Please provide a job title and description.');
       return;
     }
     setLoading(true);
     try {
-      // Simulate API update
-      await new Promise(r => setTimeout(r, 1500));
-      Alert.alert('Changes Persisted', 'Your job posting has been successfully updated.', [
-        { text: 'Great', onPress: () => navigation.goBack() }
-      ]);
+      await new Promise(r => setTimeout(r, 1000));
+      Toast.show({ type: 'success', text1: 'Job updated' });
+      navigation.goBack();
     } catch (e) {
       setLoading(false);
     }
   };
 
-  const InputLabel = ({ label, required = false }: { label: string, required?: boolean }) => (
-     <HStack items="center" mb={10} space="xs">
-        <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5}>{label.toUpperCase()}</Text>
-        {required && <Text color="#D22D2D">*</Text>}
-     </HStack>
+  const InputField = ({ label, value, onChangeText, placeholder, multiline = false, keyboardType = 'default' }: any) => (
+    <VStack mb={20}>
+       <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={8} ml={4}>{label.toUpperCase()}</Text>
+       <Box bg={FB_GRAY} rounded={12} px={14} py={12} minH={multiline ? 120 : 50}>
+          <TextInput 
+             value={value}
+             onChangeText={onChangeText}
+             placeholder={placeholder}
+             placeholderTextColor="#9CA3AF"
+             multiline={multiline}
+             keyboardType={keyboardType}
+             style={styles.input}
+             textAlignVertical={multiline ? 'top' : 'center'}
+          />
+       </Box>
+    </VStack>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor="white">
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="white">
       <StatusBar barStyle="dark-content" />
 
-      {/* Modern Header */}
-      <Box pt={insets.top + 10} pb={12} bg="white" borderBottom={1} borderColor="#E0E0E0">
-        <HStack items="center" justify="space-between" px={16}>
+      {/* Header */}
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+        <HStack items="center" justify="space-between">
           <HStack items="center">
-            <TouchableOpacity onPress={() => navigation?.goBack()}>
-              <ChevronLeft size={24} color="#000000" />
-            </TouchableOpacity>
-            <Heading fontSize={18} fontWeight="700" color="#000000" ml={16}>Edit Mission</Heading>
+             <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
+                <ChevronLeft size={22} color="black" strokeWidth={2.5} />
+             </TouchableOpacity>
+             <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Edit Job</Text>
           </HStack>
-          <TouchableOpacity onPress={handleSave}>
-             <Text fontSize={16} fontWeight="700" color={BLUE}>Update</Text>
+          <TouchableOpacity disabled={loading} onPress={handleSave}>
+             {loading ? <ActivityIndicator size="small" color={FB_BLUE} /> : <Text fontSize={15} fontWeight="700" color={FB_BLUE}>Save</Text>}
           </TouchableOpacity>
         </HStack>
       </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
          
-         <VStack mb={24}>
-            <InputLabel label="Role Title" required />
-            <Box h={48} border={1} borderColor="#E0E0E0" rounded={12} px={12} justify="center">
-               <HStack items="center" space="sm">
-                  <Briefcase size={18} color={GRAY_TEXT} />
-                  <TextInput 
-                     placeholder="e.g. Senior Protocol Engineer"
-                     value={formData.title}
-                     onChangeText={(v) => update('title', v)}
-                     style={styles.input}
-                  />
-               </HStack>
-            </Box>
-         </VStack>
+         <InputField label="Job Title" value={formData.title} onChangeText={(v: string) => update('title', v)} placeholder="e.g. Senior Software Engineer" />
+         <InputField label="Location" value={formData.location} onChangeText={(v: string) => update('location', v)} placeholder="e.g. Remote, UK" />
 
-         <VStack mb={24}>
-            <InputLabel label="Work Location" required />
-            <Box h={48} border={1} borderColor="#E0E0E0" rounded={12} px={12} justify="center">
-               <HStack items="center" space="sm">
-                  <MapPin size={18} color={GRAY_TEXT} />
-                  <TextInput 
-                     placeholder="e.g. Remote (Global)"
-                     value={formData.location}
-                     onChangeText={(v) => update('location', v)}
-                     style={styles.input}
-                  />
-               </HStack>
-            </Box>
-         </VStack>
-
-         <HStack space="md" mb={24}>
-            <VStack flex={1}>
-               <InputLabel label="Min Salary ($)" />
-               <Box h={48} border={1} borderColor="#E0E0E0" rounded={12} px={12} justify="center">
-                  <HStack items="center" space="sm">
-                     <CircleDollarSign size={18} color={GRAY_TEXT} />
-                     <TextInput 
-                        placeholder="80k"
-                        keyboardType="numeric"
-                        value={formData.salary_min}
-                        onChangeText={(v) => update('salary_min', v)}
-                        style={styles.input}
-                     />
-                  </HStack>
-               </Box>
-            </VStack>
-            <VStack flex={1}>
-               <InputLabel label="Max Salary ($)" />
-               <Box h={48} border={1} borderColor="#E0E0E0" rounded={12} px={12} justify="center">
-                  <HStack items="center" space="sm">
-                     <CircleDollarSign size={18} color={GRAY_TEXT} />
-                     <TextInput 
-                        placeholder="160k"
-                        keyboardType="numeric"
-                        value={formData.salary_max}
-                        onChangeText={(v) => update('salary_max', v)}
-                        style={styles.input}
-                     />
-                  </HStack>
-               </Box>
-            </VStack>
+         <HStack space="md">
+            <View style={{ flex: 1 }}>
+               <InputField label="Salary Min ($)" value={formData.salary_min} onChangeText={(v: string) => update('salary_min', v)} placeholder="e.g. 50000" keyboardType="numeric" />
+            </View>
+            <View style={{ flex: 1 }}>
+               <InputField label="Salary Max ($)" value={formData.salary_max} onChangeText={(v: string) => update('salary_max', v)} placeholder="e.g. 90000" keyboardType="numeric" />
+            </View>
          </HStack>
 
-         <VStack mb={24}>
-            <InputLabel label="Mission Description" required />
-            <Box border={1} borderColor="#E0E0E0" rounded={12} p={12} bg="white">
-               <HStack items="flex-start" space="sm">
-                  <FileText size={18} color={GRAY_TEXT} style={{ marginTop: 4 }} />
-                  <TextInput 
-                     placeholder="Describe the responsibilities and impact..."
-                     multiline
-                     value={formData.description}
-                     onChangeText={(v) => update('description', v)}
-                     style={[styles.input, { minHeight: 120, textAlignVertical: 'top' }]}
-                  />
-               </HStack>
-            </Box>
-         </VStack>
+         <InputField label="Job Description" value={formData.description} onChangeText={(v: string) => update('description', v)} placeholder="Describe the role..." multiline />
 
-         {/* Classification */}
          <VStack mb={24}>
-            <InputLabel label="Mission Identity" />
-            <Text fontSize={13} color={GRAY_TEXT} mb={10}>Select the most accurate tags for candidates.</Text>
+            <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} ml={4}>JOB TYPE</Text>
             <HStack space="sm" flexWrap="wrap">
                {JOB_TYPES.map(type => (
                   <TouchableOpacity 
                      key={type}
                      onPress={() => update('job_type', type)}
-                     style={[styles.chip, formData.job_type === type && styles.activeChip]}
+                     style={[styles.tag, formData.job_type === type && styles.activeTag]}
                   >
-                     <Text fontSize={13} fontWeight="700" color={formData.job_type === type ? 'white' : '#000000'}>{type}</Text>
+                     <Text fontSize={13} fontWeight="600" color={formData.job_type === type ? 'white' : '#111827'}>{type}</Text>
                   </TouchableOpacity>
                ))}
             </HStack>
          </VStack>
 
-         {/* Safety Banner */}
-         <Box bg={SOFT_BG} p={16} rounded={12} mb={40}>
-            <HStack items="flex-start" space="md">
-               <Info size={18} color={BLUE} />
-               <Text fontSize={12} color={BLUE} flex={1} fontWeight="700" lineHeight={18}>
-                  Your updates will be reflected in searches instantly. All previous applicants will be notified if requested.
+         <VStack mb={32}>
+            <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} ml={4}>EXPERIENCE LEVEL</Text>
+            <HStack space="sm" flexWrap="wrap">
+               {EXP_LEVELS.map(level => (
+                  <TouchableOpacity 
+                     key={level}
+                     onPress={() => update('experience_level', level)}
+                     style={[styles.tag, formData.experience_level === level && styles.activeTag]}
+                  >
+                     <Text fontSize={13} fontWeight="600" color={formData.experience_level === level ? 'white' : '#111827'}>{level}</Text>
+                  </TouchableOpacity>
+               ))}
+            </HStack>
+         </VStack>
+
+         <Box bg="#F0F9FF" p={16} rounded={16} mb={32}>
+            <HStack items="flex-start" space="sm">
+               <Info size={18} color={FB_BLUE} />
+               <Text fontSize={13} color="#1E3A8A" flex={1} fontWeight="600" lineHeight={18}>
+                  Updates are published instantly. Applicants will be notified of significant changes if required.
                </Text>
             </HStack>
          </Box>
 
-         <Button 
-            title={loading ? "Saving Changes..." : "Apply Updates"} 
-            onPress={handleSave} 
-            disabled={loading}
-            style={{ backgroundColor: BLUE, height: 50, borderRadius: 25 }}
-            textStyle={{ fontWeight: '800' }}
-         />
+         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
+            <Text fontSize={16} fontWeight="700" color="white">{loading ? "Saving Changes..." : "Save Changes"}</Text>
+         </TouchableOpacity>
 
       </ScrollView>
     </ScreenWrapper>
@@ -211,7 +165,9 @@ export default function EditJobScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  input: { flex: 1, fontSize: 15, color: '#000000', padding: 0 },
-  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#F3F2EF', marginBottom: 8 },
-  activeChip: { backgroundColor: BLUE }
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, fontSize: 15, color: '#111827', fontWeight: '500', padding: 0 },
+  tag: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#F0F2F5', marginBottom: 8 },
+  activeTag: { backgroundColor: FB_BLUE },
+  saveBtn: { height: 50, borderRadius: 25, backgroundColor: FB_BLUE, alignItems: 'center', justifyContent: 'center' },
 });

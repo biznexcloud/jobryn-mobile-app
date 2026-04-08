@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   Dimensions,
+  Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +33,6 @@ import { useAuthStore } from '../../store/authStore';
 import { ProfileService } from '../../services/api/profile';
 import { PortfolioService } from '../../services/api/portfolio';
 import { moderateScale } from '../../utils/responsive';
-import { MOCK_EXPERIENCE, MOCK_EDUCATION, MOCK_PROJECTS, MOCK_PHOTOS } from '../../constants/MockData';
 
 const { width } = Dimensions.get('window');
 
@@ -40,6 +40,8 @@ const { width } = Dimensions.get('window');
 
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
+
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function JobSeekerProfileScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
@@ -49,37 +51,64 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
   const [experience, setExperience] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  
+  // ── Sync states with API response ──
   const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=2874&auto=format&fit=crop');
-  const [profileImage, setProfileImage] = useState(`https://i.pravatar.cc/150?u=${authUser?.email}`);
+  const [profileImage, setProfileImage] = useState(authUser?.profile_picture || `https://i.pravatar.cc/150?u=${authUser?.email}`);
 
   const fetchProfile = async () => {
     try {
       const [seekerProfiles, edu, exp, proj] = await Promise.all([
-        ProfileService.getSeekerProfiles(),
-        PortfolioService.getEducation(),
-        PortfolioService.getExperience(),
-        PortfolioService.getProjects(),
+        ProfileService.getSeekerProfiles().catch(() => ({ results: [] })),
+        PortfolioService.getEducation().catch(() => ({ results: [] })),
+        PortfolioService.getExperience().catch(() => ({ results: [] })),
+        PortfolioService.getProjects().catch(() => ({ results: [] })),
       ]);
-      setProfile(seekerProfiles?.results?.[0] || { full_name: authUser?.name || 'Professional', job_title: 'Expert', bio: 'Passionate professional looking for new challenges.' });
       
-      const fetchedEdu = edu?.results || [];
-      const fetchedExp = exp?.results || [];
-      const fetchedProj = proj?.results || [];
+      const firstProfile = seekerProfiles?.results?.[0];
+      
+      if (firstProfile) {
+         setProfile(firstProfile);
+         // ANCHOR: Sync photos with the real backend data
+         if (firstProfile.profile_picture) setProfileImage(firstProfile.profile_picture);
+         if (firstProfile.cover_photo) setCoverImage(firstProfile.cover_photo);
+         
+         // ANCHOR: Save seekerId globally for all portfolio sub-screens
+         useAuthStore.getState().setSeekerId(firstProfile.id);
 
-      setEducation(fetchedEdu.length > 0 ? fetchedEdu : MOCK_EDUCATION);
-      setExperience(fetchedExp.length > 0 ? fetchedExp : MOCK_EXPERIENCE);
-      setProjects(fetchedProj.length > 0 ? fetchedProj : MOCK_PROJECTS);
+         // ── GLOBAL SYNC: Propagate identity to Sidebar/Dashboard ──
+         const currentUser = useAuthStore.getState().user;
+         useAuthStore.getState().setUser({
+            ...currentUser,
+            name: firstProfile.full_name || firstProfile.user_detail?.name || currentUser?.name,
+            profile_picture: firstProfile.profile_picture || currentUser?.profile_picture,
+            job_title: firstProfile.job_title || firstProfile.headline || 'Professional'
+         });
+      } else {
+         setProfile({ 
+            full_name: authUser?.name || 'Professional', 
+            headline: 'Expert', 
+            about: 'Passionate professional looking for new challenges.' 
+         });
+      }
+      
+      setEducation(edu?.results || []);
+      setExperience(exp?.results || []);
+      setProjects(proj?.results || []);
     } catch (e) {
-      setProfile({ full_name: authUser?.name || 'Professional', job_title: 'Expert', bio: 'Passionate professional looking for new challenges.' });
-      setEducation(MOCK_EDUCATION);
-      setExperience(MOCK_EXPERIENCE);
-      setProjects(MOCK_PROJECTS);
+      console.warn('Profile fetch failed:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  // ── Real-Time Sync: Refresh every time screen is focused ──
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const pickImage = async (type: 'profile' | 'cover') => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -96,9 +125,56 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
     });
 
     if (!result.canceled) {
-      if (type === 'profile') setProfileImage(result.assets[0].uri);
-      else setCoverImage(result.assets[0].uri);
-      Alert.alert('Success', `${type.charAt(0).toUpperCase() + type.slice(1)} photo updated (Simulated)`);
+      const uri = result.assets[0].uri;
+      if (type === 'profile') setProfileImage(uri);
+      else setCoverImage(uri);
+
+      // ── Real Sync ──
+      handlePhotoUpload(uri, type);
+    }
+  };
+
+  const handlePhotoUpload = async (uri: string, type: 'profile' | 'cover') => {
+    if (!uri) return;
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      const filename = uri.split('/').pop();
+      const photoType = filename?.split('.').pop() || 'jpg';
+      
+      formData.append(type === 'profile' ? 'profile_picture' : 'cover_photo', {
+        uri,
+        name: filename || `photo.${photoType}`,
+        type: `image/${photoType === 'jpg' || photoType === 'jpeg' ? 'jpeg' : photoType}`,
+      } as any);
+
+      if (type === 'profile') {
+        await ProfileService.updateAccountProfile(formData);
+        // Refresh auth state to sync with globally used avatar
+        const updatedUser = await ProfileService.getAccountProfile();
+        
+        // ANCHOR: Force cache refresh for Image components
+        if (updatedUser.profile_picture) {
+           updatedUser.profile_picture = `${updatedUser.profile_picture}?t=${Date.now()}`;
+        }
+        
+        useAuthStore.getState().setUser(updatedUser);
+      } else {
+        if (profile?.id) {
+          await ProfileService.updateSeekerProfile(profile.id, formData);
+        }
+      }
+
+      // ── CRITICAL SYNC: Re-fetch entire profile to update UI ──
+      await fetchProfile();
+      
+      Alert.alert('Success', `${type === 'profile' ? 'Profile picture' : 'Cover photo'} updated successfully.`);
+    } catch (e) {
+      console.warn('Photo upload failed:', e);
+      Alert.alert('Upload Failed', 'There was a technical issue uploading your photo. Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -157,13 +233,17 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
            </HStack>
 
            <VStack mt={20}>
-              <Text fontSize={22} fontWeight="700" color="#000000">{profile.full_name}</Text>
-              <Text fontSize={16} color="#000000" mt={4}>{profile.job_title}</Text>
+              <Text fontSize={22} fontWeight="700" color="#000000">{profile?.full_name || authUser?.name || 'Professional'}</Text>
+              <Text fontSize={16} color="#000000" mt={4}>{profile?.job_title || profile?.headline || 'Expert'}</Text>
               <HStack mt={10} items="center" flexWrap="wrap">
                  <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
                     <HStack items="center">
                        <MapPin size={16} color="#666666" />
-                       <Text fontSize={14} color="#666666" ml={4}>{profile.location || 'Kathmandu, Bagmati'}</Text>
+                        <Text fontSize={14} color="#666666" ml={4}>
+                           {profile?.city || profile?.location || 'Kathmandu'}
+                           {profile?.state ? `, ${profile.state}` : ''}
+                           {profile?.country ? `, ${profile.country}` : ''}
+                        </Text>
                        <Box ml={4}><Pencil size={12} color={BLUE} /></Box>
                     </HStack>
                  </TouchableOpacity>
@@ -185,9 +265,9 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
               <Text fontSize={18} fontWeight="700" color="#000000">About</Text>
               <TouchableOpacity onPress={() => navigation.navigate('EditBio')}><Pencil size={20} color="#0A66C2" /></TouchableOpacity>
            </HStack>
-           <Text fontSize={14} color="#000000" lineHeight={20}>
-              {profile.bio || 'Professional summary describing your career objectives and expertise. Add details to attract recruiters.'}
-           </Text>
+            <Text fontSize={14} color="#000000" lineHeight={20}>
+               {profile?.description || profile?.about || profile?.bio || 'Professional summary describing your career objectives and expertise. Add details to attract recruiters.'}
+            </Text>
         </Box>
 
         {/* Experience Section */}
@@ -205,11 +285,18 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
                     <Box w={48} h={48} bg="#F3F2EF" rounded={4} items="center" justify="center">
                        <Briefcase size={24} color="#666666" />
                     </Box>
-                    <VStack ml={12} flex={1}>
-                       <Text fontSize={16} fontWeight="700" color="#000000">{exp.position}</Text>
-                       <Text fontSize={14} color="#000000">{exp.company_name}</Text>
-                       <Text fontSize={13} color="#666666" mt={2}>{exp.start_date} - {exp.current ? 'Present' : exp.end_date}</Text>
-                    </VStack>
+                     <VStack ml={12} flex={1}>
+                        <HStack items="center" justify="space-between" flex={1}>
+                           <Text fontSize={16} fontWeight="700" color="#000000">{exp.title || exp.position}</Text>
+                           {exp.employment_type && (
+                              <Box bg="#E7F3FF" px={8} py={2} rounded={4}>
+                                 <Text fontSize={10} fontWeight="700" color={BLUE}>{exp.employment_type.replace('_', ' ').toUpperCase()}</Text>
+                              </Box>
+                           )}
+                        </HStack>
+                        <Text fontSize={14} color="#000000">{exp.company_name}</Text>
+                        <Text fontSize={13} color="#666666" mt={2}>{exp.start_date} - {exp.is_current || exp.current ? 'Present' : exp.end_date}</Text>
+                     </VStack>
                  </HStack>
                  {idx < experience.length - 1 && <Divider color="#E0E0E0" mt={12} />}
               </VStack>
@@ -222,10 +309,10 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
               <Text fontSize={18} fontWeight="700" color="#000000">Education</Text>
-              <HStack space="md">
-                 <TouchableOpacity onPress={() => navigation.navigate('AddEducation')}><Plus size={24} color="#666666" /></TouchableOpacity>
-                 <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}><Pencil size={20} color={BLUE} /></TouchableOpacity>
-              </HStack>
+               <HStack space="md">
+                  <TouchableOpacity onPress={() => navigation.navigate('AddEducation')}><Plus size={24} color="#666666" /></TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('EducationManagement')}><Pencil size={20} color={BLUE} /></TouchableOpacity>
+               </HStack>
            </HStack>
            {education.length > 0 ? education.map((edu: any, idx: number) => (
               <VStack key={idx} mb={16}>
@@ -233,11 +320,11 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
                     <Box w={48} h={48} bg="#F3F2EF" rounded={4} items="center" justify="center">
                        <GraduationCap size={24} color="#666666" />
                     </Box>
-                    <VStack ml={12} flex={1}>
-                       <Text fontSize={16} fontWeight="700" color="#000000">{edu.school}</Text>
-                       <Text fontSize={14} color="#000000">{edu.degree}, {edu.field}</Text>
-                       <Text fontSize={13} color="#666666" mt={2}>{edu.start_date} - {edu.end_date}</Text>
-                    </VStack>
+                     <VStack ml={12} flex={1}>
+                        <Text fontSize={16} fontWeight="700" color="#000000">{edu.school}</Text>
+                        <Text fontSize={14} color="#000000">{edu.degree}, {edu.field_of_study || edu.field}</Text>
+                        <Text fontSize={13} color="#666666" mt={2}>{edu.start_date} - {edu.end_date}</Text>
+                     </VStack>
                  </HStack>
                  {idx < education.length - 1 && <Divider color="#E0E0E0" mt={12} />}
               </VStack>
@@ -250,10 +337,10 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
               <Text fontSize={18} fontWeight="700" color="#000000">Projects</Text>
-              <HStack space="md">
-                 <TouchableOpacity onPress={() => navigation.navigate('AddProject')}><Plus size={24} color="#666666" /></TouchableOpacity>
-                 <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}><Pencil size={20} color={BLUE} /></TouchableOpacity>
-              </HStack>
+               <HStack space="md">
+                  <TouchableOpacity onPress={() => navigation.navigate('AddProject')}><Plus size={24} color="#666666" /></TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('ProjectManagement')}><Pencil size={20} color={BLUE} /></TouchableOpacity>
+               </HStack>
            </HStack>
            {projects.length > 0 ? projects.map((proj: any, idx: number) => (
               <VStack key={idx} mb={16}>
@@ -261,11 +348,14 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
                     <Box w={48} h={48} bg="#F3F2EF" rounded={4} items="center" justify="center">
                        <ImageIcon size={24} color="#666666" />
                     </Box>
-                    <VStack ml={12} flex={1}>
-                       <Text fontSize={16} fontWeight="700" color="#000000">{proj.name}</Text>
-                       <Text fontSize={14} color="#000000" mt={2}>{proj.description}</Text>
-                       {proj.url && <Text fontSize={13} color={BLUE} mt={4}>{proj.url}</Text>}
-                    </VStack>
+                     <VStack ml={12} flex={1}>
+                        <Text fontSize={16} fontWeight="700" color="#000000">{proj.name}</Text>
+                        <Text fontSize={13} color="#666666" mt={2}>
+                           {(proj.start_date || proj.end_date) ? `${proj.start_date || 'N/A'} - ${proj.end_date || 'Present'}` : 'Dec 2023'}
+                        </Text>
+                        <Text fontSize={14} color="#000000" mt={4} numberOfLines={2}>{proj.description}</Text>
+                        {proj.url && <Text fontSize={13} color={BLUE} mt={4}>{proj.url}</Text>}
+                     </VStack>
                  </HStack>
                  {idx < projects.length - 1 && <Divider color="#E0E0E0" mt={12} />}
               </VStack>
@@ -283,14 +373,23 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
               </VStack>
               <TouchableOpacity onPress={() => navigation.navigate('PhotoViewer')}><Text fontSize={14} fontWeight="700" color={BLUE}>See all</Text></TouchableOpacity>
            </HStack>
-           <HStack flexWrap="wrap" space="xs" justify="space-between">
-              {MOCK_PHOTOS.map((uri, i) => (
-                 <TouchableOpacity key={i} onPress={() => navigation.navigate('PhotoViewer', { initialIndex: i })} style={styles.photoBox}>
-                    <Image source={{ uri }} style={styles.galleryImage} />
-                 </TouchableOpacity>
-              ))}
-           </HStack>
+            <HStack flexWrap="wrap" space="xs" justify="space-between" mt={12}>
+               <Box w="100%" p={20} items="center">
+                  <ImageIcon size={32} color="#D1D5DB" />
+                  <Text mt={8} fontSize={13} color="#666666">No media uploaded yet.</Text>
+               </Box>
+            </HStack>
         </Box>
+
+        <Modal visible={uploading} transparent animationType="fade">
+           <Box flex={1} bg="rgba(0,0,0,0.5)" items="center" justify="center">
+              <VStack bg="white" p={30} rounded={20} items="center">
+                 <ActivityIndicator size="large" color={BLUE} />
+                 <Text mt={16} fontWeight="600" color="#1C1E21">Uploading Photo...</Text>
+                 <Text mt={4} fontSize={12} color="#65676B">Connecting to professional server</Text>
+              </VStack>
+           </Box>
+        </Modal>
       </ScrollView>
     </ScreenWrapper>
   );

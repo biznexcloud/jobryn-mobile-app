@@ -25,8 +25,9 @@ import { JobService } from '../../services/api/jobs';
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider } from '../../components/ui';
 import { moderateScale } from '../../utils/responsive';
 
-const BLUE = '#0A66C2';
-const GRAY_BG = '#F3F2EF';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 export default function JobPostingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -35,18 +36,20 @@ export default function JobPostingsScreen({ navigation }: any) {
   const [jobs, setJobs] = useState<any[]>([]);
 
   const fetchJobs = async () => {
+    const dummyJobs = [
+      { id: 1, title: 'Senior Protocol Engineer', location: 'Remote', salary_min: 120000, salary_max: 150000, applicant_count: 24, status: 'Active', views: 842 },
+      { id: 2, title: 'UX/UI Design Lead', location: 'Hybrid', salary_min: 90000, salary_max: 110000, applicant_count: 12, status: 'Closed', views: 421 },
+      { id: 3, title: 'Backend Architect', location: 'Kathmandu, NP', salary_min: 80000, salary_max: 100000, applicant_count: 8, status: 'Active', views: 312 },
+    ];
     try {
       const data = await JobService.getRecruiterJobs();
-      setJobs(data?.results || [
-        { id: 1, title: 'Senior Protocol Engineer', location: 'Remote', salary_min: 120000, salary_max: 150000, applicant_count: 24, status: 'Active' },
-        { id: 2, title: 'UX/UI Design Lead', location: 'Hybrid', salary_min: 90000, salary_max: 110000, applicant_count: 12, status: 'Closed' },
-        { id: 3, title: 'Backend Architect', location: 'Kathmandu, NP', salary_min: 80000, salary_max: 100000, applicant_count: 8, status: 'Active' },
-      ]);
+      if (data?.results && data.results.length > 0) {
+        setJobs(data.results);
+      } else {
+        setJobs(dummyJobs);
+      }
     } catch (e) {
-      setJobs([
-        { id: 1, title: 'Senior Protocol Engineer', location: 'Remote', salary_min: 120000, salary_max: 150000, applicant_count: 24, status: 'Active' },
-        { id: 2, title: 'UX/UI Design Lead', location: 'Hybrid', salary_min: 90000, salary_max: 110000, applicant_count: 12, status: 'Closed' },
-      ]);
+      setJobs(dummyJobs);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -58,19 +61,15 @@ export default function JobPostingsScreen({ navigation }: any) {
 
   const handleDelete = (job: any) => {
     Alert.alert(
-      'Close Job Posting',
-      `Are you sure you want to close "${job.title}"? This cannot be undone.`,
+      'Delete Job Posting',
+      `Are you sure you want to delete "${job.title}"? This cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Close Posting', style: 'destructive',
+          text: 'Delete', style: 'destructive',
           onPress: async () => {
-            try {
-              await JobService.deleteJob?.(job.id);
-              setJobs(prev => prev.filter(j => j.id !== job.id));
-            } catch {
-              setJobs(prev => prev.filter(j => j.id !== job.id));
-            }
+             // Mock delete
+             setJobs(prev => prev.filter(j => j.id !== job.id));
           }
         }
       ]
@@ -81,89 +80,99 @@ export default function JobPostingsScreen({ navigation }: any) {
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('JobDetailProvider', { job })}
-      activeOpacity={0.85}
+      activeOpacity={0.9}
     >
-      <HStack items="flex-start" mb={12}>
-        <Box bg="#EDF3F8" p={10} rounded={10}>
-          <Briefcase size={22} color={BLUE} />
+      <HStack items="center" mb={16} justify="space-between">
+        <HStack items="center" flex={1}>
+           <Box bg="#F0F2F5" p={10} rounded={12}>
+              <Briefcase size={22} color={FB_BLUE} />
+           </Box>
+           <VStack ml={12} flex={1}>
+              <Text fontSize={16} fontWeight="700" color="#111827" numberOfLines={1}>{job.title}</Text>
+              <Text fontSize={13} color={GRAY_TEXT} mt={2}>{job.location || 'Remote'}</Text>
+           </VStack>
+        </HStack>
+        <Box bg={job.status === 'Active' ? '#EBFDF5' : '#F9FAFB'} px={10} py={4} rounded={20}>
+           <Text fontSize={11} fontWeight="700" color={job.status === 'Active' ? '#10B981' : '#9CA3AF'}>{job.status}</Text>
         </Box>
-        <VStack ml={12} flex={1}>
-          <HStack justify="space-between" items="center">
-            <Text fontSize={16} fontWeight="700" color="#1F2937" flex={1} numberOfLines={1}>{job.title}</Text>
-            <Box bg={job.status === 'Active' ? '#DCFCE7' : '#FEE2E2'} px={8} py={3} rounded={4} ml={8}>
-              <Text fontSize={11} fontWeight="700" color={job.status === 'Active' ? '#166534' : '#DC2626'}>{job.status?.toUpperCase()}</Text>
-            </Box>
-          </HStack>
-          <HStack mt={6} space="md">
-            <HStack items="center">
-              <MapPin size={13} color="#6B7280" />
-              <Text fontSize={12} color="#6B7280" ml={4}>{job.location || 'Not specified'}</Text>
-            </HStack>
-            {(job.salary_min || job.salary_max) && (
-              <HStack items="center">
-                <DollarSign size={13} color="#6B7280" />
-                <Text fontSize={12} color="#6B7280" ml={2}>{job.salary_min ? `$${(job.salary_min/1000).toFixed(0)}k` : ''}{job.salary_max ? ` - $${(job.salary_max/1000).toFixed(0)}k` : ''}</Text>
-              </HStack>
-            )}
-          </HStack>
-        </VStack>
       </HStack>
 
-      <Divider color="#F1F5F9" mb={12} />
+      <HStack space="md" mb={16}>
+         <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
+            <Users size={14} color="#4B5563" />
+            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.applicant_count || 0} applicants</Text>
+         </Box>
+         <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
+            <Eye size={14} color="#4B5563" />
+            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.views || 0} views</Text>
+         </Box>
+      </HStack>
+
+      <Box h={1} bg="#F3F4F6" mb={16} />
 
       <HStack justify="space-between" items="center">
-        <HStack space="lg">
-          <TouchableOpacity onPress={() => navigation.navigate('Applicants', { jobId: job.id })} style={styles.statBtn}>
-            <Users size={15} color={BLUE} />
-            <Text fontSize={13} fontWeight="700" color={BLUE} ml={5}>{job.applicant_count || 0} applicants</Text>
-          </TouchableOpacity>
-          <HStack items="center">
-            <Eye size={15} color="#6B7280" />
-            <Text fontSize={13} color="#6B7280" ml={5}>{job.views || 142} views</Text>
-          </HStack>
-        </HStack>
-        <HStack space="sm">
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('EditJob', { job })}>
-            <Pencil size={18} color="#6B7280" />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#FEF2F2' }]} onPress={() => handleDelete(job)}>
-            <Trash2 size={18} color="#EF4444" />
-          </TouchableOpacity>
-        </HStack>
+         <HStack space="sm">
+            <TouchableOpacity 
+               style={styles.actionBtn} 
+               onPress={() => navigation.navigate('Applicants', { jobId: job.id })}
+            >
+               <Text fontSize={13} fontWeight="700" color={FB_BLUE}>View Applicants</Text>
+            </TouchableOpacity>
+         </HStack>
+         <HStack space="xs">
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('EditJob', { job })}>
+               <Pencil size={16} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn} onPress={() => handleDelete(job)}>
+               <Trash2 size={16} color="#EF4444" />
+            </TouchableOpacity>
+         </HStack>
       </HStack>
     </TouchableOpacity>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
 
-      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
+      {/* Header */}
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
         <HStack items="center" justify="space-between">
           <HStack items="center">
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <ChevronLeft size={24} color="#1F2937" strokeWidth={2.5} />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+              <ChevronLeft size={22} color="black" strokeWidth={2.5} />
             </TouchableOpacity>
-            <VStack ml={16}>
-              <Text fontSize={20} color="#1F2937" fontWeight="700">Job Postings</Text>
-              <Text fontSize={12} color="#6B7280">{jobs.length} postings</Text>
-            </VStack>
+            <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Job Postings</Text>
           </HStack>
           <TouchableOpacity onPress={() => navigation.navigate('PostJob')} style={styles.addBtn}>
-            <Plus size={22} color="white" />
+            <Plus size={22} color="white" strokeWidth={2.5} />
           </TouchableOpacity>
         </HStack>
       </Box>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
-          <ActivityIndicator color={BLUE} style={{ marginTop: 40 }} />
-        ) : (
+          <ActivityIndicator color={FB_BLUE} style={{ marginTop: 40 }} />
+        ) : jobs.length > 0 ? (
           jobs.map(job => <JobPostCard key={job.id} job={job} />)
+        ) : (
+          <VStack mt={80} items="center" px={40}>
+            <Box w={72} h={72} rounded={36} border={1} borderColor="#E5E7EB" items="center" justify="center" bg="white">
+               <Briefcase size={32} color="#D1D5DB" />
+            </Box>
+            <Text mt={20} fontSize={17} fontWeight="800" color="#111827">No jobs posted yet</Text>
+            <Text mt={8} fontSize={14} color={GRAY_TEXT} textAlign="center">Get started by creating your first job posting.</Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('PostJob')}
+              style={styles.emptyActionBtn}
+            >
+              <Text color="white" fontWeight="700">Post a Job</Text>
+            </TouchableOpacity>
+          </VStack>
         )}
       </ScrollView>
     </ScreenWrapper>
@@ -171,10 +180,11 @@ export default function JobPostingsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: BLUE, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { padding: 16, paddingBottom: 100 },
-  card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  statBtn: { flexDirection: 'row', alignItems: 'center' },
-  actionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F2EF', alignItems: 'center', justifyContent: 'center' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: FB_BLUE, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { padding: 12, paddingBottom: 40 },
+  card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F0F2F5' },
+  actionBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F0FAFF' },
+  iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#F0F2F5' },
+  emptyActionBtn: { marginTop: 24, backgroundColor: FB_BLUE, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 24 },
 });

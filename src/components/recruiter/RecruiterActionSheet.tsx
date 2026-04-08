@@ -44,7 +44,7 @@ const ACTIONS: ActionOption[] = [
   {
     label: 'Interview',
     subtitle: 'Schedule a discovery call',
-    status: 'online_meeting',
+    status: 'interview',
     color: '#0A66C2',
     bg: '#EBF3FF',
     Icon: CalendarIcon,

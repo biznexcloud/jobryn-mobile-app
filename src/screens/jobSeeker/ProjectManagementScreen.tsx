@@ -1,39 +1,41 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Button } from '../../components/ui';
-import { ChevronLeft, Plus, Briefcase, Pencil, Trash2, Calendar, MapPin } from 'lucide-react-native';
+import { ChevronLeft, Plus, Image as ImageIcon, Pencil, Trash2, Link, Calendar } from 'lucide-react-native';
+import { PortfolioService } from '../../services/api/portfolio';
+import { useFocusEffect } from '@react-navigation/native';
 
 const BLUE = '#1066C2';
 const FB_GRAY = '#F0F2F5';
 
-import { PortfolioService } from '../../services/api/portfolio';
-import { useFocusEffect } from '@react-navigation/native';
-import { ActivityIndicator } from 'react-native';
-
-const ExperienceCard = ({ exp, onEdit, onDelete }: any) => (
+const ProjectCard = ({ project, onEdit, onDelete }: any) => (
   <Box bg="white" p={16} mb={12} rounded={8} border={1} borderColor="#CED0D4">
      <HStack justify="space-between" items="flex-start">
         <HStack flex={1} items="flex-start">
            <Box w={48} h={48} bg="#F2F3F5" rounded={4} items="center" justify="center">
-              <Briefcase size={26} color="#65676B" />
+              <ImageIcon size={26} color="#65676B" />
            </Box>
            <VStack ml={12} flex={1}>
-              <Text fontSize={17} fontWeight="700" color="#1C1E21">{exp.position}</Text>
-              <Text fontSize={15} color="#1C1E21" mt={1}>{exp.company_name}</Text>
-              <HStack mt={4} items="center">
-                 <Text fontSize={13} color="#65676B">
-                    {exp.start_date} - {exp.current ? 'Present' : exp.end_date}
-                 </Text>
-                 {exp.employment_type && (
-                   <Box bg="#E7F3FF" px={8} py={2} rounded={4} ml={8}>
-                     <Text fontSize={10} fontWeight="700" color={BLUE}>
-                        {exp.employment_type.replace('_', ' ').toUpperCase()}
-                     </Text>
-                   </Box>
+              <Text fontSize={17} fontWeight="700" color="#1C1E21">{project.name}</Text>
+              <Text fontSize={14} color="#65676B" mt={2} numberOfLines={2}>{project.description}</Text>
+              
+              <HStack mt={8} items="center" space="md">
+                 {(project.start_date || project.end_date) && (
+                   <HStack items="center">
+                      <Calendar size={12} color="#65676B" />
+                      <Text fontSize={12} color="#65676B" ml={4}>
+                         {project.start_date || 'N/A'} - {project.end_date || 'Present'}
+                      </Text>
+                   </HStack>
+                 )}
+                 {project.url && (
+                   <HStack items="center">
+                      <Link size={12} color={BLUE} />
+                      <Text fontSize={12} color={BLUE} ml={4} numberOfLines={1}>Link</Text>
+                   </HStack>
                  )}
               </HStack>
-              <Text fontSize={13} color="#65676B" mt={2}>{exp.location}</Text>
            </VStack>
         </HStack>
         <HStack space="md">
@@ -48,18 +50,18 @@ const ExperienceCard = ({ exp, onEdit, onDelete }: any) => (
   </Box>
 );
 
-export default function ExperienceManagementScreen({ navigation }: any) {
+export default function ProjectManagementScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [experiences, setExperiences] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchExperience = async () => {
+  const fetchProjects = async () => {
     setLoading(true);
     try {
-      const resp = await PortfolioService.getExperience();
-      setExperiences(resp?.results || []);
+      const resp = await PortfolioService.getProjects();
+      setProjects(resp?.results || []);
     } catch (e) {
-      console.warn('Failed to fetch experiences:', e);
+      console.warn('Failed to fetch projects:', e);
     } finally {
       setLoading(false);
     }
@@ -67,19 +69,19 @@ export default function ExperienceManagementScreen({ navigation }: any) {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchExperience();
+      fetchProjects();
     }, [])
   );
 
   const handleDelete = (id: any) => {
-    Alert.alert('Delete Experience', 'Are you sure you want to remove this work history entry?', [
+    Alert.alert('Delete Project', 'Are you sure you want to remove this project?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
-          await PortfolioService.deleteExperience(id);
-          fetchExperience();
+          await PortfolioService.deleteProject(id);
+          fetchProjects();
         } catch (e) {
-          Alert.alert('Error', 'Failed to delete experience.');
+          Alert.alert('Error', 'Failed to delete project.');
         }
       }}
     ]);
@@ -96,9 +98,9 @@ export default function ExperienceManagementScreen({ navigation }: any) {
                <TouchableOpacity onPress={() => navigation.goBack()}>
                   <ChevronLeft size={28} color="#1C1E21" />
                </TouchableOpacity>
-               <Text fontSize={18} fontWeight="700" color="#1C1E21" ml={16}>Work Experience</Text>
+               <Text fontSize={18} fontWeight="700" color="#1C1E21" ml={16}>Your Projects</Text>
             </HStack>
-            <TouchableOpacity onPress={() => navigation.navigate('AddExperience')}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddProject')}>
                <Plus size={26} color={BLUE} strokeWidth={2.5} />
             </TouchableOpacity>
          </HStack>
@@ -111,26 +113,26 @@ export default function ExperienceManagementScreen({ navigation }: any) {
             </Box>
          ) : (
             <VStack mb={20}>
-               {experiences.map(exp => (
-                  <ExperienceCard 
-                     key={exp.id} 
-                     exp={exp} 
-                     onEdit={() => navigation.navigate('AddExperience', { edit: true, experience: exp })}
-                     onDelete={() => handleDelete(exp.id)}
+               {projects.map(proj => (
+                  <ProjectCard 
+                     key={proj.id} 
+                     project={proj} 
+                     onEdit={() => navigation.navigate('AddProject', { edit: true, project: proj })}
+                     onDelete={() => handleDelete(proj.id)}
                   />
                ))}
-               {experiences.length === 0 && (
+               {projects.length === 0 && (
                   <Box py={40} items="center">
-                     <Text color="#65676B">No work experience found.</Text>
+                     <Text color="#65676B">No projects found.</Text>
                   </Box>
                )}
             </VStack>
          )}
 
          <Button 
-            label="Add Position" 
+            label="Add New Project" 
             variant="outline"
-            onPress={() => navigation.navigate('AddExperience')}
+            onPress={() => navigation.navigate('AddProject')}
             style={{ height: 44, borderRadius: 22, borderColor: BLUE }}
             textStyle={{ color: BLUE, fontWeight: '700' }}
          />

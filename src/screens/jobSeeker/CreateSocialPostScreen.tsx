@@ -41,13 +41,15 @@ const BG_COLORS = [
   '#000000',
 ];
 
-export default function CreateSocialPostScreen({ navigation }: any) {
+export default function CreateSocialPostScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const [content, setContent] = useState('');
   const [image, setImage] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [bgIndex, setBgIndex] = useState(0);
+
+  const autoPickApplied = React.useRef(false);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -62,6 +64,13 @@ export default function CreateSocialPostScreen({ navigation }: any) {
     }
   };
 
+  React.useEffect(() => {
+    if (route.params?.autoPickImage && !autoPickApplied.current) {
+      autoPickApplied.current = true;
+      pickImage();
+    }
+  }, [route.params]);
+
   const handlePost = async () => {
     if (!content.trim() && !image) {
       Alert.alert('Empty Post', 'What\'s on your mind? Share something.');
@@ -71,8 +80,8 @@ export default function CreateSocialPostScreen({ navigation }: any) {
     try {
       await SocialService.createPost({ 
         content, 
-        image, 
-        backgroundColor: bgIndex > 0 ? BG_COLORS[bgIndex] : undefined 
+        image: image || undefined,
+        visibility: 'public' // Defaulting to public as per UI selector
       });
       Alert.alert('Success', 'Post shared!', [{ text: 'Great', onPress: () => navigation.goBack() }]);
     } catch (e) {

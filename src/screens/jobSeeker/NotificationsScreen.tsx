@@ -22,25 +22,52 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } fro
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
 
+import { NotificationService } from '../../services/api/notifications';
 import { MOCK_NOTIFICATIONS } from '../../constants/MockData';
 
 export default function SeekerNotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
-  const [notifs, setNotifs] = useState(MOCK_NOTIFICATIONS);
+  const [loading, setLoading] = useState(true);
+  const [notifs, setNotifs] = useState<any[]>([]);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await NotificationService.getNotifications();
+      setNotifs(data?.results || []);
+    } catch (e) {
+      console.warn('Failed to fetch notifications:', e);
+      // Fallback to empty if API fails, or keep previous
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1500);
+    fetchNotifications();
+  };
+
+  const markAsRead = async (id: number | string) => {
+    try {
+      await NotificationService.markAsRead(id);
+      setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e) {
+      console.warn('Mark as read failed:', e);
+    }
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'job': return <Briefcase size={22} color={BLUE} />;
-      case 'conn': return <UserPlus size={22} color="#057642" />;
-      case 'post': return <MessageCircle size={22} color={BLUE} />;
+      case 'job_application_received': 
+      case 'job_status_change': return <Briefcase size={22} color={BLUE} />;
+      case 'connection_request': return <UserPlus size={22} color="#057642" />;
+      case 'new_message': return <MessageCircle size={22} color={BLUE} />;
       default: return <Bell size={22} color="#666666" />;
     }
   };
@@ -66,19 +93,34 @@ export default function SeekerNotificationsScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />}
       >
-        {notifs.map((notif, idx) => (
-           <TouchableOpacity key={idx} style={[styles.notifItem, notif.unread && styles.notifUnread]}>
+        {loading && notifs.length === 0 ? (
+           <Box py={100} items="center"><ActivityIndicator color={BLUE} /></Box>
+        ) : notifs.map((notif, idx) => (
+           <TouchableOpacity 
+             key={idx} 
+             style={[styles.notifItem, !notif.is_read && styles.notifUnread]}
+             onPress={() => markAsRead(notif.id)}
+           >
               <HStack items="center">
-                 <View style={styles.iconCircle}>{getIcon(notif.type)}</View>
+                 <View style={styles.iconCircle}>{getIcon(notif.notification_type || notif.type)}</View>
                  <VStack ml={16} flex={1}>
-                    <Text fontSize={15} fontWeight={notif.unread ? '700' : '500'} color="#000000">{notif.title}</Text>
-                    <Text fontSize={13} color="#666666" mt={2}>{notif.subtitle}</Text>
-                    <Text fontSize={11} color="#999999" mt={4}>{notif.time}</Text>
+                    <Text fontSize={15} fontWeight={!notif.is_read ? '700' : '500'} color="#000000">
+                      {notif.title || 'Notification'}
+                    </Text>
+                    <Text fontSize={13} color="#666666" mt={2}>{notif.message || notif.subtitle}</Text>
+                    <Text fontSize={11} color="#999999" mt={4}>
+                      {notif.created_at ? new Date(notif.created_at).toLocaleDateString() : (notif.time || 'recently')}
+                    </Text>
                  </VStack>
-                 {notif.unread && <View style={styles.unreadDot} />}
+                 {!notif.is_read && <View style={styles.unreadDot} />}
               </HStack>
            </TouchableOpacity>
         ))}
+        {notifs.length === 0 && !loading && (
+          <Box py={100} items="center">
+            <Text color="#666666">No new notifications</Text>
+          </Box>
+        )}
       </ScrollView>
     </ScreenWrapper>
   );

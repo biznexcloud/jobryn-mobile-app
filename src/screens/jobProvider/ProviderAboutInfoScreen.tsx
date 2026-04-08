@@ -13,67 +13,73 @@ import {
   Mail as MailIcon
 } from 'lucide-react-native';
 
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
+
 export default function ProviderAboutInfoScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
 
   const CategoryHeader = ({ title }: { title: string }) => (
-    <Text fontSize={18} fontWeight="800" color="#1C1E21" mb={12} mt={16}>{title}</Text>
+    <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} mt={24} ml={4}>{title.toUpperCase()}</Text>
   );
 
   const InfoRow = ({ icon: Icon, title, subtitle, canEdit = true }: any) => (
-    <HStack items="flex-start" mb={16}>
-      <Icon size={28} color="#8A8D91" />
+    <HStack items="center" mb={16} px={4}>
+      <Box w={36} h={36} rounded={18} bg={FB_GRAY} items="center" justify="center">
+        <Icon size={18} color="#1F2937" />
+      </Box>
       <VStack ml={12} flex={1}>
-        <Text fontSize={16} fontWeight="600" color="#1C1E21">{title}</Text>
-        {subtitle && <Text fontSize={14} color="#65676B" mt={2}>{subtitle}</Text>}
+        <Text fontSize={16} fontWeight="600" color="#111827">{title}</Text>
+        {subtitle && <Text fontSize={14} color={GRAY_TEXT} mt={1}>{subtitle}</Text>}
       </VStack>
       {canEdit && (
         <TouchableOpacity style={styles.editBtn}>
-          <PencilIcon size={16} color="#1C1E21" />
+          <PencilIcon size={14} color="#1F2937" />
         </TouchableOpacity>
       )}
     </HStack>
   );
 
   return (
-    <ScreenWrapper safeAreaTop backgroundColor="white">
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="white">
       <StatusBar barStyle="dark-content" />
       
       {/* Header */}
-      <Box px={16} py={12} borderBottom={1} borderColor="#CED0D4">
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
         <HStack items="center">
-          <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <ChevronLeftIcon size={24} color="#1C1E21" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+            <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
           </TouchableOpacity>
-          <Text fontSize={18} fontWeight="800" color="#1C1E21" ml={16}>About Company</Text>
+          <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>About Company</Text>
         </HStack>
       </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
         
-        <CategoryHeader title="Company Overview" />
+        <CategoryHeader title="Overview" />
         <InfoRow icon={BuildingIcon} title="Industry" subtitle="Information Technology & Services" />
         <InfoRow icon={UsersIcon} title="Company Size" subtitle="201-500 employees" />
         <InfoRow icon={GlobeIcon} title="Headquarters" subtitle="Palo Alto, California, US" />
 
-        <Divider mb={8} color="#CED0D4" />
+        <Divider mt={8} color="#F3F4F6" />
 
-        <CategoryHeader title="Recruitment Vitals" />
-        <InfoRow icon={SparklesIcon} title="Hiring Status" subtitle="Actively Hiring (24 open roles)" />
-        <InfoRow icon={UsersIcon} title="Team Culture" subtitle="Remote-first, Agile, Inclusive" />
+        <CategoryHeader title="Hiring Status" />
+        <InfoRow icon={SparklesIcon} title="Current Outlook" subtitle="Actively Hiring (24 open roles)" />
+        <InfoRow icon={UsersIcon} title="Culture" subtitle="Remote-first, Agile, Inclusive" />
 
-        <Divider mb={8} color="#CED0D4" />
+        <Divider mt={8} color="#F3F4F6" />
 
-        <CategoryHeader title="Online Presence" />
+        <CategoryHeader title="Links" />
         <InfoRow icon={LinkIcon} title="Website" subtitle="https://innovatetech.io" />
         <InfoRow icon={LinkIcon} title="Twitter" subtitle="@innovate_tech" />
-        <InfoRow icon={LinkIcon} title="LinkedIn" subtitle="linkedin.com/company/innovate-tech" />
+        <InfoRow icon={LinkIcon} title="Link" subtitle="linkedin.com/company/innovate-tech" />
 
-        <Divider mb={8} color="#CED0D4" />
+        <Divider mt={8} color="#F3F4F6" />
 
-        <CategoryHeader title="Contact Info" />
+        <CategoryHeader title="Contact" />
         <InfoRow icon={MailIcon} title="HR Department" subtitle="hr@innovatetech.io" canEdit={false} />
-        <InfoRow icon={MailIcon} title="Business Inquiries" subtitle="contact@innovatetech.io" canEdit={false} />
+        <InfoRow icon={MailIcon} title="Support" subtitle="contact@innovatetech.io" canEdit={false} />
         
       </ScrollView>
     </ScreenWrapper>
@@ -81,14 +87,13 @@ export default function ProviderAboutInfoScreen({ navigation }: { navigation: an
 }
 
 const styles = StyleSheet.create({
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
   editBtn: {
-    padding: 8,
+    width: 32,
+    height: 32,
     backgroundColor: '#F0F2F5',
-    borderRadius: 20
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });
-
-
-
-
-

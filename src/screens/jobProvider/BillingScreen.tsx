@@ -18,106 +18,139 @@ import {
   Lock as LockClosedIcon,
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
+import { BillingService } from '../../services/api/billing';
+import { RefreshControl } from 'react-native';
 
-const BLUE = '#0A66C2';
-const GRAY_BG = '#F3F2EF';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 export default function BillingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [invoices, setInvoices] = React.useState<any[]>([]);
+  const [payments, setPayments] = React.useState<any[]>([]);
+
+  const loadBillingData = async () => {
+    try {
+      const [invRes, payRes] = await Promise.all([
+        BillingService.getInvoices(),
+        BillingService.getPayments(),
+      ]);
+      setInvoices(invRes.results || invRes);
+      setPayments(payRes.results || payRes);
+    } catch (err) {
+      console.warn('Billing load failed:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => { loadBillingData(); }, []);
 
   const PlanOption = ({ title, price, features, isCurrent }: any) => (
-    <Box bg="white" p={20} rounded={12} mb={16} border={2} borderColor={isCurrent ? BLUE : '#E5E7EB'}>
+    <Box bg="white" p={20} rounded={16} mb={16} border={1.5} borderColor={isCurrent ? FB_BLUE : '#F0F2F5'}>
        <HStack justify="space-between" items="center" mb={12}>
-          <Text fontSize={18} fontWeight="700" color="#1F2937">{title}</Text>
+          <Text fontSize={17} fontWeight="700" color="#111827">{title}</Text>
           {isCurrent && (
-             <Box bg="#EDF3F8" px={10} py={4} rounded={4}>
-                <Text fontSize={11} fontWeight="700" color={BLUE}>CURRENT PLAN</Text>
+             <Box bg={FB_BLUE} px={10} py={4} rounded={20}>
+                <Text fontSize={10} fontWeight="800" color="white">CURRENT</Text>
              </Box>
           )}
        </HStack>
-       <Text fontSize={24} fontWeight="700" color="#1F2937" mb={16}>{price}</Text>
+       <Text fontSize={26} fontWeight="800" color="#111827" mb={16}>{price}</Text>
        <VStack space="sm" mb={20}>
           {features.map((f: string, i: number) => (
              <HStack items="center" key={i}>
-                <CheckIcon size={18} color="#057642" />
-                <Text fontSize={14} color="#475569" ml={10}>{f}</Text>
+                <CheckIcon size={16} color="#10B981" strokeWidth={3} />
+                <Text fontSize={14} color={GRAY_TEXT} ml={10}>{f}</Text>
              </HStack>
           ))}
        </VStack>
-       <Button 
-          title={isCurrent ? "Manage Plan" : "Upgrade Now"} 
-          variant={isCurrent ? "outline" : "solid"} 
-          onPress={() => navigation.navigate('Billing')} 
-          style={!isCurrent && { backgroundColor: BLUE }}
-          textStyle={isCurrent && { color: BLUE }}
-       />
+       <TouchableOpacity 
+          style={[styles.planBtn, isCurrent ? styles.outlineBtn : styles.solidBtn]}
+          onPress={() => {}}
+       >
+          <Text fontSize={15} fontWeight="700" color={isCurrent ? FB_BLUE : 'white'}>
+             {isCurrent ? "Manage Subscription" : "Upgrade Plan"}
+          </Text>
+       </TouchableOpacity>
     </Box>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Modern Header */}
-      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
+      {/* Header */}
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
         <HStack items="center">
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <ChevronLeftIcon size={24} color="#1F2937" strokeWidth={2.5} />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+            <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
           </TouchableOpacity>
-          <Text fontSize={20} color="#1F2937" fontWeight="700" ml={16}>Billing & Plans</Text>
+          <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Billing & Plans</Text>
         </HStack>
       </Box>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-         <Box bg="white" p={16} rounded={12} mb={20} border={1} borderColor="#E5E7EB">
-            <HStack items="center" justify="space-between" mb={12}>
-               <Text fontSize={14} color="#6B7280" fontWeight="700">ACTIVE PAYMENT METHOD</Text>
-               <TouchableOpacity onPress={() => navigation.navigate('PaymentMethod')}><Text fontSize={14} fontWeight="700" color={BLUE}>Change</Text></TouchableOpacity>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+         <Box bg="white" p={16} rounded={16} mb={20} border={1} borderColor="#F0F2F5">
+            <HStack items="center" justify="space-between" mb={14}>
+               <Text fontSize={13} color={GRAY_TEXT} fontWeight="700">PAYMENT METHOD</Text>
+               <TouchableOpacity onPress={() => navigation.navigate('PaymentMethod')}>
+                  <Text fontSize={13} fontWeight="700" color={FB_BLUE}>Edit</Text>
+               </TouchableOpacity>
             </HStack>
             <HStack items="center">
-               <View style={styles.cardIconBox}><CreditCardIcon size={24} color="#475569" /></View>
+               <Box w={40} h={40} rounded={8} bg={FB_GRAY} items="center" justify="center">
+                  <CreditCardIcon size={20} color="#4B5563" />
+               </Box>
                <VStack ml={12}>
-                  <Text fontSize={16} fontWeight="700" color="#1F2937">Visa ending in 4412</Text>
-                  <Text fontSize={13} color="#6B7280">Expires 12/26</Text>
+                  <Text fontSize={15} fontWeight="700" color="#111827">Visa ending in 4412</Text>
+                  <Text fontSize={12} color={GRAY_TEXT}>Expires 12/26</Text>
                </VStack>
-               <HStack flex={1} justify="flex-end"><LockClosedIcon size={18} color="#9CA3AF" /></HStack>
+               <HStack flex={1} justify="flex-end">
+                  <LockClosedIcon size={16} color="#9CA3AF" />
+               </HStack>
             </HStack>
          </Box>
 
-         <Text fontSize={14} color="#6B7280" fontWeight="700" ml={4} mb={10}>SUBSCRIPTION PLANS</Text>
-         <PlanOption 
-            label="Recruiter Professional" 
-            price="$89.99/mo" 
-            isCurrent={true}
-            features={[
-               "Single user license",
-               "Up to 20 active job postings",
-               "Search through all candidates",
-               "10 Inbound messages per day"
-            ]}
-         />
-         <PlanOption 
-            label="Nexus Corporate" 
-            price="$299.99/mo" 
-            isCurrent={false}
-            features={[
-               "Up to 5 team members",
-               "Unlimited job postings",
-               "Priority candidate matching",
-               "Unlimited messaging & scheduling",
-               "Dedicated support manager"
-            ]}
-         />
+          <Text fontSize={13} color={GRAY_TEXT} fontWeight="700" mb={12} ml={4}>RECENT INVOICES</Text>
+          {loading ? (
+             <ActivityIndicator size="small" color={FB_BLUE} style={{ marginTop: 20 }} />
+          ) : (
+             invoices.map((inv) => (
+                <TouchableOpacity key={inv.id} style={styles.invoiceRow}>
+                   <HStack justify="space-between" items="center" bg="white" p={16} rounded={12} mb={10} border={1} borderColor="#F0F2F5">
+                      <VStack>
+                         <Text fontSize={14} fontWeight="700" color="#111827">Invoice #{inv.invoice_no || inv.id}</Text>
+                         <Text fontSize={12} color={GRAY_TEXT} mt={2}>{new Date(inv.created_at).toLocaleDateString()}</Text>
+                      </VStack>
+                      <Text fontSize={15} fontWeight="800" color="#111827">
+                        {inv.amount_display || `$${inv.amount}`}
+                      </Text>
+                   </HStack>
+                </TouchableOpacity>
+             ))
+          )}
+
+          {invoices.length === 0 && !loading && (
+             <Box bg="white" p={20} rounded={12} items="center">
+                <Text fontSize={14} color={GRAY_TEXT}>No invoices found</Text>
+             </Box>
+          )}
       </ScrollView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { padding: 16 },
-  cardIconBox: { width: 44, height: 44, borderRadius: 10, backgroundColor: '#F3F2EF', alignItems: 'center', justifyContent: 'center' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  planBtn: { height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  solidBtn: { backgroundColor: FB_BLUE },
+  outlineBtn: { borderWidth: 1.5, borderColor: FB_BLUE },
+  invoiceRow: { width: '100%' },
 });
 
 

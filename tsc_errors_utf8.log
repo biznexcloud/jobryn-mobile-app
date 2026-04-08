@@ -1,7 +1,0 @@
-﻿src/components/common/Sidebar.tsx(133,49): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-src/RECOVERY_BACKUP/DashboardScreen.tsx(25,30): error TS2307: Cannot find module '../../store/authStore' or its corresponding type declarations.
-src/RECOVERY_BACKUP/DashboardScreen.tsx(26,28): error TS2307: Cannot find module '../../services/api/jobs' or its corresponding type declarations.
-src/RECOVERY_BACKUP/DashboardScreen.tsx(27,31): error TS2307: Cannot find module '../../services/api/social' or its corresponding type declarations.
-src/RECOVERY_BACKUP/DashboardScreen.tsx(28,75): error TS2307: Cannot find module '../../components/ui' or its corresponding type declarations.
-src/RECOVERY_BACKUP/DashboardScreen.tsx(29,26): error TS2307: Cannot find module '../../components/cards/PostCard' or its corresponding type declarations.

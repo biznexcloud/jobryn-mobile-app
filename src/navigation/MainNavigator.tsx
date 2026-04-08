@@ -26,6 +26,8 @@ import AddExperienceScreen from '../screens/jobSeeker/AddExperienceScreen';
 import AddEducationScreen from '../screens/jobSeeker/AddEducationScreen';
 import PortfolioScreen from '../screens/jobSeeker/PortfolioScreen';
 import LearningScreen from '../screens/jobSeeker/LearningScreen';
+import CourseDetailScreen from '../screens/jobSeeker/CourseDetailScreen';
+import LessonScreen from '../screens/jobSeeker/LessonScreen';
 import WalletScreen from '../screens/jobSeeker/WalletScreen';
 import SettingsScreen from '../screens/jobSeeker/SettingsScreen';
 import SeekerEditProfileScreen from '../screens/jobSeeker/EditProfileScreen';
@@ -48,6 +50,8 @@ import ExperienceManagementScreen from '../screens/jobSeeker/ExperienceManagemen
 import PhotoViewerScreen from '../screens/jobSeeker/PhotoViewerScreen';
 import AddServiceScreen from '../screens/jobSeeker/AddServiceScreen';
 import ConnectionsListScreen from '../screens/jobSeeker/ConnectionsListScreen';
+import EducationManagementScreen from '../screens/jobSeeker/EducationManagementScreen';
+import ProjectManagementScreen from '../screens/jobSeeker/ProjectManagementScreen';
 
 // ─── Provider Screens ────────────────────────────────────────────────────────
 import ApplicantDetailScreen from '../screens/jobProvider/ApplicantDetailScreen';
@@ -171,6 +175,7 @@ export default function MainNavigator() {
           <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
           <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
           <Stack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
+          <Stack.Screen name="LikersList" component={LikersListScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       ) : (
@@ -188,6 +193,8 @@ export default function MainNavigator() {
           <Stack.Screen name="EditProfile" component={SeekerEditProfileScreen} />
           <Stack.Screen name="Portfolio" component={PortfolioScreen} />
           <Stack.Screen name="Learning" component={LearningScreen} />
+          <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+          <Stack.Screen name="Lesson" component={LessonScreen} />
           <Stack.Screen name="Wallet" component={WalletScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="CreateSocialPost" component={SeekerCreateSocialPostScreen} />
@@ -206,6 +213,8 @@ export default function MainNavigator() {
           <Stack.Screen name="PostJob" component={PostJobScreen} />
           <Stack.Screen name="EditBio" component={EditBioScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="ExperienceManagement" component={ExperienceManagementScreen} />
+          <Stack.Screen name="EducationManagement" component={EducationManagementScreen} />
+          <Stack.Screen name="ProjectManagement" component={ProjectManagementScreen} />
           <Stack.Screen name="ConnectionsList" component={ConnectionsListScreen} />
           <Stack.Screen name="PhotoViewer" component={PhotoViewerScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="CreateStory" component={CreateStoryScreen} options={{ animation: 'slide_from_bottom' }} />
@@ -223,6 +232,7 @@ export default function MainNavigator() {
           <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
           <Stack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
           <Stack.Screen name="Payout" component={PayoutScreen} />
+          <Stack.Screen name="LikersList" component={LikersListScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="AIChat" component={AIChatbotScreen} options={{ animation: 'slide_from_bottom' }} />
         </Stack.Group>
       )}

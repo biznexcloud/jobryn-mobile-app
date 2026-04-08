@@ -20,8 +20,9 @@ import {
 import { ScreenWrapper, Text, Box, VStack, HStack, Button, Divider } from '../../components/ui';
 import { moderateScale } from '../../utils/responsive';
 
-const BLUE = '#0A66C2';
-const GRAY_BG = '#F3F2EF';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 const DUMMY_CARDS = [
   { id: '1', brand: 'Visa', last4: '4412', expiry: '12/26', isDefault: true },
@@ -51,32 +52,31 @@ export default function PaymentMethodScreen({ navigation }: any) {
   };
 
   const CardRow = ({ card }: { card: any }) => (
-    <Box bg="white" p={16} rounded={14} mb={10} border={card.isDefault ? 2 : 1} borderColor={card.isDefault ? BLUE : '#E5E7EB'}>
+    <Box bg="white" p={16} rounded={16} mb={12} border={1} borderColor={card.isDefault ? FB_BLUE : '#F0F2F5'}>
       <HStack items="center" justify="space-between">
         <HStack items="center" flex={1}>
           <Box bg={card.brand === 'Visa' ? '#1A1F71' : '#EB001B'} px={8} py={4} rounded={6}>
-            <Text fontSize={12} fontWeight="800" color="white">{card.brand.toUpperCase()}</Text>
+            <Text fontSize={10} fontWeight="800" color="white">{card.brand.toUpperCase()}</Text>
           </Box>
           <VStack ml={14}>
-            <Text fontSize={16} fontWeight="700" color="#111827">•••• •••• •••• {card.last4}</Text>
-            <Text fontSize={12} color="#6B7280" mt={2}>Expires {card.expiry}</Text>
+            <Text fontSize={16} fontWeight="700" color="#111827">•••• {card.last4}</Text>
+            <Text fontSize={12} color={GRAY_TEXT} mt={1}>Expires {card.expiry}</Text>
           </VStack>
         </HStack>
         <HStack space="sm">
-          {!card.isDefault && (
-            <TouchableOpacity style={styles.actionBtn} onPress={() => setDefault(card.id)}>
-              <CheckCircle2 size={18} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-          {card.isDefault && (
-            <Box bg="#EDF3F8" px={8} py={4} rounded={6}>
-              <Text fontSize={11} fontWeight="700" color={BLUE}>DEFAULT</Text>
+          {card.isDefault ? (
+            <Box bg="#F0F9FF" px={10} py={4} rounded={20}>
+              <Text fontSize={11} fontWeight="800" color={FB_BLUE}>DEFAULT</Text>
             </Box>
-          )}
-          {!card.isDefault && (
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#FEF2F2' }]} onPress={() => removeCard(card.id, card.brand, card.last4)}>
-              <Trash2 size={18} color="#EF4444" />
-            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => setDefault(card.id)}>
+                <CheckCircle2 size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={() => removeCard(card.id, card.brand, card.last4)}>
+                <Trash2 size={18} color="#EF4444" />
+              </TouchableOpacity>
+            </>
           )}
         </HStack>
       </HStack>
@@ -84,59 +84,56 @@ export default function PaymentMethodScreen({ navigation }: any) {
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
 
-      <Box px={16} pt={insets.top + 10} pb={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
+      {/* Header */}
+      <Box px={16} pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
         <HStack items="center">
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <ChevronLeft size={24} color="#111827" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+            <ChevronLeft size={22} color="black" strokeWidth={2.5} />
           </TouchableOpacity>
-          <Text fontSize={20} fontWeight="700" color="#111827" ml={16}>Payment Methods</Text>
+          <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Payment Methods</Text>
         </HStack>
       </Box>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Cards Section */}
-        <Text fontSize={13} fontWeight="700" color="#6B7280" ml={4} mb={12}>YOUR CARDS</Text>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+        <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} ml={4}>SAVED CARDS</Text>
         {cards.map(card => <CardRow key={card.id} card={card} />)}
 
-        {/* Add Card Button */}
-        <TouchableOpacity style={styles.addCard} onPress={() => Alert.alert('Add Card', 'Card entry form coming soon!')}>
-          <Plus size={20} color={BLUE} />
-          <Text fontSize={15} fontWeight="700" color={BLUE} ml={10}>Add New Card</Text>
+        <TouchableOpacity style={styles.addCard} onPress={() => Alert.alert('Add Card', 'Form module loading...')}>
+          <Plus size={20} color={FB_BLUE} />
+          <Text fontSize={15} fontWeight="700" color={FB_BLUE} ml={8}>Add New Card</Text>
         </TouchableOpacity>
 
         <Divider color="#E5E7EB" my={24} />
 
-        {/* Billing Address */}
-        <Text fontSize={13} fontWeight="700" color="#6B7280" ml={4} mb={12}>BILLING INFORMATION</Text>
-        <Box bg="white" p={16} rounded={14} mb={16}>
-          <VStack space="sm">
+        <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} ml={4}>BILLING INFORMATION</Text>
+        <Box bg="white" p={16} rounded={16} mb={24}>
+          <VStack space="md">
             <HStack justify="space-between">
-              <Text fontSize={14} color="#6B7280">Company Name</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">Nexus Corp. Ltd.</Text>
+              <Text fontSize={14} color={GRAY_TEXT}>Company Name</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827">InnovateTech Inc.</Text>
             </HStack>
             <HStack justify="space-between">
-              <Text fontSize={14} color="#6B7280">Billing Email</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">billing@nexus.io</Text>
+              <Text fontSize={14} color={GRAY_TEXT}>Billing Email</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827">accounts@innovatetech.io</Text>
             </HStack>
             <HStack justify="space-between">
-              <Text fontSize={14} color="#6B7280">Tax ID</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">NX-20241234</Text>
+              <Text fontSize={14} color={GRAY_TEXT}>Tax ID</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827">IE-8839210</Text>
             </HStack>
           </VStack>
-          <TouchableOpacity style={styles.editBilling} onPress={() => Alert.alert('Edit Billing', 'Billing editor coming soon!')}>
-            <Text fontSize={13} fontWeight="700" color={BLUE}>Edit Billing Info</Text>
+          <TouchableOpacity style={styles.editBilling} onPress={() => {}}>
+            <Text fontSize={14} fontWeight="700" color={FB_BLUE}>Edit Billing Details</Text>
           </TouchableOpacity>
         </Box>
 
-        {/* Security Notice */}
-        <Box bg="#F0FDF4" p={16} rounded={14} mb={40} border={1} borderColor="#BBF7D0">
-          <HStack items="center">
-            <Shield size={20} color="#16A34A" />
-            <Text fontSize={12} color="#166534" ml={10} flex={1} lineHeight={18}>
-              All card data is encrypted with 256-bit SSL. We never store full card numbers on our servers.
+        <Box bg="#F0FDF4" p={16} rounded={16} mb={32}>
+          <HStack items="flex-start" space="sm">
+            <Shield size={18} color="#16A34A" style={{ marginTop: 2 }} />
+            <Text fontSize={13} color="#166534" flex={1} fontWeight="600" lineHeight={18}>
+              All transactions are secure and encrypted. We use industry-standard SSL to safeguard your data.
             </Text>
           </HStack>
         </Box>
@@ -146,9 +143,9 @@ export default function PaymentMethodScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { padding: 16 },
-  actionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F2EF', alignItems: 'center', justifyContent: 'center' },
-  addCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: BLUE, borderStyle: 'dashed', borderRadius: 14, padding: 16, marginTop: 4 },
-  editBilling: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9', alignItems: 'center' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  actionBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  deleteBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center' },
+  addCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: FB_BLUE, borderStyle: 'dashed', borderRadius: 16, padding: 16, marginTop: 4, backgroundColor: '#F0F9FF' },
+  editBilling: { marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', alignItems: 'center' },
 });

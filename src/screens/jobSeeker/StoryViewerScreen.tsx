@@ -31,6 +31,7 @@ import Animated, {
   useAnimatedStyle, 
   withSpring 
 } from 'react-native-reanimated';
+import { SocialService } from '../../services/api/social';
 
 const { width, height } = Dimensions.get('window');
 const STORY_DURATION = 5000;
@@ -45,11 +46,23 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [reactionMode, setReactionMode] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [isLiked, setIsLiked] = useState(false);
+  const [showSentFeedback, setShowSentFeedback] = useState('');
   const progress = useRef(new RNAnimated.Value(0)).current;
 
-  const currentStory = stories[currentIndex] || { 
-    user: { name: 'Expert', avatar: 'https://i.pravatar.cc/150' }, 
-    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800' 
+  const raw = stories[currentIndex] || {};
+  const currentStory = {
+    id: raw.id || 0,
+    image: raw.image || raw.images || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800',
+    user: {
+      name: raw.user?.name || raw.user_name || raw.author_email || 'User',
+      avatar: raw.user?.avatar || raw.user_avatar || `https://i.pravatar.cc/150?u=${raw.id}`,
+    },
+    caption: raw.caption || '',
+    created_at: raw.created_at || '',
+    views_count: raw.views_count || 0,
+    likes_count: raw.likes_count || 0,
   };
 
   useEffect(() => {
@@ -58,7 +71,16 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
     } else {
       startProgress();
     }
+    // Reset like state for new story
+    setIsLiked(false);
   }, [currentIndex, reactionMode]);
+
+  // Track view when story changes
+  useEffect(() => {
+    if (currentStory.id) {
+       SocialService.trackStoryView(currentStory.id);
+    }
+  }, [currentIndex]);
 
   const startProgress = () => {
     progress.setValue(0);
@@ -102,6 +124,32 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
     }
   };
 
+  const handleLike = async () => {
+     setIsLiked(!isLiked);
+     try {
+        await SocialService.likeStory(currentStory.id);
+     } catch (e) {
+        console.warn('Like failed');
+        setIsLiked(isLiked); // revert on failure
+     }
+  };
+
+  const handleReply = async (content: string) => {
+     if (!content.trim()) return;
+     try {
+        await SocialService.addStoryComment(currentStory.id, content);
+        setReplyText('');
+        setReactionMode(false);
+        // Show brief sent feedback
+        setShowSentFeedback(content.length <= 2 ? content : 'Sent!');
+        setTimeout(() => setShowSentFeedback(''), 1500);
+        // Resume story
+        startProgress();
+     } catch (e) {
+        console.warn('Reply failed');
+     }
+  };
+
   return (
     <Box flex={1} bg="#000000">
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -132,10 +180,10 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
 
          <HStack mt={16} items="center" justify="space-between">
             <HStack items="center">
-               <Avatar source={{ uri: currentStory.user?.avatar || 'https://i.pravatar.cc/150' }} size={36} />
+               <Avatar source={{ uri: currentStory.user.avatar }} size={36} />
                <VStack ml={10}>
-                  <Text fontSize={14} fontWeight="800" color="white" style={styles.textShadow}>{currentStory.user?.name}</Text>
-                  <Text fontSize={11} color="rgba(255,255,255,0.8)" style={styles.textShadow}>2h</Text>
+                  <Text fontSize={14} fontWeight="800" color="white" style={styles.textShadow}>{currentStory.user.name}</Text>
+                  <Text fontSize={11} color="rgba(255,255,255,0.8)" style={styles.textShadow}>{currentStory.created_at || '2h'}</Text>
                </VStack>
             </HStack>
             <HStack space="md" items="center">
@@ -147,6 +195,13 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
                </TouchableOpacity>
             </HStack>
          </HStack>
+
+         {/* Caption overlay */}
+         {currentStory.caption ? (
+           <Box mt={12} bg="rgba(0,0,0,0.4)" px={12} py={8} rounded={8} alignSelf="flex-start">
+             <Text fontSize={14} color="white" fontWeight="600">{currentStory.caption}</Text>
+           </Box>
+         ) : null}
       </Box>
 
       {/* Footer & Reactions */}
@@ -164,7 +219,7 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
            >
               <HStack space="md" px={16} py={12} bg="rgba(0,0,0,0.8)" rounded={32}>
                  {REACTIONS.map((r, i) => (
-                   <TouchableOpacity key={i} onPress={() => setReactionMode(false)}>
+                   <TouchableOpacity key={i} onPress={() => handleReply(r)}>
                       <Text fontSize={28}>{r}</Text>
                    </TouchableOpacity>
                  ))}
@@ -173,6 +228,15 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
          )}
 
          <Box width="100%" px={16} pb={insets.bottom + 16}>
+            {/* Sent feedback */}
+            {showSentFeedback ? (
+              <Animated.View entering={FadeInDown.springify()} style={{ alignItems: 'center', marginBottom: 8 }}>
+                <Box bg="rgba(0,0,0,0.7)" px={16} py={8} rounded={20}>
+                  <Text fontSize={14} fontWeight="700" color="white">{showSentFeedback}</Text>
+                </Box>
+              </Animated.View>
+            ) : null}
+
             <HStack items="center" space="md">
                <Box 
                  flex={1} 
@@ -188,16 +252,19 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
                      placeholder="Reply to story..."
                      placeholderTextColor="rgba(255,255,255,0.7)"
                      style={styles.replyInput}
+                     value={replyText}
+                     onChangeText={setReplyText}
                      onFocus={() => setReactionMode(true)}
+                     onSubmitEditing={() => handleReply(replyText)}
                   />
                </Box>
                
                {!reactionMode && (
                  <HStack space="md">
-                    <TouchableOpacity>
-                       <Heart size={26} color="white" />
+                    <TouchableOpacity onPress={handleLike}>
+                       <Heart size={26} color={isLiked ? '#FF3B5C' : 'white'} fill={isLiked ? '#FF3B5C' : 'none'} />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleReply(replyText)}>
                        <Send size={26} color="white" />
                     </TouchableOpacity>
                  </HStack>

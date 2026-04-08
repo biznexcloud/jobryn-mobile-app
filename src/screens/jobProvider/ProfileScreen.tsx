@@ -27,10 +27,12 @@ import {
 } from 'react-native-heroicons/outline';
 import { useAuthStore } from '../../store/authStore';
 import { JobService } from '../../services/api/jobs';
+import { ProfileService } from '../../services/api/profile';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
 
-const BLUE = '#0A66C2'; 
-const GRAY_BG = '#F3F2EF';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 const { width } = Dimensions.get('window');
 
 const DUMMY_MEDIA = [
@@ -42,10 +44,13 @@ const DUMMY_MEDIA = [
   'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=400',
 ];
 
+import { useFocusEffect } from '@react-navigation/native';
+
 export default function ProviderProfileScreen({ navigation }: { navigation?: any }) {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800');
   const [logoImage, setLogoImage] = useState<string | null>(null);
@@ -53,7 +58,7 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
   const pickImage = async (type: 'logo' | 'cover') => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'We need access to your photos to upload.');
+      Alert.alert('Permission needed', 'Allow access to your photos to upload.');
       return;
     }
 
@@ -67,98 +72,100 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
     if (!result.canceled) {
       if (type === 'logo') setLogoImage(result.assets[0].uri);
       else setCoverImage(result.assets[0].uri);
-      Alert.alert('Success', `${type.charAt(0).toUpperCase() + type.slice(1)} updated (Simulated)`);
     }
   };
 
   const fetchData = async () => {
     try {
-      // Mock or Real API
-      await new Promise(r => setTimeout(r, 800));
-      setActiveJobs([{ id: 1, title: 'Senior Software Engineer', location: 'London, UK', created_at: '2 days ago' }]);
+      const [profiles, jobs] = await Promise.all([
+        ProfileService.getRecruiterProfiles(),
+        JobService.getRecruiterJobs()
+      ]);
+      setProfile(profiles?.results?.[0] || { company_name: user?.name || 'My Company', industry: 'Company', location: 'Global' });
+      setActiveJobs(jobs?.results || []);
     } catch (e) {
-      console.warn('Provider profile fetch error');
+      console.warn('Profile fetch failed', e);
+      setProfile({ company_name: user?.name, industry: 'Company', bio: 'Expert recruiters' });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   if (loading) {
     return (
       <Box flex={1} bg="white" justify="center" items="center">
-        <ActivityIndicator size="large" color={BLUE} />
+        <ActivityIndicator size="small" color={FB_BLUE} />
       </Box>
     );
   }
 
   return (
-    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="#FFFFFF">
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
+      <StatusBar barStyle="dark-content" />
       
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, backgroundColor: GRAY_BG }}>
+      {/* Sticky Header */}
+      <Box pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+         <HStack px={16} justify="space-between" items="center">
+            <HStack items="center">
+               <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
+                  <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
+               </TouchableOpacity>
+               <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Company Profile</Text>
+            </HStack>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => navigation?.navigate('ProviderSettings')}>
+               <CogIcon size={20} color="black" />
+            </TouchableOpacity>
+         </HStack>
+      </Box>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
         
         {/* Banner Section */}
-        <Box height={200} bg="#A0A0A0">
-           <Image 
-              source={{ uri: coverImage }}
-              style={StyleSheet.absoluteFill}
-           />
-           <Box position="absolute" top={insets.top + 12} left={16}>
-              <TouchableOpacity onPress={() => navigation?.goBack()} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' }}>
-                 <ChevronLeftIcon size={24} color="white" strokeWidth={2} />
-              </TouchableOpacity>
-           </Box>
-           
-           {/* Cover Camera Button */}
+        <Box height={160} bg="#E5E7EB">
+           <Image source={{ uri: coverImage }} style={StyleSheet.absoluteFill} />
            <TouchableOpacity 
               onPress={() => pickImage('cover')} 
               style={styles.coverCameraBtn}
            >
-              <CameraIcon size={20} color="#1C1E21" />
+              <CameraIcon size={18} color="black" />
            </TouchableOpacity>
+        </Box>
 
-           <Box position="absolute" bottom={-40} left={16}>
-              <Box p={3} bg="white" rounded={8} shadow={2} style={{ position: 'relative' }}>
-                 <Box w={80} h={80} bg={GRAY_BG} rounded={4} items="center" justify="center">
-                    {logoImage ? (
-                       <Image source={{ uri: logoImage }} style={{ width: 80, height: 80, borderRadius: 4 }} />
-                    ) : (
-                       <BriefcaseIcon size={40} color="#666666" />
-                    )}
-                 </Box>
-                 {/* Logo Camera Button */}
+        {/* Identity Section */}
+        <Box bg="white" px={16} pb={20}>
+           <Box mt={-50}>
+              <Box p={3} bg="white" rounded={60} shadow={1}>
+                 <Avatar 
+                    source={{ uri: logoImage || user?.profile_picture || 'https://i.pravatar.cc/150' }} 
+                    size="xl" 
+                 />
                  <TouchableOpacity 
                     onPress={() => pickImage('logo')} 
                     style={styles.logoCameraBtn}
                  >
-                    <CameraIcon size={16} color="#1C1E21" />
+                    <CameraIcon size={14} color="black" />
                  </TouchableOpacity>
               </Box>
            </Box>
-        </Box>
 
-        {/* Company Info Header */}
-        <Box bg="white" px={16} pt={64} pb={20}>
-           <HStack justify="space-between" items="flex-start">
-              <VStack flex={1}>
-                 <Text fontSize={24} fontWeight="700" color="#000000">Nexus Corp</Text>
-                 <Text fontSize={16} color="#000000" mt={4} fontWeight="500">Technology • London, United Kingdom</Text>
-                 <Text fontSize={14} color="#666666" mt={4}>500-1,000 employees • 12,402 followers</Text>
-              </VStack>
-              <TouchableOpacity onPress={() => navigation?.navigate('ProviderEditProfile')}>
-                 <PencilIcon size={22} color="#666666" />
-              </TouchableOpacity>
-           </HStack>
+           <VStack mt={16}>
+              <Text fontSize={22} fontWeight="700" color="#111827">{profile?.company_name || user?.name || 'Recruiter'}</Text>
+              <Text fontSize={15} color={GRAY_TEXT} mt={2}>{profile?.industry || 'Professional'} • {profile?.location || 'Kathmandu, Nepal'}</Text>
+              <Text fontSize={13} color={GRAY_TEXT} mt={4}>{profile?.company_size || '1–10'} employees • 0 followers</Text>
+           </VStack>
 
-           <HStack mt={20} space="md">
+           <HStack mt={20} space="sm">
               <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('PostJob')}>
-                 <PlusIcon size={20} color="white" strokeWidth={2} />
-                 <Text fontSize={15} fontWeight="700" color="white" ml={8}>Post a job</Text>
+                 <Text fontSize={14} fontWeight="700" color="white">Post a Job</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryBtn} onPress={() => {}}>
-                 <Text fontSize={15} fontWeight="700" color={BLUE}>Edit Page</Text>
+              <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation?.navigate('EditProfile')}>
+                 <Text fontSize={14} fontWeight="700" color="#111827">Edit Profile</Text>
               </TouchableOpacity>
            </HStack>
         </Box>
@@ -166,43 +173,43 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
         {/* About Section */}
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={12}>
-              <Text fontSize={18} fontWeight="700" color="#000000">About</Text>
-              <TouchableOpacity><PencilIcon size={20} color="#666666" /></TouchableOpacity>
+              <Text fontSize={17} fontWeight="700" color="#111827">About</Text>
+              <TouchableOpacity><PencilIcon size={18} color={GRAY_TEXT} /></TouchableOpacity>
            </HStack>
-           <Text fontSize={15} color="#1C1E21" lineHeight={22}>
-              Nexus Corp is a leading technology company focused on building the next generation of digital infrastructure. We are committed to fostering an inclusive work environment.
+           <Text fontSize={15} color="#4B5563" lineHeight={22}>
+              {profile?.description || profile?.bio || profile?.about || 'No company bio provided yet. Add a few sentences to attract candidates.'}
            </Text>
         </Box>
 
-        {/* Details Section */}
+        {/* Company Details */}
         <Box bg="white" mt={8} p={16}>
-           <Text fontSize={18} fontWeight="700" color="#000000" mb={16}>Details</Text>
+           <Text fontSize={17} fontWeight="700" color="#111827" mb={16}>Details</Text>
            <VStack space="md">
-              <HStack items="center" space="md">
-                 <GlobeAltIcon size={20} color="#666666" />
-                 <Text fontSize={14} color={BLUE} fontWeight="700">nexus.com</Text>
-              </HStack>
-              <HStack items="center" space="md">
-                 <UsersIcon size={20} color="#666666" />
-                 <Text fontSize={14} color="#000000">500-1,000 employees</Text>
-              </HStack>
-              <HStack items="center" space="md">
-                 <LocationMarkerIcon size={20} color="#666666" />
-                 <Text fontSize={14} color="#000000">London, United Kingdom</Text>
-              </HStack>
+               <HStack items="center" space="md">
+                  <GlobeAltIcon size={18} color="#9BA3AF" />
+                  <Text fontSize={14} color={FB_BLUE} fontWeight="700">{profile?.website || 'nexus.com'}</Text>
+               </HStack>
+               <HStack items="center" space="md">
+                  <UsersIcon size={18} color="#9BA3AF" />
+                  <Text fontSize={14} color="#111827">{profile?.company_size || '1–10'} employees</Text>
+               </HStack>
+               <HStack items="center" space="md">
+                  <LocationMarkerIcon size={18} color="#9BA3AF" />
+                  <Text fontSize={14} color="#111827">{profile?.location || 'Kathmandu, NP'}</Text>
+               </HStack>
            </VStack>
         </Box>
 
-        {/* Media Gallery Section (Facebook Style) */}
+        {/* Media Gallery */}
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
               <VStack>
-                 <Text fontSize={18} fontWeight="700" color="#000000">Media Gallery</Text>
-                 <Text fontSize={12} color="#666666" mt={2}>Showcasing our culture and workplace</Text>
+                 <Text fontSize={17} fontWeight="700" color="#111827">Gallery</Text>
+                 <Text fontSize={12} color={GRAY_TEXT} mt={2}>Life at Nexus Corp</Text>
               </VStack>
-              <TouchableOpacity><Text fontSize={14} fontWeight="700" color={BLUE}>See all</Text></TouchableOpacity>
+              <TouchableOpacity><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>
            </HStack>
-           <HStack flexWrap="wrap" space="xs" justify="space-between">
+           <HStack flexWrap="wrap" space="xs">
               {DUMMY_MEDIA.map((uri, i) => (
                  <TouchableOpacity key={i} style={styles.mediaBox}>
                     <Image source={{ uri }} style={styles.galleryImage} />
@@ -211,31 +218,29 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
            </HStack>
         </Box>
 
-        {/* Active Jobs Section */}
+        {/* Active Jobs */}
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
-              <Text fontSize={18} fontWeight="700" color="#000000">Active Jobs ({activeJobs.length})</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}><Text fontSize={14} fontWeight="700" color={BLUE}>See all</Text></TouchableOpacity>
+              <Text fontSize={17} fontWeight="700" color="#111827">Active Jobs</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>
            </HStack>
            {activeJobs.map((job, idx) => (
-              <TouchableOpacity key={idx} style={styles.jobCard}>
-                 <HStack p={12} bg={GRAY_BG} rounded={8} items="center">
-                    <Box w={40} h={40} bg="white" rounded={4} items="center" justify="center">
-                       <BriefcaseIcon size={24} color="#666666" />
+              <TouchableOpacity key={idx} style={styles.jobItem} onPress={() => navigation.navigate('JobPostings')}>
+                 <HStack items="center" space="md">
+                    <Box w={40} h={40} bg="#F3F4F6" rounded={8} items="center" justify="center">
+                       <BriefcaseIcon size={20} color="#6B7280" />
                     </Box>
-                    <VStack ml={12} flex={1}>
-                       <Text fontSize={15} fontWeight="700" color="#000000">{job.title}</Text>
-                       <Text fontSize={12} color="#666666">{job.location} • {job.created_at}</Text>
+                    <VStack flex={1}>
+                       <Text fontSize={15} fontWeight="700" color="#111827">{job.title}</Text>
+                       <Text fontSize={13} color={GRAY_TEXT}>{job.location} • {job.created_at}</Text>
                     </VStack>
-                    <ChevronLeftIcon size={18} color="#999999" style={{ transform:[{rotate:'180deg'}] }} />
                  </HStack>
               </TouchableOpacity>
            ))}
         </Box>
 
-        <Box py={32} items="center">
-           <Text fontSize={12} color="#999999" fontWeight="700">JOBRYN RECRUITER</Text>
-           <Text fontSize={11} color="#999999" mt={4}>Professional Page Management v1.1.0</Text>
+        <Box py={40} items="center">
+           <Text fontSize={12} color="#D1D5DB" fontWeight="700">JOBRYN RECRUITER</Text>
         </Box>
       </ScrollView>
     </ScreenWrapper>
@@ -243,46 +248,14 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
 }
 
 const styles = StyleSheet.create({
-  primaryBtn: { height: 40, paddingHorizontal: 20, backgroundColor: BLUE, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  secondaryBtn: { height: 40, paddingHorizontal: 20, borderWidth: 1, borderColor: BLUE, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  jobCard: { marginBottom: 12 },
-  coverCameraBtn: { 
-    position: 'absolute', 
-    right: 12, 
-    bottom: 12, 
-    width: 36, 
-    height: 36, 
-    borderRadius: 18, 
-    backgroundColor: '#FFFFFF', 
-    alignItems: 'center', 
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 10,
-  },
-  logoCameraBtn: {
-    position: 'absolute',
-    right: -10,
-    bottom: -10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E4E6EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  mediaBox: { width: (width - 48) / 3, height: (width - 48) / 3, marginBottom: 8 },
-  galleryImage: { width: '100%', height: '100%', borderRadius: 8 },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  primaryBtn: { flex: 1, height: 38, backgroundColor: FB_BLUE, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  secondaryBtn: { flex: 1, height: 38, backgroundColor: '#F0F2F5', borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  coverCameraBtn: { position: 'absolute', right: 12, bottom: 12, width: 34, height: 34, borderRadius: 17, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
+  logoCameraBtn: { position: 'absolute', right: -4, bottom: 4, width: 30, height: 30, borderRadius: 15, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'white' },
+  mediaBox: { width: (width - 48) / 3, height: (width - 48) / 3, marginBottom: 8, borderRadius: 8, overflow: 'hidden' },
+  galleryImage: { width: '100%', height: '100%' },
+  jobItem: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
 });
 
 

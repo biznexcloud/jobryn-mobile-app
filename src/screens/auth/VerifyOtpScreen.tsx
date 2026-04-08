@@ -7,19 +7,21 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { ChevronLeft, ShieldCheck, Mail } from 'lucide-react-native';
+import { ChevronLeft, Mail } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Input, Button } from '../../components/ui';
 import { AuthService } from '../../services/api/auth';
+import { useAuthStore } from '../../store/authStore';
+import { Roles } from '../../constants/Roles';
 
 const BLUE = '#0A66C2';
 
 export default function VerifyOtpScreen({ navigation, route }: any) {
-  const { email } = route.params || {};
+  const { email, password } = route.params || {};
+  const login = useAuthStore((state: any) => state.login);
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const handleVerify = async () => {
     if (!otp || otp.length < 4) {
@@ -32,7 +34,26 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
 
     try {
       await AuthService.verifyOtp(email, otp);
-      setSuccess(true);
+
+      // Auto-login after OTP verification if we have credentials
+      if (password) {
+        try {
+          const resp = await AuthService.login(email, password);
+          const access   = typeof resp.token === 'string' ? resp.token : (resp.token?.access || resp.access);
+          const rawRole  = resp.role || resp.user?.role;
+          const targetRole = (rawRole === 'recruiter' || rawRole === 'job_provider')
+            ? Roles.JOB_PROVIDER
+            : Roles.JOB_SEEKER;
+          const userData = resp.user || { email, role: rawRole };
+          // onboarded = false → triggers ProfileWizard for new users
+          login(targetRole, access, userData, false);
+          return;
+        } catch {
+          // fall through to manual sign-in screen
+        }
+      }
+      // No password available — show the verified screen and let user sign in
+      navigation.navigate('Login');
     } catch (err: any) {
       const apiError = err.response?.data?.msg || err.response?.data?.error || 'Invalid OTP. Please try again.';
       setError(apiError);
@@ -56,26 +77,6 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
     }
   };
 
-  if (success) {
-    return (
-      <ScreenWrapper backgroundColor="white">
-        <VStack items="center" justify="center" flex={1} px={24}>
-          <Box bg="#EDF3F8" p={20} rounded={50} mb={24}>
-            <ShieldCheck size={64} color={BLUE} />
-          </Box>
-          <Text fontSize={24} fontWeight="900" color="#111827" textAlign="center">Email Verified!</Text>
-          <Text fontSize={16} color="#666666" textAlign="center" mt={12}>
-            Your email has been successfully verified. You can now sign in to your account.
-          </Text>
-          <Button 
-            label="Go to Sign In" 
-            onPress={() => navigation.navigate('Login')}
-            style={{ backgroundColor: BLUE, width: '100%', height: 52, borderRadius: 26, marginTop: 40 }}
-          />
-        </VStack>
-      </ScreenWrapper>
-    );
-  }
 
   return (
     <ScreenWrapper safeAreaTop={false} backgroundColor="white">

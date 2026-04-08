@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, StatusBar, StyleSheet, Switch } from 'react-native';
+import { ScrollView, TouchableOpacity, StatusBar, StyleSheet, Switch, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   ChevronLeft, 
@@ -12,15 +12,53 @@ import {
   ChevronRight,
   UserCheck,
 } from 'lucide-react-native';
-import { ScreenWrapper, Text, Box, VStack, HStack, Divider } from '../../components/ui';
 import { moderateScale, verticalScale } from '../../utils/responsive';
+import { AuthService } from '../../services/api/auth';
+import { useAuthStore } from '../../store/authStore';
+import Toast from 'react-native-toast-message';
+import { ScreenWrapper, Text, Box, VStack, HStack, Divider } from '../../components/ui';
 
 const BLUE = '#0A66C2';
 const GRAY_BG = '#F3F2EF';
 
 export default function PrivacySettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { user, logout } = useAuthStore();
   const [profileHidden, setProfileHidden] = React.useState(false);
+
+  const toggleVisibility = async (value: boolean) => {
+    setProfileHidden(value);
+    try {
+      const status = value ? 'private' : 'public';
+      await AuthService.updateProfile({ visibility_settings: status });
+      Toast.show({ type: 'success', text1: 'Visibility Updated' });
+    } catch (e) {
+      setProfileHidden(!value);
+      Toast.show({ type: 'error', text1: 'Failed to update visibility' });
+    }
+  };
+
+  const deactivateAccount = () => {
+    Alert.alert(
+      'Deactivate Account',
+      'Are you sure you want to permanently delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Deactivate', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await AuthService.deleteAccount();
+              logout();
+            } catch (e) {
+              Toast.show({ type: 'error', text1: 'Failed to deactivate account' });
+            }
+          } 
+        }
+      ]
+    );
+  };
 
   const PrivacyRow = ({ icon: Icon, label, value, onPress, isSwitch, switchValue, onSwitchChange, destructive }: any) => (
     <TouchableOpacity 
@@ -72,7 +110,7 @@ export default function PrivacySettingsScreen({ navigation }: any) {
             value="Hide your presence from others"
             isSwitch 
             switchValue={profileHidden} 
-            onSwitchChange={setProfileHidden} 
+            onSwitchChange={toggleVisibility} 
           />
           <Divider color="#F1F5F9" />
           <PrivacyRow icon={Globe} label="Search visibility" value="Allow search engines to index your profile" onPress={() => {}} />
@@ -87,7 +125,7 @@ export default function PrivacySettingsScreen({ navigation }: any) {
 
         <Text fontSize={14} color="#64748B" fontWeight="700" ml={4} mb={10}>DATA MANAGEMENT</Text>
         <Box bg="white" rounded={12} px={16} mb={20} border={1} borderColor="#E5E7EB">
-          <PrivacyRow icon={Trash2} label="Deactivate account" destructive onPress={() => {}} />
+          <PrivacyRow icon={Trash2} label="Deactivate account" destructive onPress={deactivateAccount} />
         </Box>
 
         <Box bg="white" rounded={12} p={16} border={1} borderColor="#E5E7EB">

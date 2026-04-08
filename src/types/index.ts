@@ -6,8 +6,14 @@ export interface User {
   email: string;
   role: 'job_seeker' | 'recruiter' | 'job_provider';
   avatar?: string;
+  profile_picture?: string;
+  job_title?: string;
   headline?: string;
   location?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  is_verified?: boolean;
   connections?: number;
   createdAt?: string;
 }

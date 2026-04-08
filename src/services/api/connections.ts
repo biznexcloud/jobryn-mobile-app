@@ -14,93 +14,64 @@ export interface ConnectionStatus {
 export const ConnectionService = {
   /**
    * Check connection/follow status with a target user.
-   * ⚠️ Endpoint not yet in spec — returns empty state as fallback.
    */
   getStatus: async (targetId: string | number): Promise<ConnectionStatus> => {
-    try {
-      const response = await apiClient.get(`/networking/status/${targetId}/`);
-      return response.data;
-    } catch {
-      return { is_following: false, is_connected: false };
-    }
+    const response = await apiClient.get(`/follows/status/${targetId}/`);
+    return response.data;
   },
 
   /**
    * Follow a user or company.
-   * ⚠️ Endpoint not yet in spec.
    */
   follow: async (targetId: string | number) => {
-    try {
-      const response = await apiClient.post(`/networking/follow/${targetId}/`, {});
-      return response.data;
-    } catch {
-      return null;
-    }
+    const response = await apiClient.post('/follows/follow/', { following: targetId });
+    return response.data;
   },
 
   /**
    * Unfollow a user or company.
-   * ⚠️ Endpoint not yet in spec.
    */
-  unfollow: async (targetId: string | number) => {
-    try {
-      const response = await apiClient.delete(`/networking/follow/${targetId}/`);
-      return response.data;
-    } catch {
-      return null;
-    }
+  unfollow: async (followId: string | number) => {
+    await apiClient.delete(`/follows/unfollow/${followId}/`);
   },
 
   /**
-   * Send a connection request.
-   * ⚠️ Endpoint not yet in spec.
+   * Send a connection request (Mutual Follow initiation).
    */
   connect: async (targetId: string | number) => {
-    try {
-      const response = await apiClient.post('/networking/connect/', { target_id: targetId });
-      return response.data;
-    } catch {
-      return null;
-    }
+    return ConnectionService.follow(targetId);
   },
 
   /**
-   * Get all connections for the current user.
-   * ⚠️ Endpoint not yet in spec.
+   * Get all people the user is FOLLOWING.
+   */
+  getFollowing: async (userId: string | number, params = {}) => {
+    const response = await apiClient.get(`/follows/following/${userId}/`, { params });
+    return response.data;
+  },
+
+  /**
+   * Get all people FOLLOWING the user.
+   */
+  getFollowers: async (userId: string | number, params = {}) => {
+    const response = await apiClient.get(`/follows/followers/${userId}/`, { params });
+    return response.data;
+  },
+
+  /**
+   * Unified call to get "Connections" (Mutual follows or general network).
    */
   getConnections: async (params = {}) => {
-    try {
-      const response = await apiClient.get('/networking/connections/', { params });
-      return response.data;
-    } catch {
-      return { results: [], count: 0 };
-    }
+    const response = await apiClient.get('/follows/followers/me/', { params });
+    return response.data;
   },
 
-  /**
-   * Accept a connection request.
-   * ⚠️ Endpoint not yet in spec.
-   */
-  acceptRequest: async (requestId: string | number) => {
-    try {
-      const response = await apiClient.post(`/networking/requests/${requestId}/accept/`, {});
-      return response.data;
-    } catch {
-      return null;
-    }
+  acceptRequest: async (targetId: string | number) => {
+    return ConnectionService.follow(targetId);
   },
 
-  /**
-   * Decline a connection request.
-   * ⚠️ Endpoint not yet in spec.
-   */
-  declineRequest: async (requestId: string | number) => {
-    try {
-      const response = await apiClient.delete(`/networking/requests/${requestId}/`);
-      return response.data;
-    } catch {
-      return null;
-    }
+  declineRequest: async (followId: string | number) => {
+    return ConnectionService.unfollow(followId);
   },
 };
 

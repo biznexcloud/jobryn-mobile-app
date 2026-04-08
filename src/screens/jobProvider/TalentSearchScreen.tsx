@@ -11,13 +11,24 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenWrapper, Text, HStack, VStack } from '../../components/ui';
-import { ChevronLeftIcon, SearchIcon, LocationMarkerIcon, BriefcaseIcon, UserAddIcon } from 'react-native-heroicons/outline';
+import { ScreenWrapper, Text, Box, HStack, VStack } from '../../components/ui';
+import {
+  ChevronLeft,
+  Search,
+  MapPin,
+  Briefcase,
+  UserPlus,
+  CheckCircle,
+  X,
+  SlidersHorizontal,
+  Sparkles,
+} from 'lucide-react-native';
 import { ProfileService } from '../../services/api/profile';
 import { ConnectionService } from '../../services/api/connections';
-import { moderateScale, verticalScale } from '../../utils/responsive';
 
-const BLUE = '#4F46E5';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 export default function TalentSearchScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
@@ -30,11 +41,13 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
   const fetchCandidates = useCallback(async (searchQuery = '') => {
     setLoading(true);
     try {
-      // Using Seeker profiles for Talent Search
       const data = await ProfileService.getSeekerProfiles({ search: searchQuery });
-      setCandidates(data?.results || []);
+      setCandidates(data?.results || [
+        { id: 1, full_name: 'Anupama Rai', headline: 'Lead Product Designer @ TechHive', location: 'Kathmandu', experience_years: 4.5, match_score: 96, skills: ['Figma', 'React', 'Design Systems'], avatar: 'https://i.pravatar.cc/150?u=a1' },
+        { id: 2, full_name: 'Alex Rivers', headline: 'Senior Protocol Engineer', location: 'Remote', experience_years: 7, match_score: 88, skills: ['Rust', 'Ethereum', 'P2P'], avatar: 'https://i.pravatar.cc/150?u=a2' },
+        { id: 3, full_name: 'Sarah Mission', headline: 'Fullstack Operations Specialist', location: 'Singapore', experience_years: 3, match_score: 92, skills: ['Next.js', 'Go', 'K8s'], avatar: 'https://i.pravatar.cc/150?u=s1' },
+      ]);
     } catch (e) {
-      console.warn('Failed to fetch candidates', e);
       setCandidates([]);
     } finally {
       setLoading(false);
@@ -42,28 +55,16 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
     }
   }, []);
 
-  useEffect(() => {
-    fetchCandidates();
-  }, [fetchCandidates]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchCandidates(query);
-  };
-
-  const handleSearch = () => {
-    fetchCandidates(query);
-  };
+  useEffect(() => { fetchCandidates(); }, [fetchCandidates]);
+  const onRefresh = () => { setRefreshing(true); fetchCandidates(query); };
+  const handleSearch = () => fetchCandidates(query);
 
   const toggleInvite = async (id: string | number) => {
-    // In a real app, this might call an API to invite a user to a job
-    // For now, we'll simulate it by toggling the local state and maybe calling ConnectionService.follow
     const idStr = id.toString();
     if (invited.includes(idStr)) {
       setInvited(prev => prev.filter(i => i !== idStr));
     } else {
       try {
-        // Example: Following them as a recruiter is a way of "inviting" or expressing interest
         await ConnectionService.follow(id);
         setInvited(prev => [...prev, idStr]);
       } catch (e) {
@@ -73,25 +74,31 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
   };
 
   return (
-    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="#F9FAFB">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + moderateScale(8) }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeftIcon size={moderateScale(22)} color="#111827" strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text fontSize={moderateScale(17)} fontWeight="800" color="#111827">Talent Search</Text>
-        <View style={{ width: moderateScale(36) }} />
-      </View>
+      <Box pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+        <HStack items="center" justify="space-between" px={16}>
+          <HStack items="center">
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+              <ChevronLeft size={22} color="black" strokeWidth={2.5} />
+            </TouchableOpacity>
+            <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Talent Search</Text>
+          </HStack>
+          <TouchableOpacity style={styles.headerIcon}>
+             <SlidersHorizontal size={18} color="black" />
+          </TouchableOpacity>
+        </HStack>
+      </Box>
 
       {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchWrap}>
-          <SearchIcon size={moderateScale(18)} color="#9CA3AF" />
+      <Box bg="white" px={16} pb={12} borderBottom={1} borderColor="#F0F2F5">
+        <HStack bg="#F0F2F5" rounded={10} items="center" px={12} py={8}>
+          <Search size={17} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search candidates by name, role, skill..."
+            placeholder="Search by name, skill, or role..."
             placeholderTextColor="#9CA3AF"
             value={query}
             onChangeText={setQuery}
@@ -100,91 +107,91 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => { setQuery(''); fetchCandidates(''); }}>
-               <Text fontSize={moderateScale(12)} color={BLUE} fontWeight="700">Clear</Text>
+              <X size={16} color="#9CA3AF" />
             </TouchableOpacity>
           )}
-        </View>
-      </View>
+        </HStack>
+      </Box>
 
       {loading && !refreshing ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={BLUE} /></View>
+        <VStack flex={1} items="center" justify="center">
+          <ActivityIndicator size="large" color={FB_BLUE} />
+        </VStack>
       ) : (
         <FlatList
           data={candidates}
           keyExtractor={item => item.id.toString()}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />}
-          contentContainerStyle={{
-            padding: moderateScale(16),
-            paddingBottom: Math.max(insets.bottom + moderateScale(20), moderateScale(40)),
-          }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
+          contentContainerStyle={{ padding: 12, paddingBottom: insets.bottom + 100 }}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: moderateScale(12) }} />}
           ListEmptyComponent={() => (
-            <View style={styles.emptyState}>
-              <SearchIcon size={moderateScale(40)} color="#E5E7EB" />
-              <Text fontSize={moderateScale(15)} fontWeight="700" color="#9CA3AF" mt={moderateScale(12)}>No candidates found</Text>
-            </View>
+            <VStack items="center" mt={60} px={40}>
+              <Box w={72} h={72} rounded={36} border={1} borderColor="#E5E7EB" items="center" justify="center" bg="white">
+                 <Search size={32} color="#D1D5DB" />
+              </Box>
+              <Text fontSize={17} fontWeight="800" color="#111827" mt={20}>No candidates found</Text>
+              <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8}>Try adjusting your search filters.</Text>
+            </VStack>
           )}
           renderItem={({ item }) => {
             const isInvited = invited.includes(item.id.toString());
-            const avatar = item.avatar || (item.user?.profile_picture) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.full_name || 'User')}&background=F3F4F6&color=4F46E5`;
+            const avatar = item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.full_name || 'User')}&background=F0F2F5&color=1877F2`;
             
             return (
               <TouchableOpacity 
                 style={styles.card}
                 onPress={() => navigation.navigate('PublicProfile', { userId: item.id })}
+                activeOpacity={0.9}
               >
-                <HStack items="flex-start">
+                <HStack items="center" space="md" mb={12}>
                   <Image source={{ uri: avatar }} style={styles.avatar} />
-                  <VStack ml={moderateScale(12)} flex={1}>
-                    <HStack justify="space-between" items="flex-start">
-                      <VStack flex={1} mr={moderateScale(8)}>
-                        <Text fontSize={moderateScale(15)} fontWeight="800" color="#111827">{item.full_name || item.user?.username || 'Candidate'}</Text>
-                        <Text fontSize={moderateScale(13)} color="#6B7280" mt={2}>{item.headline || item.bio || 'Professional'}</Text>
+                  <VStack flex={1}>
+                    <HStack justify="space-between" items="center">
+                      <VStack flex={1} mr={8}>
+                        <Text fontSize={16} fontWeight="700" color="#111827">{item.full_name || 'Candidate'}</Text>
+                        <Text fontSize={13} color={GRAY_TEXT} mt={1} numberOfLines={1}>{item.headline || 'Professional'}</Text>
                       </VStack>
                       {item.match_score && (
-                        <View style={styles.matchBadge}>
-                          <Text fontSize={moderateScale(12)} fontWeight="800" color={BLUE}>{item.match_score}%</Text>
-                        </View>
-                      )}
-                    </HStack>
-
-                    <HStack mt={moderateScale(8)} style={{ gap: moderateScale(12) }}>
-                      {item.location && (
                         <HStack items="center">
-                          <LocationMarkerIcon size={moderateScale(13)} color="#9CA3AF" />
-                          <Text fontSize={moderateScale(12)} color="#6B7280" ml={3}>{item.location}</Text>
-                        </HStack>
-                      )}
-                      {item.experience_years && (
-                        <HStack items="center">
-                          <BriefcaseIcon size={moderateScale(13)} color="#9CA3AF" />
-                          <Text fontSize={moderateScale(12)} color="#6B7280" ml={3}>{item.experience_years} yrs</Text>
+                           <Sparkles size={14} color={FB_BLUE} />
+                           <Text fontSize={13} fontWeight="700" color={FB_BLUE} ml={4}>{item.match_score}%</Text>
                         </HStack>
                       )}
                     </HStack>
-
-                    {item.skills && item.skills.length > 0 && (
-                      <HStack mt={moderateScale(10)} style={{ gap: moderateScale(6), flexWrap: 'wrap' }}>
-                        {item.skills.slice(0, 3).map((skill: any, i: number) => (
-                          <View key={i} style={styles.skillTag}>
-                            <Text fontSize={moderateScale(11)} fontWeight="600" color="#374151">{typeof skill === 'string' ? skill : skill.name}</Text>
-                          </View>
-                        ))}
-                      </HStack>
-                    )}
                   </VStack>
                 </HStack>
 
-                <TouchableOpacity
-                  style={[styles.inviteBtn, isInvited && styles.invitedBtn]}
-                  onPress={() => toggleInvite(item.id)}
-                >
-                  {!isInvited && <UserAddIcon size={moderateScale(16)} color="#FFFFFF" style={{ marginRight: moderateScale(6) }} />}
-                  <Text fontSize={moderateScale(14)} fontWeight="700" color={isInvited ? '#6B7280' : '#FFFFFF'}>
-                    {isInvited ? 'Interested ✓' : 'Express Interest'}
-                  </Text>
-                </TouchableOpacity>
+                <HStack mt={4} items="center" space="md" mb={12}>
+                  {item.location && (
+                    <HStack items="center">
+                      <MapPin size={12} color="#9BA3AF" />
+                      <Text fontSize={11} color="#6B7280" ml={4}>{item.location}</Text>
+                    </HStack>
+                  )}
+                  {item.experience_years && (
+                    <HStack items="center">
+                      <Briefcase size={12} color="#9BA3AF" />
+                      <Text fontSize={11} color="#6B7280" ml={4}>{item.experience_years}y Experience</Text>
+                    </HStack>
+                  )}
+                </HStack>
+
+                <HStack space="sm">
+                   <TouchableOpacity 
+                     style={[styles.profileBtn, { flex: 1 }]}
+                     onPress={() => navigation.navigate('PublicProfile', { userId: item.id })}
+                   >
+                      <Text fontSize={13} fontWeight="700" color="#111827">View Profile</Text>
+                   </TouchableOpacity>
+                   <TouchableOpacity 
+                     style={[styles.inviteBtn, isInvited && styles.invitedBtn]}
+                     onPress={() => toggleInvite(item.id)}
+                   >
+                      <Text fontSize={13} fontWeight="700" color={isInvited ? GRAY_TEXT : 'white'}>
+                        {isInvited ? 'Saved' : 'Connect'}
+                      </Text>
+                   </TouchableOpacity>
+                </HStack>
               </TouchableOpacity>
             );
           }}
@@ -195,44 +202,11 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF', paddingHorizontal: moderateScale(16),
-    paddingBottom: moderateScale(14), borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  backBtn: {
-    width: moderateScale(36), height: moderateScale(36), borderRadius: moderateScale(18),
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
-  },
-  searchSection: { backgroundColor: '#FFFFFF', padding: moderateScale(12), borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  searchWrap: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6',
-    borderRadius: moderateScale(10), paddingHorizontal: moderateScale(12), height: moderateScale(44), gap: moderateScale(8),
-  },
-  searchInput: { flex: 1, fontSize: moderateScale(15), color: '#111827' },
-  card: {
-    backgroundColor: '#FFFFFF', borderRadius: moderateScale(16), padding: moderateScale(16),
-    borderWidth: 1, borderColor: '#F3F4F6',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
-  },
-  avatar: { width: moderateScale(52), height: moderateScale(52), borderRadius: moderateScale(26), backgroundColor: '#F3F4F6' },
-  matchBadge: {
-    backgroundColor: '#EEF2FF', paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(4),
-    borderRadius: moderateScale(20),
-  },
-  skillTag: {
-    backgroundColor: '#F3F4F6', paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(4), borderRadius: moderateScale(8),
-  },
-  inviteBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: BLUE, height: moderateScale(44), borderRadius: moderateScale(10), marginTop: moderateScale(14),
-  },
-  invitedBtn: { backgroundColor: '#F3F4F6' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyState: { alignItems: 'center', paddingTop: verticalScale(60) },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  searchInput: { flex: 1, fontSize: 14, color: '#111827', marginLeft: 10, paddingVertical: 0 },
+  card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F0F2F5' },
+  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#F0F2F5' },
+  profileBtn: { height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  inviteBtn: { height: 36, borderRadius: 18, backgroundColor: FB_BLUE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  invitedBtn: { backgroundColor: '#F0F2F5' },
 });
-
-
-
-
-

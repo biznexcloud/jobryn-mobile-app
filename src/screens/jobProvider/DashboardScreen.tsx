@@ -24,6 +24,7 @@ import {
    Briefcase,
    Sparkles,
    Bell,
+   ChevronRight,
 } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
@@ -40,30 +41,39 @@ import { PostCard } from '../../components/cards/PostCard';
 import Sidebar from '../../components/common/Sidebar';
 
 const { width } = Dimensions.get('window');
-const FB_BLUE = '#1877F2';
+const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 export default function ProviderDashboardScreen() {
    const insets = useSafeAreaInsets();
    const navigation: any = useNavigation();
    const { user, token } = useAuthStore();
    const { isSidebarOpen, setSidebarOpen } = useUIStore();
-   const [loading, setLoading] = useState(true);
+   const [loading, setLoading] = useState(false);
    const [refreshing, setRefreshing] = useState(false);
    const [jobs, setJobs] = useState<any[]>([]);
    const [feed, setFeed] = useState<any[]>([]);
    const [stories, setStories] = useState<any[]>([]);
+   const [applications, setApplications] = useState<any[]>([
+      { name: 'Sarah Jenkins', role: 'Fullstack Developer', status: 'Reviewing', time: '2h ago', avatar: '15' },
+      { name: 'Marcus Chen', role: 'UI/UX Designer', status: 'Interview', time: '5h ago', avatar: '16' },
+   ]);
 
    const fetchData = async () => {
       try {
-         const [jobsData, feedData, storiesData] = await Promise.all([
-            JobService.getRecruiterJobs(),
-            SocialService.getFeed(),
-            SocialService.getStories(),
+         const [jobsData, feedData, storiesData, appsData] = await Promise.all([
+            JobService.getRecruiterJobs().catch(() => ({ results: [] })),
+            SocialService.getFeed().catch(() => ({ results: [] })),
+            SocialService.getStories().catch(() => ({ results: [] })),
+            JobService.getRecruiterApplications().catch(() => ({ results: [] })),
          ]);
          setJobs(Array.isArray(jobsData) ? jobsData : (jobsData as any)?.results || []);
          setFeed(Array.isArray(feedData) ? feedData : (feedData as any)?.results || []);
          setStories(Array.isArray(storiesData) ? storiesData : (storiesData as any)?.results || []);
+         if (appsData && (Array.isArray(appsData) ? appsData : (appsData as any)?.results)?.length > 0) {
+            setApplications(Array.isArray(appsData) ? appsData : (appsData as any)?.results);
+         }
       } catch (e) {
          console.warn('Sync failed:', e);
       } finally {
@@ -83,11 +93,9 @@ export default function ProviderDashboardScreen() {
       onScroll: (event) => {
          const currentY = event.contentOffset.y;
          if (currentY > lastScrollY.value && currentY > 50) {
-            // Scrolling down
             fabTranslateY.value = withTiming(100);
             fabOpacity.value = withTiming(0);
          } else {
-            // Scrolling up
             fabTranslateY.value = withTiming(0);
             fabOpacity.value = withTiming(1);
          }
@@ -108,7 +116,7 @@ export default function ProviderDashboardScreen() {
       <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
          <StatusBar barStyle="dark-content" />
 
-         {/* FB Header: Logo Left, Icons Right */}
+         {/* Clean Header: Branding Left, Icons Right */}
          <Box px={16} pt={insets.top + 4} pb={12} bg="white">
             <HStack items="center" justify="space-between">
                <Text fontSize={28} fontWeight="900" color={FB_BLUE} letterSpacing={-2}>jobryn</Text>
@@ -134,129 +142,133 @@ export default function ProviderDashboardScreen() {
 
          <AnimatedScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 60 }}
+            contentContainerStyle={{ paddingBottom: 100 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
             onScroll={scrollHandler}
             scrollEventThrottle={16}
          >
-            {/* Creation Section (Top) */}
+            {/* Recruitment Insights (Simplified Cards) */}
+            <Box py={12} bg="white" borderBottom={1} borderColor="#E5E7EB">
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                  <HStack space="md">
+                     {[
+                        { label: 'Active Jobs', value: jobs.length, icon: Briefcase, color: '#EBF5FF', iconColor: FB_BLUE },
+                        { label: 'Applications', value: '24', icon: Users, color: '#E6FFFA', iconColor: '#319795' },
+                        { label: 'Interviews', value: '5', icon: Bell, color: '#FFF5F5', iconColor: '#E53E3E' },
+                        { label: 'Hire Rate', value: '78%', icon: BarChart, color: '#FAF5FF', iconColor: '#805AD5' },
+                     ].map((item, i) => (
+                        <Box key={i} bg="white" p={16} rounded={16} minWidth={130} border={1} borderColor="#F0F2F5">
+                           <HStack justify="space-between" items="center">
+                              <Box bg={item.color} p={8} rounded={12}>
+                                 <item.icon size={18} color={item.iconColor} />
+                              </Box>
+                              <Text fontSize={20} fontWeight="800" color="#111827">{item.value}</Text>
+                           </HStack>
+                           <Text fontSize={12} fontWeight="600" color={GRAY_TEXT} mt={12}>{item.label}</Text>
+                        </Box>
+                     ))}
+                  </HStack>
+               </ScrollView>
+            </Box>
+
+            {/* Creation Shortcut (Post Job) */}
             <Box bg="white" p={12} borderBottom={1} borderColor="#E5E7EB">
                <HStack items="center" space="sm">
-                  <TouchableOpacity onPress={() => navigation.navigate('ProviderProfile')}>
-                     <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="md" />
-                  </TouchableOpacity>
+                  <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="md" />
                   <TouchableOpacity 
                      style={styles.postInput}
                      onPress={() => navigation.navigate('PostJob')}
                   >
-                     <Text color="#65676B" fontSize={15}>Post a new job or update your team...</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => navigation.navigate('PostJob')}>
-                     <PlusCircle size={28} color={FB_BLUE} />
-                  </TouchableOpacity>
-               </HStack>
-               <Divider color="#F0F2F5" mt={12} mb={12} />
-               <HStack justify="space-around">
-                  <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('PostJob')}>
-                     <Plus size={18} color="#F3425F" />
-                     <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Post Job</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('TalentSearch')}>
-                     <Users size={18} color="#45BD62" />
-                     <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Find Talent</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('Analytics')}>
-                     <BarChart size={18} color="#F7B928" />
-                     <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Analytics</Text>
+                     <Text color="#666666" fontSize={15}>Post a new job opening...</Text>
                   </TouchableOpacity>
                </HStack>
             </Box>
 
-            {/* Story Section (FB Style Rectangular Cards) */}
-            <Box bg="white" py={12} my={8} borderBottom={1} borderColor="#E5E7EB">
-               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-                  {/* Create Story Option */}
-                  <TouchableOpacity 
-                     style={styles.storyCard} 
-                     onPress={() => navigation.navigate('CreateStory')}
-                  >
-                     <View style={styles.storyThumb}>
-                        <Image source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} style={styles.storyImg} />
-                        <View style={styles.addStoryBtn}>
-                           <Plus size={20} color="white" />
-                        </View>
-                     </View>
-                     <View style={styles.storyFooter}>
-                        <Text fontSize={11} fontWeight="700" color="black" textAlign="center">Create Story</Text>
-                     </View>
+            {/* Management Board (Active Jobs) */}
+            <Box mt={8} pt={16} pb={8} bg="white" borderBottom={1} borderColor="#E5E7EB">
+               <HStack px={16} justify="space-between" items="center" mb={12}>
+                  <Text fontSize={17} fontWeight="800" color="#111827">Active Job Postings</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}>
+                     <Text fontSize={13} fontWeight="700" color={FB_BLUE}>Manage</Text>
                   </TouchableOpacity>
-
-                  {stories.map((story, i) => (
-                     <TouchableOpacity key={i} style={styles.storyCard} onPress={() => navigation.navigate('StoryViewer', { story })}>
-                        <Image source={{ uri: story.content_preview || story.user_avatar }} style={styles.storyImgFull} />
-                        <View style={styles.storyAvatarOverlay}>
-                           <Avatar source={{ uri: story.user_avatar }} size={32} style={{ borderWidth: 2, borderColor: FB_BLUE }} />
-                        </View>
-                        <View style={styles.storyNameOverlay}>
-                           <Text fontSize={11} fontWeight="700" color="white" numberOfLines={2}>{story.user_name}</Text>
-                        </View>
-                     </TouchableOpacity>
-                  ))}
+               </HStack>
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                  <HStack space="sm">
+                     {jobs.length > 0 ? jobs.map((job, idx) => (
+                        <TouchableOpacity key={idx} style={styles.jobCardMini} activeOpacity={0.9} onPress={() => navigation.navigate('JobPostings')}>
+                           <VStack justify="space-between" h="100%">
+                              <Box>
+                                 <Text fontSize={14} fontWeight="800" color="#111827" numberOfLines={2}>{job.title}</Text>
+                                 <Text fontSize={12} color={GRAY_TEXT} mt={2}>{job.location || 'Remote'}</Text>
+                              </Box>
+                              <HStack items="center" justify="space-between">
+                                 <Text fontSize={11} fontWeight="700" color={FB_BLUE}>{job.applicants_count || 0} applicants</Text>
+                                 <ChevronRight size={14} color="#D1D5DB" />
+                              </HStack>
+                           </VStack>
+                        </TouchableOpacity>
+                     )) : (
+                        <Box w={width - 32} p={20} rounded={16} bg="#F9FAFB" items="center">
+                           <PlusCircle size={32} color="#D1D5DB" />
+                           <Text mt={8} fontSize={13} color={GRAY_TEXT}>No active jobs. Start hiring today.</Text>
+                        </Box>
+                     )}
+                  </HStack>
                </ScrollView>
             </Box>
 
-            {/* Active Missions */}
-            <Box bg="white" mb={8} p={16}>
+            {/* Candidate Pipeline */}
+            <Box mt={8} p={16} bg="white" borderBottom={1} borderColor="#E5E7EB">
                <HStack justify="space-between" items="center" mb={16}>
-                  <Text fontSize={16} fontWeight="900" color="#111827">Operation Board</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}>
-                     <Text fontSize={14} fontWeight="700" color={FB_BLUE}>See All</Text>
+                  <Text fontSize={17} fontWeight="800" color="#111827">Recent Applications</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Applicants')}>
+                     <ChevronRight size={20} color="#D1D5DB" />
                   </TouchableOpacity>
                </HStack>
                <VStack space="md">
-                  {jobs.slice(0, 2).map((job, idx) => (
-                     <TouchableOpacity key={idx} onPress={() => navigation.navigate('ApplicantDetail', { id: job.id })}>
-                        <HStack items="center" p={12} bg="#F9FAFB" rounded={12}>
-                           <Box bg="white" p={8} rounded={8} shadow={1}><Briefcase size={22} color={FB_BLUE} /></Box>
-                           <VStack ml={12} flex={1}>
-                              <Text fontSize={14} fontWeight="700" color="#111827" numberOfLines={1}>{job.title}</Text>
-                              <Text fontSize={11} color="#666666">{job.applicants_count || 0} Operatives Applied</Text>
-                           </VStack>
+                  {applications.slice(0, 3).map((item, i) => (
+                     <TouchableOpacity key={item.id || i} onPress={() => navigation.navigate('Applicants')}>
+                        <HStack items="center" justify="space-between">
+                           <HStack items="center">
+                              <Avatar source={{ uri: item.seeker_avatar || item.avatar || `https://i.pravatar.cc/150?u=${i + 15}` }} size={48} />
+                              <VStack ml={12}>
+                                 <Text fontSize={15} fontWeight="700" color="#111827">{item.seeker_name || item.name}</Text>
+                                 <Text fontSize={13} color={GRAY_TEXT}>{item.job_title || item.role} · {item.applied_at || item.time}</Text>
+                              </VStack>
+                           </HStack>
+                           <Box bg="#F0F2F5" px={10} py={4} rounded={8}>
+                              <Text fontSize={11} fontWeight="700" color="#111827" textTransform="capitalize">{item.status}</Text>
+                           </Box>
                         </HStack>
                      </TouchableOpacity>
                   ))}
                </VStack>
             </Box>
 
-            {/* Feed Section */}
-            {loading ? (
-               <ActivityIndicator color={FB_BLUE} style={{ marginTop: 40 }} />
-            ) : (
-               feed.map((post) => (
-                  <PostCard
-                     key={post.id}
-                     post={{
-                        ...post,
-                        postedAt: post.created_at,
-                        author: {
-                           name: post.user?.name || 'Recruiter',
-                           avatar: post.user?.avatar || `https://i.pravatar.cc/150?u=${post.id}`,
-                           headline: post.user?.role || 'Hiring Manager'
-                        }
-                     }}
-                     onComment={() => navigation.navigate('PostDetail', {
-                        post: {
+            {/* Recruiter Feed */}
+            <Box mt={8} pt={16} bg="white">
+               <Text px={16} fontSize={17} fontWeight="800" color="#111827" mb={12}>Recruiter Network Feed</Text>
+               {loading ? (
+                  <ActivityIndicator color={FB_BLUE} style={{ marginTop: 20 }} />
+               ) : (
+                  feed.map((post) => (
+                     <PostCard
+                        key={post.id}
+                        post={{
                            ...post,
-                           user: {
-                              name: post.user?.name || 'Recruiter',
+                           likes: post.likes_count ?? post.likes,
+                           comments: post.comments_count ?? post.comments,
+                           postedAt: post.created_at,
+                           author: {
+                              name: post.user?.name || post.author_email || 'Recruiter',
                               avatar: post.user?.avatar || `https://i.pravatar.cc/150?u=${post.id}`,
-                              role: post.user?.role || 'Hiring Manager'
+                              headline: post.user?.role || 'Hiring Manager'
                            }
-                        }
-                     })}
-                  />
-               ))
-            )}
+                        }}
+                     />
+                  ))
+               )}
+            </Box>
          </AnimatedScrollView>
 
          {/* AI Chat FAB */}
@@ -271,7 +283,6 @@ export default function ProviderDashboardScreen() {
             </TouchableOpacity>
          </Animated.View>
 
-         {/* Global Sidebar Overlay */}
          <Sidebar 
             isOpen={isSidebarOpen} 
             onClose={() => setSidebarOpen(false)} 
@@ -283,34 +294,9 @@ export default function ProviderDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-   headerIcon: { backgroundColor: '#F0F2F5', width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-   postInput: { flex: 1, height: 40, backgroundColor: 'white', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, justifyContent: 'center', paddingHorizontal: 16, marginHorizontal: 12 },
-   shortcut: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center', paddingVertical: 4 },
-   storyCard: { width: moderateScale(106), height: verticalScale(170), marginRight: 8, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB' },
-   storyThumb: { width: '100%', height: '70%', backgroundColor: '#F0F2F5' },
-   storyImg: { width: '100%', height: '100%', opacity: 0.8 },
-   storyImgFull: { width: '100%', height: '100%' },
-   addStoryBtn: { position: 'absolute', bottom: -16, alignSelf: 'center', width: 32, height: 32, borderRadius: 16, backgroundColor: FB_BLUE, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'white', zIndex: 10 },
-   storyFooter: { height: '30%', justifyContent: 'flex-end', paddingBottom: 8, backgroundColor: 'white' },
-   storyAvatarOverlay: { position: 'absolute', top: 8, left: 8, padding: 2, borderRadius: 20, backgroundColor: FB_BLUE },
-   storyNameOverlay: { position: 'absolute', bottom: 8, left: 8, right: 8 },
-   fabContainer: {
-      position: 'absolute',
-      bottom: 65,
-      right: 16,
-      zIndex: 100,
-   },
-   fab: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#0A66C2',
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 30,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4.65,
-   },
+   headerIcon: { backgroundColor: '#F0F2F5', width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+   postInput: { flex: 1, height: 40, backgroundColor: 'white', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, justifyContent: 'center', paddingHorizontal: 16, marginLeft: 12 },
+   jobCardMini: { width: 160, height: 110, backgroundColor: 'white', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#F0F2F5' },
+   fabContainer: { position: 'absolute', bottom: 30, right: 16, zIndex: 100 },
+   fab: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A66C2', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 30, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65 },
 });

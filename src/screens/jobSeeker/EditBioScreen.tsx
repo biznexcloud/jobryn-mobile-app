@@ -22,13 +22,18 @@ export default function EditBioScreen({ navigation }: any) {
   const { user } = useAuthStore();
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profileId, setProfileId] = useState<string | number | null>(null);
 
   useEffect(() => {
     const fetchBio = async () => {
       try {
         const resp = await ProfileService.getSeekerProfiles();
         const profile = resp?.results?.[0];
-        if (profile) setBio(profile.bio || '');
+        if (profile) {
+          setBio(profile.description || profile.about || profile.bio || '');
+          setProfileId(profile.id);
+          useAuthStore.getState().setSeekerId(profile.id);
+        }
       } catch (e) {
         console.warn('Bio fetch error');
       }
@@ -38,9 +43,17 @@ export default function EditBioScreen({ navigation }: any) {
 
   const handleSave = async () => {
     if (loading) return;
+    const currentSeekerId = profileId || useAuthStore.getState().seekerId;
+
     setLoading(true);
     try {
-      await ProfileService.updateSeekerProfile(1, { bio });
+      if (!currentSeekerId) {
+        const resp = await ProfileService.createSeekerProfile({ bio, description: bio, about: bio, headline: 'Professional' });
+        setProfileId(resp.id);
+        useAuthStore.getState().setSeekerId(resp.id);
+      } else {
+        await ProfileService.updateSeekerProfile(currentSeekerId, { bio, description: bio, about: bio });
+      }
       Alert.alert('Success', 'Bio updated successfully', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);

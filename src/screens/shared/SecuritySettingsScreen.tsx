@@ -65,7 +65,7 @@ export default function SecuritySettingsScreen({ navigation }: any) {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text fontSize={14} color="#64748B" fontWeight="700" ml={4} mb={10}>LOGIN & RECOVERY</Text>
         <Box bg="white" rounded={12} px={16} mb={20} border={1} borderColor="#E5E7EB">
-          <SecurityRow icon={Key} label="Change password" value="Last changed 3 months ago" onPress={() => {}} />
+          <SecurityRow icon={Key} label="Change password" value="Update your password via OTP" onPress={() => navigation.navigate('ForgotPassword')} />
           <Divider color="#F1F5F9" />
           <SecurityRow 
             icon={Smartphone} 

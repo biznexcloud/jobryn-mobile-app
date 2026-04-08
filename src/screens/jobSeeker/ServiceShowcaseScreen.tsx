@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Button } from '../../components/ui';
 import { ChevronLeft, Plus, Globe, DollarSign, Edit3, Trash2 } from 'lucide-react-native';
+
+import { useFocusEffect } from '@react-navigation/native';
 
 const BLUE = '#1066C2';
 const FB_GRAY = '#F0F2F5';
@@ -33,10 +35,33 @@ const ServiceCard = ({ service, onEdit, onDelete }: any) => (
 
 export default function ServiceShowcaseScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [services, setServices] = useState([
-    { id: 1, title: 'Full Stack Web Development', price: '$50 - $100 / hr', description: 'Transforming designs into high-performance web applications using React, Node, and TypeScript.' },
-    { id: 2, title: 'UI/UX Mobile Design', price: '$40 - $80 / hr', description: 'Creating intuitive and visually stunning mobile experiences with a focus on user retention.' },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<any[]>([]);
+
+  const fetchServices = async () => {
+    setLoading(true);
+    try {
+      // Simulate API delay to test loading states
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      const mockServices = [
+        { id: 1, title: 'Full Stack Web Development', price: '$50 - $100 / hr', description: 'Transforming designs into high-performance web applications using React, Node, and TypeScript.' },
+        { id: 2, title: 'UI/UX Mobile Design', price: '$40 - $80 / hr', description: 'Creating intuitive and visually stunning mobile experiences with a focus on user retention.' },
+      ];
+      setServices(mockServices);
+    } catch (e) {
+      console.warn('Service fetch failed:', e);
+      Alert.alert('Error', 'Unable to load services. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchServices();
+    }, [])
+  );
 
   const handleDelete = (id: number) => {
     Alert.alert('Remove Service', 'Are you sure you want to stop showcasing this service?', [
@@ -70,14 +95,29 @@ export default function ServiceShowcaseScreen({ navigation }: any) {
             <Text fontSize={15} color="#65676B" mt={6}>Showcasing services helps potential clients and businesses find you directly.</Text>
          </VStack>
 
-         {services.map(s => (
-            <ServiceCard 
-               key={s.id} 
-               service={s} 
-               onEdit={() => navigation.navigate('AddService', { edit: true, service: s })}
-               onDelete={() => handleDelete(s.id)}
-            />
-         ))}
+         {loading ? (
+            <Box py={100} items="center" justify="center">
+               <ActivityIndicator size="large" color={BLUE} />
+               <Text mt={16} color="#65676B">Loading your professional services...</Text>
+            </Box>
+         ) : (
+            <>
+               {services.length > 0 ? (
+                  services.map(s => (
+                     <ServiceCard 
+                        key={s.id} 
+                        service={s} 
+                        onEdit={() => navigation.navigate('AddService', { edit: true, service: s })}
+                        onDelete={() => handleDelete(s.id)}
+                     />
+                  ))
+               ) : (
+                  <Box py={40} px={20} bg="white" rounded={12} items="center">
+                     <Text color="#65676B" textAlign="center">No services showcased yet. Add your skills to attract potential clients.</Text>
+                  </Box>
+               )}
+            </>
+         )}
 
          <TouchableOpacity 
             style={styles.addBtn}

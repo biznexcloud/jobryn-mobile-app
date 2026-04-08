@@ -110,8 +110,8 @@ export default function Sidebar({ isOpen, onClose, navigation, role }: SidebarPr
              <HStack items="center" mt={10}>
                 <Avatar source={{ uri: user?.profile_picture || `https://i.pravatar.cc/150?u=${user?.email || 'guest'}` }} size="lg" />
                 <VStack ml={12}>
-                   <Text style={styles.userName}>{user?.name || 'Jhonson King'}</Text>
-                   <Text style={styles.userRole}>{role === 'jobSeeker' ? 'Service Engineer' : 'Talent Acquisition'}</Text>
+                   <Text style={styles.userName}>{user?.name || 'Professional'}</Text>
+                   <Text style={styles.userRole}>{user?.job_title || (role === 'jobSeeker' ? 'Expert' : 'Talent Acquisition')}</Text>
                 </VStack>
              </HStack>
           </View>

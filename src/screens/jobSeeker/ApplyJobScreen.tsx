@@ -22,6 +22,8 @@ import {
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button } from '../../components/ui';
 import Toast from 'react-native-toast-message';
+import { JobService } from '../../services/api/jobs';
+import { useAuthStore } from '../../store/authStore';
 
 const BLUE = '#3B82F6';
 const GRAY_TEXT = '#6B7280';
@@ -35,14 +37,28 @@ export default function ApplyJobScreen({ route, navigation }: { route: any; navi
   const [applied, setApplied] = useState(showSuccessFlow || false);
   const [coverLetter, setCoverLetter] = useState('');
 
+  const { user } = useAuthStore();
+
   const handleApply = async () => {
+    if (!job?.id) {
+      Toast.show({ type: 'error', text1: 'Invalid job data' });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Mock API call
-      await new Promise(r => setTimeout(r, 1500));
+      await JobService.applyForJob({
+        job: job.id,
+        cover_letter: coverLetter,
+      });
       setApplied(true);
-    } catch (e) {
-      Toast.show({ type: 'error', text1: 'Submission failed' });
+    } catch (e: any) {
+      console.warn('Apply failure:', e?.response?.data || e.message);
+      Toast.show({ 
+        type: 'error', 
+        text1: 'Submission failed',
+        text2: e?.response?.data?.detail || 'Please try again later'
+      });
     } finally {
       setLoading(false);
     }
@@ -114,26 +130,26 @@ export default function ApplyJobScreen({ route, navigation }: { route: any; navi
         <Text fontSize={18} fontWeight="900" color={DARK_TEXT} mb={16}>Contact Information</Text>
         
         <Box bg="white" p={20} rounded={24} mb={32} style={styles.contentCard}>
-           <HStack items="center" space="md" mb={20}>
-              <Avatar source={{ uri: 'https://i.pravatar.cc/150?u=me' }} size="lg" />
-              <VStack ml={12} flex={1}>
-                 <Text fontSize={16} fontWeight="800" color={DARK_TEXT}>Jhonson King</Text>
-                 <Text fontSize={14} color={GRAY_TEXT} mt={2}>Software Engineer</Text>
-              </VStack>
-           </HStack>
-           <Divider color="#F3F4F6" style={{ marginVertical: 8 }} />
-           <HStack items="center" space="md" mt={12}>
-              <Box p={10} bg="#F3F4F6" rounded={12}>
-                <Mail size={18} color={DARK_TEXT} />
-              </Box>
-              <Text fontSize={15} fontWeight="600" color={DARK_TEXT}>jhonson.king@example.com</Text>
-           </HStack>
-           <HStack items="center" space="md" mt={16}>
-              <Box p={10} bg="#F3F4F6" rounded={12}>
-                <Phone size={18} color={DARK_TEXT} />
-              </Box>
-              <Text fontSize={15} fontWeight="600" color={DARK_TEXT}>+44 7700 900000</Text>
-           </HStack>
+            <HStack items="center" space="md" mb={20}>
+               <Avatar source={{ uri: user?.profile_image || 'https://i.pravatar.cc/150?u=me' }} size="lg" />
+               <VStack ml={12} flex={1}>
+                  <Text fontSize={16} fontWeight="800" color={DARK_TEXT}>{user?.full_name || 'Your Name'}</Text>
+                  <Text fontSize={14} color={GRAY_TEXT} mt={2}>{user?.email || 'Your Email'}</Text>
+               </VStack>
+            </HStack>
+            <Divider color="#F3F4F6" style={{ marginVertical: 8 }} />
+            <HStack items="center" space="md" mt={12}>
+               <Box p={10} bg="#F3F4F6" rounded={12}>
+                 <Mail size={18} color={DARK_TEXT} />
+               </Box>
+               <Text fontSize={15} fontWeight="600" color={DARK_TEXT}>{user?.email || 'N/A'}</Text>
+            </HStack>
+            <HStack items="center" space="md" mt={16}>
+               <Box p={10} bg="#F3F4F6" rounded={12}>
+                 <Phone size={18} color={DARK_TEXT} />
+               </Box>
+               <Text fontSize={15} fontWeight="600" color={DARK_TEXT}>{user?.phone || 'N/A'}</Text>
+            </HStack>
         </Box>
 
         <Text fontSize={18} fontWeight="900" color={DARK_TEXT} mb={16}>Attached Resume</Text>

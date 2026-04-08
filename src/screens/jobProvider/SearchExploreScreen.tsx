@@ -1,7 +1,6 @@
 // UI_VERSION_1.1
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  View,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -9,16 +8,16 @@ import {
   StatusBar,
   ActivityIndicator,
   Image,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScreenWrapper, Text, HStack, VStack } from '../../components/ui';
+import { ScreenWrapper, Text, HStack, VStack, Box } from '../../components/ui';
 import { ChevronLeftIcon, SearchIcon, ClockIcon, XIcon, LocationMarkerIcon, BriefcaseIcon } from 'react-native-heroicons/outline';
 import { ProfileService } from '../../services/api/profile';
-import { moderateScale, verticalScale } from '../../utils/responsive';
 
-const BLUE = '#4F46E5';
-
-import { useAuthStore } from '../../store/authStore';
+const FB_BLUE = '#1877F2'; 
+const FB_GRAY = '#F0F2F5';
+const GRAY_TEXT = '#65676B';
 
 export default function SearchExploreScreen({ navigation, route }: { navigation: any; route: any }) {
   const insets = useSafeAreaInsets();
@@ -60,113 +59,118 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
   };
 
   return (
-    <ScreenWrapper safeAreaTop safeAreaBottom={false} backgroundColor="#FFFFFF">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor="white">
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <HStack items="center" px={moderateScale(16)} py={moderateScale(12)} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeftIcon size={moderateScale(22)} color="#111827" strokeWidth={2.5} />
-        </TouchableOpacity>
-        <View style={styles.inputWrap}>
-          <SearchIcon size={moderateScale(18)} color="#9CA3AF" />
-          <TextInput
-            style={styles.input}
-            placeholder="Search candidates by name, role..."
-            placeholderTextColor="#9CA3AF"
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-            returnKeyType="search"
-            onSubmitEditing={() => doSearch(query)}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <XIcon size={moderateScale(16)} color="#9CA3AF" />
+      <Box pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
+         <HStack px={16} items="center">
+            <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
+               <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
             </TouchableOpacity>
-          )}
-        </View>
-      </HStack>
+            <Box flex={1} ml={12} bg="#F0F2F5" rounded={10} px={10} py={8} flexDirection="row" items="center">
+               <SearchIcon size={18} color="#9CA3AF" />
+               <TextInput
+                  style={styles.input}
+                  placeholder="Search by name, skill, or role..."
+                  placeholderTextColor="#9CA3AF"
+                  value={query}
+                  onChangeText={setQuery}
+                  autoFocus
+                  returnKeyType="search"
+                  onSubmitEditing={() => doSearch(query)}
+               />
+               {query.length > 0 && (
+                  <TouchableOpacity onPress={clearSearch}>
+                     <XIcon size={16} color="#9CA3AF" />
+                  </TouchableOpacity>
+               )}
+            </Box>
+         </HStack>
+      </Box>
 
       {!searched ? (
-        <View style={{ padding: moderateScale(16) }}>
-          <HStack justify="space-between" items="center" mb={moderateScale(14)}>
-            <Text fontSize={moderateScale(14)} fontWeight="800" color="#111827">Recent Searches</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }}>
+          <HStack justify="space-between" items="center" mb={12}>
+            <Text fontSize={14} fontWeight="700" color="#111827">RECENT SEARCHES</Text>
             <TouchableOpacity>
-              <Text fontSize={moderateScale(13)} fontWeight="700" color={BLUE}>Clear all</Text>
+              <Text fontSize={13} fontWeight="600" color={FB_BLUE}>Clear all</Text>
             </TouchableOpacity>
           </HStack>
 
           {RECENT_SEARCHES.map((item, i) => (
             <TouchableOpacity key={i} style={styles.recentRow} onPress={() => { setQuery(item); doSearch(item); }}>
-              <View style={styles.recentIcon}>
-                <ClockIcon size={moderateScale(16)} color="#9CA3AF" />
-              </View>
-              <Text fontSize={moderateScale(15)} color="#374151" style={{ flex: 1 }}>{item}</Text>
-              <ChevronLeftIcon size={moderateScale(16)} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
+              <HStack items="center" flex={1}>
+                <ClockIcon size={18} color="#9CA3AF" />
+                <Text fontSize={15} color="#374151" ml={12} flex={1}>{item}</Text>
+              </HStack>
+              <ChevronLeftIcon size={16} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
             </TouchableOpacity>
           ))}
 
-          <Text fontSize={moderateScale(14)} fontWeight="800" color="#111827" mt={moderateScale(24)} mb={moderateScale(14)}>
-            Trending
+          <Text fontSize={14} fontWeight="700" color="#111827" mt={24} mb={12}>
+            TRENDING
           </Text>
-          <div style={styles.tagsWrap}>
+          <HStack flexWrap="wrap" space="sm">
             {TRENDING.map((tag, i) => (
               <TouchableOpacity key={i} style={styles.tag} onPress={() => { setQuery(tag); doSearch(tag); }}>
-                <Text fontSize={moderateScale(13)} fontWeight="600" color={BLUE}>{tag}</Text>
+                <Text fontSize={13} fontWeight="600" color={FB_BLUE}>{tag}</Text>
               </TouchableOpacity>
             ))}
-          </div>
-        </View>
+          </HStack>
+        </ScrollView>
       ) : loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={BLUE} /></View>
+        <VStack flex={1} items="center" justify="center">
+           <ActivityIndicator size="small" color={FB_BLUE} />
+        </VStack>
       ) : (
         <FlatList
           data={results}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ padding: moderateScale(16), paddingBottom: Math.max(insets.bottom + moderateScale(20), moderateScale(40)) }}
+          keyExtractor={item => item.id?.toString() || Math.random().toString()}
+          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: moderateScale(10) }} />}
           ListHeaderComponent={
-            <Text fontSize={moderateScale(13)} color="#6B7280" mb={moderateScale(12)} fontWeight="600">
+            <Text fontSize={13} color={GRAY_TEXT} mb={12} fontWeight="600">
               {results.length} candidates found for "{query}"
             </Text>
           }
           ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <SearchIcon size={moderateScale(40)} color="#E5E7EB" />
-              <Text fontSize={moderateScale(15)} fontWeight="700" color="#9CA3AF" mt={moderateScale(12)} textAlign="center">No candidates found</Text>
-            </View>
+            <VStack items="center" py={60} px={40}>
+              <Box w={72} h={72} rounded={36} bg="#F9FAFB" items="center" justify="center" mb={16} border={1} borderColor="#F0F2F5">
+                 <SearchIcon size={32} color="#D1D5DB" />
+              </Box>
+              <Text fontSize={17} fontWeight="700" color="#111827">No candidates found</Text>
+              <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8}>Try adjusting your search query.</Text>
+            </VStack>
           }
           renderItem={({ item }) => {
-            if (!item) return null;
-            const avatar = item.avatar || (item.user?.profile_picture) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.full_name || 'User')}&background=F3F4F6&color=4F46E5`;
+            const avatar = item.avatar || (item.user?.profile_picture) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.full_name || 'User')}&background=F0F2F5&color=1877F2`;
             return (
               <TouchableOpacity 
                 style={styles.card}
-                onPress={() => navigation.navigate('PublicUserProfile', { profile: item })}
+                onPress={() => navigation.navigate('PublicProfile', { userId: item.id })}
               >
-                <HStack items="center">
+                <HStack items="center" space="md">
                   <Image source={{ uri: avatar }} style={styles.avatar} />
-                  <VStack ml={moderateScale(12)} flex={1}>
-                    <Text fontSize={moderateScale(15)} fontWeight="800" color="#111827" numberOfLines={1}>{item.full_name || item.user?.username || 'Candidate'}</Text>
-                    <Text fontSize={moderateScale(13)} color="#6B7280" mt={2} numberOfLines={1}>{item.headline || 'Professional'}</Text>
-                    <HStack mt={moderateScale(6)} style={{ gap: moderateScale(12) }}>
+                  <VStack flex={1}>
+                    <Text fontSize={16} fontWeight="700" color="#111827" numberOfLines={1}>{item.full_name || item.user?.username || 'Candidate'}</Text>
+                    <Text fontSize={13} color={GRAY_TEXT} mt={1} numberOfLines={1}>{item.headline || 'Professional'}</Text>
+                    <HStack mt={6} items="center" space="md">
                       {item.location && (
                         <HStack items="center">
-                          <LocationMarkerIcon size={moderateScale(12)} color="#9CA3AF" />
-                          <Text fontSize={moderateScale(11)} color="#6B7280" ml={3}>{item.location}</Text>
+                          <LocationMarkerIcon size={12} color="#9CA3AF" />
+                          <Text fontSize={11} color={GRAY_TEXT} ml={4}>{item.location}</Text>
                         </HStack>
                       )}
                       {item.experience_years && (
                         <HStack items="center">
-                          <BriefcaseIcon size={moderateScale(12)} color="#9CA3AF" />
-                          <Text fontSize={moderateScale(11)} color="#6B7280" ml={3}>{item.experience_years} yrs</Text>
+                          <BriefcaseIcon size={12} color="#9CA3AF" />
+                          <Text fontSize={11} color={GRAY_TEXT} ml={4}>{item.experience_years} yrs</Text>
                         </HStack>
                       )}
                     </HStack>
                   </VStack>
-                  <ChevronLeftIcon size={moderateScale(18)} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
+                  <ChevronLeftIcon size={18} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
                 </HStack>
               </TouchableOpacity>
             );
@@ -178,37 +182,10 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
 }
 
 const styles = StyleSheet.create({
-  header: { borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  backBtn: {
-    width: moderateScale(36), height: moderateScale(36), borderRadius: moderateScale(18),
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: moderateScale(10),
-  },
-  inputWrap: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6',
-    borderRadius: moderateScale(10), paddingHorizontal: moderateScale(12), height: moderateScale(42), gap: moderateScale(8),
-  },
-  input: { flex: 1, fontSize: moderateScale(15), color: '#111827' },
-  recentRow: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: moderateScale(12),
-    borderBottomWidth: 1, borderBottomColor: '#F9FAFB',
-  },
-  recentIcon: {
-    width: moderateScale(34), height: moderateScale(34), borderRadius: moderateScale(17),
-    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: moderateScale(12),
-  },
-  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(8) },
-  tag: { backgroundColor: '#EEF2FF', paddingHorizontal: moderateScale(14), paddingVertical: moderateScale(8), borderRadius: moderateScale(20) },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyState: { alignItems: 'center', paddingTop: verticalScale(60), paddingHorizontal: moderateScale(40) },
-  card: {
-    backgroundColor: '#FFFFFF', borderRadius: moderateScale(14), padding: moderateScale(16),
-    borderWidth: 1, borderColor: '#F3F4F6',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
-  },
-  avatar: { width: moderateScale(48), height: moderateScale(48), borderRadius: moderateScale(24), backgroundColor: '#F3F4F6' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, fontSize: 15, color: '#111827', marginLeft: 10, paddingVertical: 0 },
+  recentRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  tag: { backgroundColor: '#F0F9FF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+  card: { backgroundColor: 'white', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F0F2F5' },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F0F2F5' },
 });
-
-
-
-
-

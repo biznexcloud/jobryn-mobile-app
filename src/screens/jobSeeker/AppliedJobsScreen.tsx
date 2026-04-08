@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FlatList,
   TouchableOpacity,
@@ -23,7 +23,8 @@ import {
   Briefcase,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MOCK_APPLICATIONS } from '../../constants/MockData';
+import { JobService } from '../../services/api/jobs';
+import { useAuthStore } from '../../store/authStore';
 
 const BLUE = '#3B82F6';
 const GRAY_TEXT = '#6B7280';
@@ -31,20 +32,52 @@ const DARK_TEXT = '#111827';
 const SOFT_BG = '#F9FAFB';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: any }> = {
-  shortlisted: { color: '#059669', bg: '#ECFDF5', label: 'Shortlisted', icon: CheckCircle2 },
-  rejected:    { color: '#EF4444', bg: '#FEF2F2', label: 'Rejected',    icon: XCircle },
-  interviewing:{ color: '#3B82F6', bg: '#EFF6FF', label: 'Interviewing',icon: AlertCircle },
-  applied:     { color: '#6B7280', bg: '#F3F4F6', label: 'Applied',     icon: Send },
+  applied:        { color: '#6B7280', bg: '#F3F4F6', label: 'Applied',      icon: Send },
+  screening:      { color: '#F59E0B', bg: '#FFFBEB', label: 'Screening',    icon: AlertCircle },
+  online_meeting: { color: '#3B82F6', bg: '#EFF6FF', label: 'Online Int.',  icon: MessageCircle },
+  onsite_meeting: { color: '#3B82F6', bg: '#EFF6FF', label: 'Onsite Int.',  icon: MapPin },
+  hired:          { color: '#059669', bg: '#ECFDF5', label: 'Hired',       icon: CheckCircle2 },
+  rejected:       { color: '#EF4444', bg: '#FEF2F2', label: 'Rejected',    icon: XCircle },
+  withdrawn:      { color: '#6B7280', bg: '#F3F4F6', label: 'Withdrawn',   icon: Clock },
 };
 
 const AppliedJobsScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [stats, setStats] = useState({ applied: 0, screening: 0, interview: 0 });
+
+  const fetchApplications = useCallback(async () => {
+    try {
+      const data = await JobService.getSeekerApplications();
+      // data.results if paginated, data if not
+      const results = data.results || (Array.isArray(data) ? data : []);
+      setApplications(results);
+      
+      // Calculate stats
+      const counts = {
+        applied: results.filter((a: any) => a.status === 'applied').length,
+        screening: results.filter((a: any) => a.status === 'screening').length,
+        interview: results.filter((a: any) => a.status === 'online_meeting' || a.status === 'onsite_meeting').length,
+      };
+      setStats(counts);
+    } catch (e) {
+      console.warn('Failed to fetch applications:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   const onRefresh = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 800);
+    setRefreshing(true);
+    fetchApplications();
   };
 
   const renderItem = ({ item }: any) => {
@@ -52,21 +85,27 @@ const AppliedJobsScreen = () => {
     const StatusIcon = status.icon;
 
     // Timeline Steps Logic
-    const steps = ['Applied', 'Reviewed', 'Interview', 'Offer'];
+    const steps = ['Applied', 'Screening', 'Interview', 'Result'];
     let currentStepIndex = 0;
-    if (item.status === 'shortlisted') currentStepIndex = 1;
-    if (item.status === 'interviewing') currentStepIndex = 2;
-    if (item.status === 'offer') currentStepIndex = 3;
+    if (['screening', 'online_meeting', 'onsite_meeting', 'hired', 'rejected'].includes(item.status)) currentStepIndex = 1;
+    if (['online_meeting', 'onsite_meeting', 'hired', 'rejected'].includes(item.status)) currentStepIndex = 2;
+    if (['hired', 'rejected'].includes(item.status)) currentStepIndex = 3;
+    
+    const isRejected = item.status === 'rejected';
+    const isHired = item.status === 'hired';
 
     return (
       <View style={styles.trackingCard}>
         {/* Top Image & Badge */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: item.featured_image }} style={styles.featuredImage} />
+          <Image 
+            source={{ uri: item.job_details?.featured_image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800' }} 
+            style={styles.featuredImage} 
+          />
           <Box style={styles.locationBadge}>
             <HStack items="center" space="xs">
               <MapPin size={12} color="white" />
-              <Text fontSize={12} fontWeight="700" color="white">{item.location}</Text>
+              <Text fontSize={12} fontWeight="700" color="white">{item.job_details?.location || 'Remote'}</Text>
             </HStack>
           </Box>
         </View>
@@ -74,12 +113,12 @@ const AppliedJobsScreen = () => {
         <VStack p={16}>
           {/* Header Info */}
           <HStack items="center" space="md" mb={16}>
-             <Avatar source={{ uri: item.company_logo }} size="md" rounded={12} style={styles.companyLogo} />
+             <Avatar source={{ uri: item.job_details?.company_logo }} size="md" rounded={12} style={styles.companyLogo} />
              <VStack flex={1}>
-                <Text fontSize={18} fontWeight="800" color={DARK_TEXT} numberOfLines={1}>{item.title}</Text>
+                <Text fontSize={18} fontWeight="800" color={DARK_TEXT} numberOfLines={1}>{item.job_title || 'Software Engineer'}</Text>
                 <HStack mt={4} space="xs" items="center">
                    <Briefcase size={12} color={GRAY_TEXT} />
-                   <Text fontSize={13} color={GRAY_TEXT}>{item.company_name}</Text>
+                   <Text fontSize={13} color={GRAY_TEXT}>{item.job_details?.company_name || 'Hiring Department'}</Text>
                 </HStack>
              </VStack>
              <HStack px={12} py={6} rounded={12} bg={status.bg} items="center" space="xs">
@@ -95,24 +134,41 @@ const AppliedJobsScreen = () => {
              <Text fontSize={14} fontWeight="800" color={DARK_TEXT} mb={16}>Application Progress</Text>
              <HStack justify="space-between" items="center" px={10}>
                 {steps.map((step, index) => {
-                   const isCompleted = index <= currentStepIndex;
-                   const isActive = index === currentStepIndex;
-                   return (
-                      <React.Fragment key={step}>
-                         <VStack items="center" style={{ width: 44 }}>
-                            <Box 
-                               w={28} 
-                               h={28} 
-                               rounded={14} 
-                               items="center" 
-                               justify="center"
-                               bg={isCompleted ? BLUE : '#F3F4F6'}
-                               style={isActive ? styles.activeStepRing : {}}
-                            >
-                               {isCompleted ? <CheckCircle2 size={16} color="white" /> : <Text fontSize={12} color="#9CA3AF" fontWeight="700">{index + 1}</Text>}
-                            </Box>
-                            <Text fontSize={10} fontWeight="800" color={isCompleted ? DARK_TEXT : '#9CA3AF'} mt={8} textAlign="center">{step}</Text>
-                         </VStack>
+                    const isCompleted = index <= currentStepIndex;
+                    const isActive = index === currentStepIndex;
+                    const isStepFailed = isRejected && index === 3;
+                    const isStepSuccess = isHired && index === 3;
+                    
+                    return (
+                       <React.Fragment key={step}>
+                          <VStack items="center" style={{ width: 50 }}>
+                             <Box 
+                                w={28} 
+                                h={28} 
+                                rounded={14} 
+                                items="center" 
+                                justify="center"
+                                bg={isStepFailed ? '#EF4444' : isStepSuccess ? '#10B981' : isCompleted ? BLUE : '#F3F4F6'}
+                                style={isActive ? styles.activeStepRing : {}}
+                             >
+                                {isStepFailed ? (
+                                   <XCircle size={16} color="white" />
+                                ) : (isCompleted || isStepSuccess) ? (
+                                   <CheckCircle2 size={16} color="white" />
+                                ) : (
+                                   <Text fontSize={12} color="#9CA3AF" fontWeight="700">{index + 1}</Text>
+                                )}
+                             </Box>
+                             <Text 
+                                fontSize={10} 
+                                fontWeight="800" 
+                                color={isStepFailed ? '#EF4444' : (isCompleted || isStepSuccess) ? DARK_TEXT : '#9CA3AF'} 
+                                mt={8} 
+                                textAlign="center"
+                             >
+                                {step}
+                             </Text>
+                          </VStack>
                          {index < steps.length - 1 && (
                             <Box flex={1} h={3} bg={index < currentStepIndex ? BLUE : '#F3F4F6'} mt={-20} rounded={2} mx={4} />
                          )}
@@ -124,13 +180,13 @@ const AppliedJobsScreen = () => {
 
           {/* Details & Actions */}
           <HStack items="center" justify="space-between" p={12} bg="#F9FAFB" rounded={16} mb={16}>
-             <HStack space="sm" items="center" flex={1}>
-                <FileText size={16} color={GRAY_TEXT} />
-                <VStack>
-                   <Text fontSize={13} fontWeight="700" color={DARK_TEXT}>application_resume.pdf</Text>
-                   <Text fontSize={11} color={GRAY_TEXT} mt={2}>Submitted on {item.applied_date}</Text>
-                </VStack>
-             </HStack>
+              <HStack space="sm" items="center" flex={1}>
+                 <FileText size={16} color={GRAY_TEXT} />
+                 <VStack>
+                    <Text fontSize={13} fontWeight="700" color={DARK_TEXT}>application_materials.pdf</Text>
+                    <Text fontSize={11} color={GRAY_TEXT} mt={2}>Applied {new Date(item.created_at).toLocaleDateString()}</Text>
+                 </VStack>
+              </HStack>
           </HStack>
 
           <HStack space="md">
@@ -167,7 +223,7 @@ const AppliedJobsScreen = () => {
           </TouchableOpacity>
           <VStack items="center">
             <Text fontSize={20} fontWeight="900" color={DARK_TEXT}>Applications</Text>
-            <Text fontSize={12} fontWeight="700" color={BLUE} mt={2}>{MOCK_APPLICATIONS.length} total active</Text>
+            <Text fontSize={12} fontWeight="700" color={BLUE} mt={2}>{applications.length} total active</Text>
           </VStack>
           <View style={{ width: 44 }} />
         </HStack>
@@ -175,9 +231,9 @@ const AppliedJobsScreen = () => {
         {/* Stats strip */}
         <HStack space="md" px={10}>
           {[
-            { label: 'Applied', count: 1, color: GRAY_TEXT, bg: '#F3F4F6' },
-            { label: 'Shortlist', count: 1, color: '#059669', bg: '#ECFDF5' },
-            { label: 'Interview', count: 1, color: BLUE, bg: '#EFF6FF' },
+            { label: 'Applied', count: stats.applied, color: GRAY_TEXT, bg: '#F3F4F6' },
+            { label: 'Screening', count: stats.screening, color: '#F59E0B', bg: '#FFFBEB' },
+            { label: 'Interview', count: stats.interview, color: BLUE, bg: '#EFF6FF' },
           ].map(s => (
             <VStack key={s.label} items="center" flex={1} style={[styles.statBox, { backgroundColor: s.bg }]}>
               <Text fontSize={18} fontWeight="900" color={s.color}>{s.count}</Text>
@@ -189,13 +245,13 @@ const AppliedJobsScreen = () => {
 
       {/* ─── APPLICATION LIST ─── */}
       <FlatList
-        data={MOCK_APPLICATIONS}
+        data={applications}
         renderItem={renderItem}
         contentContainerStyle={[styles.feedContent, { paddingBottom: insets.bottom + 120 }]}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={BLUE} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />
         }
         ListEmptyComponent={
           <VStack items="center" mt={60} px={40}>
