@@ -23,6 +23,9 @@ import {
   Image as ImageIcon,
   Smile,
   Sparkles,
+  Briefcase,
+  Camera,
+  Users,
 } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
@@ -128,50 +131,46 @@ export default function ProviderDashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
         scrollEventThrottle={16}
       >
-        {/* Hiring Insights Section */}
-        <Box bg="white" px={16} py={20} borderBottom={1} borderColor="#E5E7EB">
-          <HStack justify="space-between" items="center" mb={16}>
-             <VStack>
-                <Text fontSize={18} fontWeight="800" color="#111827">Hiring Overview</Text>
-                <Text fontSize={13} color={GRAY_TEXT} mt={2}>Real-time performance metrics</Text>
-             </VStack>
-             <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
-                <HStack items="center" bg={FB_GRAY} px={10} py={6} rounded={15}>
-                   <Sparkles size={14} color={FB_BLUE} />
-                   <Text fontSize={12} fontWeight="700" color={FB_BLUE} ml={6}>Details</Text>
-                </HStack>
-             </TouchableOpacity>
-          </HStack>
-
-          <HStack space="md">
-             <TouchableOpacity 
-               style={[styles.insightCard, { backgroundColor: '#EBF5FF' }]}
-               onPress={() => navigation.navigate('ProviderRoot', { screen: 'Managed' })}
-             >
-                <Text fontSize={22} fontWeight="800" color={FB_BLUE}>{stats.activeJobs}</Text>
-                <Text fontSize={12} fontWeight="700" color="#1E40AF" mt={4}>Active Postings</Text>
-             </TouchableOpacity>
-             
-             <TouchableOpacity 
-               style={[styles.insightCard, { backgroundColor: '#F0FDF4' }]}
-               onPress={() => navigation.navigate('ProviderRoot', { screen: 'Pipeline' })}
-             >
-                <Text fontSize={22} fontWeight="800" color="#16A34A">{stats.newApplicants}</Text>
-                <Text fontSize={12} fontWeight="700" color="#166534" mt={4}>New Candidates</Text>
-             </TouchableOpacity>
-          </HStack>
-
-          <HStack mt={16} justify="space-around" pt={16} borderTop={1} borderColor="#F3F4F6">
-             <TouchableOpacity style={styles.dashboardAction} onPress={() => navigation.navigate('PostJob')}>
-                <Plus size={18} color={FB_BLUE} />
-                <Text fontSize={13} fontWeight="600" color={GRAY_TEXT} ml={6}>Post a Job</Text>
-             </TouchableOpacity>
-             <Box w={1} h={16} bg="#E5E7EB" />
-             <TouchableOpacity style={styles.dashboardAction} onPress={() => navigation.navigate('TalentSearch')}>
-                <Search size={18} color="#16A34A" />
-                <Text fontSize={13} fontWeight="600" color={GRAY_TEXT} ml={6}>Find Talent</Text>
-             </TouchableOpacity>
-          </HStack>
+        {/* Integrated Creation & Hiring Bar */}
+        <Box bg="white" p={12} borderBottom={1} borderColor="#E5E7EB">
+           <HStack items="center" space="sm">
+              <TouchableOpacity onPress={() => navigation.navigate('ProviderProfile')}>
+                 <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="md" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                 style={styles.postInput}
+                 onPress={() => navigation.navigate('PostJob')}
+              >
+                 <Text color="#666666" fontSize={15}>What is your next job posting?</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('CreateSocialPost')}>
+                 <ImageIcon size={24} color="#45BD62" />
+              </TouchableOpacity>
+           </HStack>
+           <Divider color="#F0F2F5" mt={12} mb={12} />
+           <HStack justify="space-around">
+              <TouchableOpacity 
+                style={styles.shortcut} 
+                onPress={() => navigation.navigate('ProviderRoot', { screen: 'Managed' })}
+              >
+                 <Briefcase size={18} color="#F3425F" />
+                 <Text fontSize={13} fontWeight="700" color={FB_BLUE} ml={6}>Active: {stats.activeJobs}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.shortcut} 
+                onPress={() => navigation.navigate('ProviderRoot', { screen: 'Pipeline' })}
+              >
+                 <Users size={18} color="#16A34A" />
+                 <Text fontSize={13} fontWeight="700" color="#16A34A" ml={6}>Applicants: {stats.newApplicants}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.shortcut} 
+                onPress={() => navigation.navigate('TalentSearch')}
+              >
+                 <Search size={18} color={FB_BLUE} />
+                 <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} ml={6}>Find Talent</Text>
+              </TouchableOpacity>
+           </HStack>
         </Box>
 
         {/* Story Section (FB-Style Rectangular Cards) */}
