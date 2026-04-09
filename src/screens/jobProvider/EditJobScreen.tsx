@@ -55,10 +55,18 @@ export default function EditJobScreen({ route, navigation }: any) {
     }
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
-      Toast.show({ type: 'success', text1: 'Job updated' });
+      await JobService.updateJob(job.id, {
+        ...formData,
+        // Ensure values match API enums (e.g., 'Entry Level' -> 'entry')
+        job_type: formData.job_type.toLowerCase().replace('-', '_'),
+        experience_level: formData.experience_level.toLowerCase().split(' ')[0], 
+      });
+      Toast.show({ type: 'success', text1: 'Job updated successfully' });
       navigation.goBack();
     } catch (e) {
+      console.error('[EditJob] Save failed:', e);
+      Toast.show({ type: 'error', text1: 'Failed to update job' });
+    } finally {
       setLoading(false);
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   View,
@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { moderateScale, verticalScale } from '../../utils/responsive';
 import {
   Plus,
@@ -22,15 +22,8 @@ import {
   Video,
   Image as ImageIcon,
   Smile,
-  ChevronRight,
-  Sparkles,
 } from 'lucide-react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming,
-  useAnimatedScrollHandler
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { JobService } from '../../services/api/jobs';
@@ -100,33 +93,6 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
   );
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
-  const lastScrollY = useSharedValue(0);
-  const fabTranslateY = useSharedValue(0);
-  const fabOpacity = useSharedValue(1);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      const currentY = event.contentOffset.y;
-      if (currentY > lastScrollY.value && currentY > 50) {
-        // Scrolling down
-        fabTranslateY.value = withTiming(100);
-        fabOpacity.value = withTiming(0);
-      } else {
-        // Scrolling up
-        fabTranslateY.value = withTiming(0);
-        fabOpacity.value = withTiming(1);
-      }
-      lastScrollY.value = currentY;
-    },
-  });
-
-  const animatedFabStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: fabTranslateY.value }],
-      opacity: fabOpacity.value,
-    };
-  });
-
   return (
     <ScreenWrapper safeAreaTop={false} safeAreaBottom={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
@@ -159,7 +125,6 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
-        onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
         {/* Creation Section (Top) */}
@@ -237,18 +202,6 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
           {loading && <ActivityIndicator color={FB_BLUE} style={{ marginVertical: 20 }} />}
       </AnimatedScrollView>
 
-      {/* AI Chat FAB */}
-      <Animated.View style={[styles.fabContainer, animatedFabStyle]}>
-        <TouchableOpacity 
-          style={styles.fab} 
-          onPress={() => navigation.navigate('AIChat')}
-          activeOpacity={0.8}
-        >
-          <Sparkles size={20} color="white" />
-          <Text color="white" fontWeight="700" ml={8}>Ask AI</Text>
-        </TouchableOpacity>
-      </Animated.View>
-
       {/* Global Sidebar Overlay */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -272,23 +225,4 @@ const styles = StyleSheet.create({
   storyFooter: { height: '30%', justifyContent: 'flex-end', paddingBottom: 8, backgroundColor: 'white' },
   storyAvatarOverlay: { position: 'absolute', top: 8, left: 8, padding: 2, borderRadius: 20, backgroundColor: FB_BLUE },
   storyNameOverlay: { position: 'absolute', bottom: 8, left: 8, right: 8 },
-  fabContainer: {
-    position: 'absolute',
-    bottom: 65,
-    right: 16,
-    zIndex: 100,
-  },
-  fab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0A66C2',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-  },
 });

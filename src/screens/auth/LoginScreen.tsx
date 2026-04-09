@@ -30,16 +30,21 @@ const { width } = Dimensions.get('window');
 const BLUE = '#0A66C2'; 
 const GRAY_BG = '#F3F2EF';
 
-export default function LoginScreen({ navigation }: { navigation?: any }) {
+export default function LoginScreen({ navigation, route }: { navigation?: any, route?: any }) {
   const login = useAuthStore((state: any) => state.login);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(route?.params?.email || '');
+  const [password, setPassword] = useState(route?.params?.password || '');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successVisible, setSuccessVisible] = useState(false);
   const [successRole, setSuccessRole] = useState<'job_provider' | 'job_seeker'>('job_seeker');
   const [successName, setSuccessName] = useState('');
+
+  useEffect(() => {
+    if (route?.params?.email && !email) setEmail(route.params.email);
+    if (route?.params?.password && !password) setPassword(route.params.password);
+  }, [route?.params]);
 
   // Animation values for the popup
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -58,12 +63,13 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
 
   const handleLogin = async () => {
     setError('');
-    if (!isValidEmail(email)) { setError('Please enter a valid email.'); return; }
+    const cleanedEmail = email.trim().toLowerCase();
+    if (!isValidEmail(cleanedEmail)) { setError('Please enter a valid email.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
 
     setLoading(true);
     try {
-      const resp = await AuthService.login(email, password);
+      const resp = await AuthService.login(cleanedEmail, password);
       
       // Support token string, or { token: { access } }, or { access }
       const access = typeof resp.token === 'string' ? resp.token : (resp.token?.access || resp.access);
@@ -74,8 +80,8 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
          ? Roles.JOB_PROVIDER 
          : Roles.JOB_SEEKER;
          
-      const userData = resp.user || { email, role: rawRole };
-      const displayName = (userData as any)?.name || email.split('@')[0];
+      const userData = resp.user || { email: cleanedEmail, role: rawRole };
+      const displayName = (userData as any)?.name || cleanedEmail.split('@')[0];
       const roleKey = (rawRole === 'recruiter' || rawRole === 'job_provider') ? 'job_provider' : 'job_seeker';
 
       // Show success popup first, then login (which triggers navigation reactively)
@@ -94,7 +100,7 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
       // If unverified, navigate to OTP screen
       if (apiError.toLowerCase().includes('verify') || apiError.toLowerCase().includes('otp')) {
         setTimeout(() => {
-          navigation.navigate('VerifyOtp', { email });
+          navigation.navigate('VerifyOtp', { email: cleanedEmail, password });
         }, 1500);
       }
     }
@@ -178,6 +184,7 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
                value={email} 
                onChangeText={setEmail}
                autoCapitalize="none"
+               autoCorrect={false}
                keyboardType="email-address"
                bg="#F9FAFB"
             />
@@ -188,6 +195,8 @@ export default function LoginScreen({ navigation }: { navigation?: any }) {
                value={password} 
                onChangeText={setPassword}
                secureTextEntry={!showPw}
+               autoCapitalize="none"
+               autoCorrect={false}
                bg="#F9FAFB"
                rightIcon={
                  <TouchableOpacity onPress={() => setShowPw(!showPw)}>

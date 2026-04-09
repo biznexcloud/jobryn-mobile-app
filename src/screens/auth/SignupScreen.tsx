@@ -41,21 +41,22 @@ export default function SignupScreen({ navigation }: any) {
   const handleSignup = async () => {
     setError('');
     if (!formData.name.trim()) { setError('Please enter your full name.'); return; }
-    if (!isValidEmail(formData.email)) { setError('Please enter a valid email.'); return; }
+    const cleanedEmail = formData.email.trim().toLowerCase();
+    if (!isValidEmail(cleanedEmail)) { setError('Please enter a valid email.'); return; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (role === 'recruiter' && !formData.company_name.trim()) { setError('Please enter your company name.'); return; }
 
     setLoading(true);
     try {
       await AuthService.register({
-        email: formData.email.trim(),
+        email: cleanedEmail,
         password: formData.password,
         name: formData.name.trim(),
         role: role,
         company_name: role === 'recruiter' ? formData.company_name.trim() : undefined,
       });
       // Navigate to OTP verification — pass password so we can auto-login after verify
-      navigation.navigate('VerifyOtp', { email: formData.email.trim(), password: formData.password });
+      navigation.navigate('VerifyOtp', { email: cleanedEmail, password: formData.password });
     } catch (err: any) {
       const apiError = err.response?.data?.email?.[0] || err.response?.data?.error || err.response?.data?.message || 'Registration failed. This email may already be in use.';
       setError(apiError);
@@ -149,6 +150,7 @@ export default function SignupScreen({ navigation }: any) {
                   value={formData.email} 
                   onChangeText={(text: string) => setFormData({...formData, email: text})}
                   autoCapitalize="none"
+                  autoCorrect={false}
                   keyboardType="email-address"
                   bg="#F9FAFB"
                />
@@ -159,18 +161,22 @@ export default function SignupScreen({ navigation }: any) {
                      placeholder="e.g. Nexus Technology" 
                      value={formData.company_name} 
                      onChangeText={(text: string) => setFormData({...formData, company_name: text})}
+                     autoCapitalize="none"
+                     autoCorrect={false}
                      bg="#F9FAFB"
                   />
                )}
 
-               <Input 
-                  label="Set Password"
-                  placeholder="At least 6 characters" 
-                  value={formData.password} 
-                  onChangeText={(text: string) => setFormData({...formData, password: text})}
-                  secureTextEntry
-                  bg="#F9FAFB"
-               />
+                <Input 
+                   label="Set Password"
+                   placeholder="At least 6 characters" 
+                   value={formData.password} 
+                   onChangeText={(text: string) => setFormData({...formData, password: text})}
+                   secureTextEntry
+                   autoCapitalize="none"
+                   autoCorrect={false}
+                   bg="#F9FAFB"
+                />
 
                {error ? <Text color="#EF4444" fontSize={13} textAlign="center" mt={-8} fontWeight="700">{error}</Text> : null}
 

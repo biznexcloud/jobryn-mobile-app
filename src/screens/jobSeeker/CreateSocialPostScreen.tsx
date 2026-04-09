@@ -53,7 +53,7 @@ export default function CreateSocialPostScreen({ route, navigation }: any) {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
@@ -79,13 +79,14 @@ export default function CreateSocialPostScreen({ route, navigation }: any) {
     setLoading(true);
     try {
       await SocialService.createPost({ 
-        content, 
+        content: content.trim() ? content : ' ',  // Django rejects completely blank text
         image: image || undefined,
         visibility: 'public' // Defaulting to public as per UI selector
       });
       Alert.alert('Success', 'Post shared!', [{ text: 'Great', onPress: () => navigation.goBack() }]);
-    } catch (e) {
-      Alert.alert('Error', 'Failed to publish post.');
+    } catch (e: any) {
+      const errorMessage = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+      Alert.alert('Backend Error Details', `Here is the terminal error:\n\n${errorMessage}`);
     } finally {
       setLoading(false);
     }

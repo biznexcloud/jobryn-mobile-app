@@ -3,7 +3,7 @@ import { useAuthStore } from './src/store/authStore';
 
 const apiClient = axios.create({
   baseURL: 'https://backend.jobryn.com/api/v1',
-  timeout: 10000,
+  timeout: 30000, // Increased for image uploads
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,16 +15,33 @@ apiClient.interceptors.request.use(
     const token = useAuthStore.getState().token;
     const isAuthPath = config.url?.includes('/account/login/') || 
                       config.url?.includes('/account/register/') ||
-                      config.url?.includes('/account/forgot-password/') ||
                       config.url?.includes('/account/verify-otp/') ||
                       config.url?.includes('/account/reset-password/');
 
     if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Fix for Multipart Uploads: 
+    // React Native FormData might not always pass 'instanceof FormData' depending on polyfills.
+    // We check for the explicit '_parts' property which is unique to RN FormData.
+    const isFormData = config.data instanceof FormData || (config.data && typeof config.data === 'object' && config.data._parts);
+
+    if (isFormData) {
+       // By deleting this, Axios will automatically set the correct 'multipart/form-data' with boundary
+       delete config.headers['Content-Type'];
+    }
     
-    // Diagnostic logging
-    console.log(`[API REQUEST] => ${config.method?.toUpperCase()} ${config.url}`);
+    // Diagnostic logging for auth
+    if (config.url?.includes('/account/login/')) {
+       console.log('--- [API] ATTEMPTING LOGIN ---');
+       const { email, password } = config.data || {};
+       const maskedPw = password ? `${password.substring(0, 2)}****${password.slice(-2)}` : 'MISSING';
+       console.log(`- Email: ${email}`);
+       console.log(`- Password (Masked): ${maskedPw}`);
+    } else {
+       console.log(`[API REQUEST] => ${config.method?.toUpperCase()} ${config.url}`);
+    }
     
     return config;
   },

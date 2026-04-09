@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
   HomeIcon,
@@ -19,6 +19,7 @@ import {
 } from 'react-native-heroicons/solid';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { moderateScale, verticalScale } from '../utils/responsive';
+import AskAIFab from '../components/common/AskAIFab';
 
 const Tab = createBottomTabNavigator();
 
@@ -61,70 +62,75 @@ export function SeekerTabs() {
   };
 
   return (
-    <Tab.Navigator screenOptions={seekerOptions}>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator screenOptions={seekerOptions}>
 
-      <Tab.Screen
-        name="Home"
-        component={SeekerDashboard}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <HomeIconSolid size={size} color={color} />
-              : <HomeIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Home"
+          component={SeekerDashboard}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <HomeIconSolid size={size} color={color} />
+                : <HomeIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Network"
-        component={NetworkScreen}
-        options={{
-          tabBarLabel: 'My Network',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <UsersIconSolid size={size} color={color} />
-              : <UsersIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Network"
+          component={NetworkScreen}
+          options={{
+            tabBarLabel: 'My Network',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <UsersIconSolid size={size} color={color} />
+                : <UsersIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Jobs"
-        component={JobListScreen}
-        options={{
-          tabBarLabel: 'Jobs',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <BriefcaseIconSolid size={size} color={color} />
-              : <BriefcaseIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Jobs"
+          component={JobListScreen}
+          options={{
+            tabBarLabel: 'Jobs',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <BriefcaseIconSolid size={size} color={color} />
+                : <BriefcaseIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Applied"
-        component={AppliedJobsScreen}
-        options={{
-          tabBarLabel: 'Applied',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <BookmarkIconSolid size={size} color={color} />
-              : <BookmarkIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Applied"
+          component={AppliedJobsScreen}
+          options={{
+            tabBarLabel: 'Applied',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <BookmarkIconSolid size={size} color={color} />
+                : <BookmarkIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Meetings"
-        component={MeetingsScreen}
-        initialParams={{ role: 'jobSeeker' }}
-        options={{
-          tabBarLabel: 'Meetings',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <BellIconSolid size={size} color={color} />
-              : <BellIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Meetings"
+          component={MeetingsScreen}
+          initialParams={{ role: 'jobSeeker' }}
+          options={{
+            tabBarLabel: 'Meetings',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <BellIconSolid size={size} color={color} />
+                : <BellIcon size={size} color={color} />,
+          }}
+        />
 
-    </Tab.Navigator>
+      </Tab.Navigator>
+
+      {/* Global Ask AI FAB — visible on every Seeker tab */}
+      <AskAIFab />
+    </View>
   );
 }
 
@@ -155,56 +161,61 @@ export function ProviderTabs() {
   };
 
   return (
-    <Tab.Navigator screenOptions={providerOptions}>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator screenOptions={providerOptions}>
 
-      <Tab.Screen
-        name="Home"
-        component={ProviderDashboard}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <HomeIconSolid size={size} color={color} />
-              : <HomeIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Home"
+          component={ProviderDashboard}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <HomeIconSolid size={size} color={color} />
+                : <HomeIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Pipeline"
-        component={ApplicantsScreen}
-        options={{
-          tabBarLabel: 'Pipeline',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <UsersIconSolid size={size} color={color} />
-              : <UsersIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Pipeline"
+          component={ApplicantsScreen}
+          options={{
+            tabBarLabel: 'Pipeline',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <UsersIconSolid size={size} color={color} />
+                : <UsersIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Post"
-        component={PostJobScreen}
-        options={{
-          tabBarLabel: 'Post Job',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <PlusIconSolid size={size} color={color} />
-              : <PlusIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Post"
+          component={PostJobScreen}
+          options={{
+            tabBarLabel: 'Post Job',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <PlusIconSolid size={size} color={color} />
+                : <PlusIcon size={size} color={color} />,
+          }}
+        />
 
-      <Tab.Screen
-        name="Managed"
-        component={JobPostingsScreen}
-        options={{
-          tabBarLabel: 'My Jobs',
-          tabBarIcon: ({ focused, color, size }) =>
-            focused
-              ? <BriefcaseIconSolid size={size} color={color} />
-              : <BriefcaseIcon size={size} color={color} />,
-        }}
-      />
+        <Tab.Screen
+          name="Managed"
+          component={JobPostingsScreen}
+          options={{
+            tabBarLabel: 'My Jobs',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <BriefcaseIconSolid size={size} color={color} />
+                : <BriefcaseIcon size={size} color={color} />,
+          }}
+        />
 
-    </Tab.Navigator>
+      </Tab.Navigator>
+
+      {/* Global Ask AI FAB — visible on every Provider tab */}
+      <AskAIFab />
+    </View>
   );
 }

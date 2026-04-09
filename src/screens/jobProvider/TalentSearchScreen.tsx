@@ -42,12 +42,9 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
     setLoading(true);
     try {
       const data = await ProfileService.getSeekerProfiles({ search: searchQuery });
-      setCandidates(data?.results || [
-        { id: 1, full_name: 'Anupama Rai', headline: 'Lead Product Designer @ TechHive', location: 'Kathmandu', experience_years: 4.5, match_score: 96, skills: ['Figma', 'React', 'Design Systems'], avatar: 'https://i.pravatar.cc/150?u=a1' },
-        { id: 2, full_name: 'Alex Rivers', headline: 'Senior Protocol Engineer', location: 'Remote', experience_years: 7, match_score: 88, skills: ['Rust', 'Ethereum', 'P2P'], avatar: 'https://i.pravatar.cc/150?u=a2' },
-        { id: 3, full_name: 'Sarah Mission', headline: 'Fullstack Operations Specialist', location: 'Singapore', experience_years: 3, match_score: 92, skills: ['Next.js', 'Go', 'K8s'], avatar: 'https://i.pravatar.cc/150?u=s1' },
-      ]);
+      setCandidates(data?.results || []);
     } catch (e) {
+      console.error('[TalentSearch] Fetch error:', e);
       setCandidates([]);
     } finally {
       setLoading(false);

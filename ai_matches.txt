@@ -1,0 +1,80 @@
+﻿
+meta\Jobryn API (1).yaml:4306:        author_email:
+meta\Jobryn API (1).yaml:4308:          format: email
+meta\Jobryn API (1).yaml:4318:      - author_email
+meta\Jobryn API (1).yaml:4344:        email:
+meta\Jobryn API (1).yaml:4346:          format: email
+meta\Jobryn API (1).yaml:4440:        thumbnail:
+meta\Jobryn API (1).yaml:4680:        follower_email:
+meta\Jobryn API (1).yaml:4682:          format: email
+meta\Jobryn API (1).yaml:4686:        following_email:
+meta\Jobryn API (1).yaml:4688:          format: email
+meta\Jobryn API (1).yaml:4699:      - follower_email
+meta\Jobryn API (1).yaml:4701:      - following_email
+meta\Jobryn API (1).yaml:4714:        email:
+meta\Jobryn API (1).yaml:4716:          format: email
+meta\Jobryn API (1).yaml:4718:      - email
+meta\Jobryn API (1).yaml:4893:        user_detail:
+meta\Jobryn API (1).yaml:4982:        available_for_freelance:
+meta\Jobryn API (1).yaml:4984:        availability:
+meta\Jobryn API (1).yaml:4996:      - user_detail
+meta\Jobryn API (1).yaml:5054:        email:
+meta\Jobryn API (1).yaml:5056:          format: email
+meta\Jobryn API (1).yaml:5060:      - email
+meta\Jobryn API (1).yaml:5767:        author_email:
+meta\Jobryn API (1).yaml:5769:          format: email
+meta\Jobryn API (1).yaml:5799:        email:
+meta\Jobryn API (1).yaml:5801:          format: email
+meta\Jobryn API (1).yaml:6038:        user_detail:
+meta\Jobryn API (1).yaml:6127:        available_for_freelance:
+meta\Jobryn API (1).yaml:6129:        availability:
+meta\Jobryn API (1).yaml:6161:        author_email:
+meta\Jobryn API (1).yaml:6163:          format: email
+meta\Jobryn API (1).yaml:6255:        seeker_email:
+meta\Jobryn API (1).yaml:6257:          format: email
+meta\Jobryn API (1).yaml:6301:        commission_paid:
+meta\Jobryn API (1).yaml:6323:        seeker_email:
+meta\Jobryn API (1).yaml:6325:          format: email
+meta\Jobryn API (1).yaml:6351:        paid_at:
+meta\Jobryn API (1).yaml:6545:        payment_details: {}
+meta\Jobryn API (1).yaml:6563:        user_detail:
+meta\Jobryn API (1).yaml:6679:        skill_detail:
+meta\Jobryn API (1).yaml:6732:        author_email:
+meta\Jobryn API (1).yaml:6734:          format: email
+meta\Jobryn API (1).yaml:6777:      - author_email
+meta\Jobryn API (1).yaml:6844:      - unpaid
+meta\Jobryn API (1).yaml:6845:      - paid
+meta\Jobryn API (1).yaml:6850:        * `unpaid` - Unpaid
+meta\Jobryn API (1).yaml:6851:        * `paid` - Paid
+meta\Jobryn API (1).yaml:6867:        seeker_email:
+meta\Jobryn API (1).yaml:6869:          format: email
+meta\Jobryn API (1).yaml:6913:        commission_paid:
+meta\Jobryn API (1).yaml:6930:      - commission_paid
+meta\Jobryn API (1).yaml:6936:      - seeker_email
+meta\Jobryn API (1).yaml:6945:        seeker_email:
+meta\Jobryn API (1).yaml:6947:          format: email
+meta\Jobryn API (1).yaml:6973:        paid_at:
+meta\Jobryn API (1).yaml:7016:      - seeker_email
+meta\Jobryn API (1).yaml:7197:        payment_details: {}
+meta\Jobryn API (1).yaml:7221:        user_detail:
+meta\Jobryn API (1).yaml:7239:      - user_detail
+meta\Jobryn API (1).yaml:7243:        email:
+meta\Jobryn API (1).yaml:7245:          format: email
+meta\Jobryn API (1).yaml:7257:      - email
+meta\Jobryn API (1).yaml:7262:        email:
+meta\Jobryn API (1).yaml:7264:          format: email
+meta\Jobryn API (1).yaml:7266:      - email
+meta\Jobryn API (1).yaml:7270:        email:
+meta\Jobryn API (1).yaml:7272:          format: email
+meta\Jobryn API (1).yaml:7280:      - email
+meta\Jobryn API (1).yaml:7452:        email:
+meta\Jobryn API (1).yaml:7454:          format: email
+meta\Jobryn API (1).yaml:7462:        is_email_verified:
+meta\Jobryn API (1).yaml:7465:      - email
+meta\Jobryn API (1).yaml:7473:        skill_detail:
+meta\Jobryn API (1).yaml:7502:      - skill_detail
+meta\Jobryn API (1).yaml:7507:        email:
+meta\Jobryn API (1).yaml:7509:          format: email
+meta\Jobryn API (1).yaml:7514:      - email
+
+

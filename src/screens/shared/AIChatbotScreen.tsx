@@ -17,6 +17,7 @@ import {
   User
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, HStack, VStack } from '../../components/ui';
+import { AIService } from '../../services/api/ai';
 
 interface Message {
   id: string;
@@ -39,8 +40,8 @@ export default function AIChatbotScreen({ navigation }: any) {
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const handleSend = () => {
-    if (inputText.trim() === '') return;
+  const handleSend = async () => {
+    if (inputText.trim() === '' || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -50,34 +51,32 @@ export default function AIChatbotScreen({ navigation }: any) {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const resp = await AIService.sendMessage(currentInput);
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: getAIResponse(inputText),
+        text: resp.response || "I received an empty response. How else can I help?",
         sender: 'ai',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (err: any) {
+      console.error('[AIChat] API Error:', err);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble connecting to my brain right now. Please try again in a moment.",
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
-  };
-
-  const getAIResponse = (query: string) => {
-    const q = query.toLowerCase();
-    if (q.includes('job') || q.includes('search')) {
-      return "I can help you find jobs! Based on your profile, I recommend looking at 'Senior Frontend Developer' roles at TechFlow or Prisma.";
     }
-    if (q.includes('resume') || q.includes('profile')) {
-      return "Your profile is 85% complete. Adding your latest certification in 'Cloud Architecture' would boost your visibility by 20%!";
-    }
-    if (q.includes('hello') || q.includes('hi')) {
-      return "Hi there! Ready to take the next step in your career? Ask me anything about networking, job applications, or profile optimization.";
-    }
-    return "That's an interesting question! Within the Jobryn ecosystem, I can help you navigate networking opportunities, optimize your portfolio, or track your application status. What would you like to explore first?";
   };
 
   const renderMessage = ({ item }: { item: Message }) => {

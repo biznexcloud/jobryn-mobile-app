@@ -39,7 +39,9 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
   const [website, setWebsite] = useState('');
   const [about, setAbout] = useState('');
   const [logoImage, setLogoImage] = useState<string | null>(user?.profile_picture || null);
-  const [hasNewImage, setHasNewImage] = useState(false);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
+  const [hasNewLogo, setHasNewLogo] = useState(false);
+  const [hasNewBanner, setHasNewBanner] = useState(false);
   const [profileId, setProfileId] = useState<string | number | null>(null);
 
   React.useEffect(() => {
@@ -54,6 +56,7 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
           setLocation(profile.location || '');
           setWebsite(profile.website || '');
           setAbout(profile.description || profile.bio || profile.about || '');
+          setBannerImage(profile.banner || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800');
         }
       } catch (e) {
         setName(user?.name || '');
@@ -62,7 +65,7 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
     fetchProfile();
   }, []);
 
-  const pickImage = async () => {
+  const pickImage = async (type: 'logo' | 'banner') => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Allow access to your photos to upload.');
@@ -72,13 +75,18 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: type === 'logo' ? [1, 1] : [16, 9],
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      setLogoImage(result.assets[0].uri);
-      setHasNewImage(true);
+      if (type === 'logo') {
+        setLogoImage(result.assets[0].uri);
+        setHasNewLogo(true);
+      } else {
+        setBannerImage(result.assets[0].uri);
+        setHasNewBanner(true);
+      }
     }
   };
 
@@ -93,29 +101,31 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
       const accountData = new FormData();
       accountData.append('name', name);
       
-      if (hasNewImage && logoImage) {
+      if (hasNewLogo && logoImage) {
         const filename = logoImage.split('/').pop();
         const match = /\.(\w+)$/.exec(filename || '');
         const type = match ? `image/${match[1]}` : `image`;
-        accountData.append('profile_picture', {
-          uri: logoImage,
-          name: filename,
-          type,
-        } as any);
+        accountData.append('profile_picture', { uri: logoImage, name: filename, type } as any);
       }
 
       await ProfileService.updateAccountProfile(accountData);
 
       // 2. Update Recruiter Profile
-      await ProfileService.updateRecruiterProfile(profileId, {
-        company_name: name,
-        industry: industry,
-        location: location,
-        website: website,
-        bio: about,
-        description: about,
-        about: about,
-      });
+      const profileData = new FormData();
+      profileData.append('company_name', name);
+      profileData.append('industry', industry);
+      profileData.append('location', location);
+      profileData.append('website', website);
+      profileData.append('description', about);
+      
+      if (hasNewBanner && bannerImage) {
+        const filename = bannerImage.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : `image`;
+        profileData.append('banner', { uri: bannerImage, name: filename, type } as any);
+      }
+
+      await ProfileService.updateRecruiterProfile(profileId, profileData);
 
       // 3. Refresh Global State
       const updatedUser = await ProfileService.getAccountProfile();
@@ -171,7 +181,7 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
         {/* Banner & Avatar Preview */}
         <Box>
            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800' }}
+              source={{ uri: bannerImage || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800' }}
               style={styles.banner}
            />
            <Box position="absolute" bottom={-40} left={16}>
@@ -180,12 +190,12 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
                     source={{ uri: logoImage || user?.profile_picture || 'https://i.pravatar.cc/150' }} 
                     size="xl" 
                  />
-                 <TouchableOpacity style={styles.avatarCam} onPress={pickImage}>
+                 <TouchableOpacity style={styles.avatarCam} onPress={() => pickImage('logo')}>
                     <CameraIcon size={16} color="black" />
                  </TouchableOpacity>
               </Box>
            </Box>
-           <TouchableOpacity style={styles.bannerCam}>
+           <TouchableOpacity style={styles.bannerCam} onPress={() => pickImage('banner')}>
               <CameraIcon size={18} color="black" />
            </TouchableOpacity>
         </Box>

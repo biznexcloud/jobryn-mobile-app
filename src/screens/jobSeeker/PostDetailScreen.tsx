@@ -25,15 +25,18 @@ import {
   Bookmark,
   Send,
   CornerDownRight,
+  Globe,
+  Image as ImageIcon,
 } from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
 import { moderateScale, verticalScale } from '../../utils/responsive';
 import { SocialService } from '../../services/api/social';
 
-const BLUE = '#1877F2';
-const GRAY_BG = '#F0F2F5';
+const FB_BLUE = '#1877F2';
+const FB_GRAY = '#F0F2F5';
 const SOFT_GRAY = '#65676B';
+const FB_DIVIDER = '#E4E6EB';
 
 const QUICK_REACTIONS = ['❤️', '🙌', '🔥', '👏', '😍', '😂', '💡', '😮'];
 
@@ -55,7 +58,8 @@ export default function PostDetailScreen({ route, navigation }: any) {
   const initialPost = route.params?.post || {};
   
   const [post, setPost] = useState(initialPost);
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
+  const [imageError, setImageError] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -66,6 +70,7 @@ export default function PostDetailScreen({ route, navigation }: any) {
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isSaved, setIsSaved] = useState(post.is_saved || false);
   const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const isShortText = (post.content?.length ?? 0) < 80 && !post.image;
   const [expandedContent, setExpandedContent] = useState(false);
   const [sendingComment, setSendingComment] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -230,7 +235,7 @@ export default function PostDetailScreen({ route, navigation }: any) {
             <Text fontSize={moderateScale(13)} fontWeight="800" color="#111827">{item.author.name}</Text>
             {item.isPinned && (
               <Box ml={6} px={6} py={1} bg="#EEF2FF" rounded={6}>
-                <Text fontSize={moderateScale(10)} color={BLUE} fontWeight="700">📌 Pinned</Text>
+                <Text fontSize={moderateScale(10)} color={FB_BLUE} fontWeight="700">📌 Pinned</Text>
               </Box>
             )}
           </HStack>
@@ -244,7 +249,7 @@ export default function PostDetailScreen({ route, navigation }: any) {
             <Text
               fontSize={moderateScale(12)}
               fontWeight="800"
-              color={item.isLiked ? BLUE : SOFT_GRAY}
+              color={item.isLiked ? FB_BLUE : SOFT_GRAY}
             >
               Like{item.likes > 0 ? ` · ${item.likes}` : ''}
             </Text>
@@ -280,13 +285,13 @@ export default function PostDetailScreen({ route, navigation }: any) {
   const PostHeader = () => (
     <Box bg="white" mb={8}>
       {/* Nav bar */}
-      <HStack px={14} pt={insets.top + 4} pb={10} items="center" justify="space-between" borderBottom={1} borderColor="#E5E7EB">
+      <HStack px={14} pt={insets.top + 4} pb={10} items="center" justify="space-between" borderBottom={1} borderColor={FB_DIVIDER}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <ChevronLeft size={26} color="#111827" strokeWidth={2.5} />
+          <ChevronLeft size={26} color="#050505" strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text fontSize={16} fontWeight="800" color="#111827">Post</Text>
+        <Text fontSize={16} fontWeight="700" color="#050505">Post</Text>
         <TouchableOpacity onPress={handleToggleSave}>
-          <Bookmark size={22} color={isSaved ? BLUE : '#111827'} fill={isSaved ? BLUE : 'transparent'} />
+          <Bookmark size={22} color={isSaved ? FB_BLUE : '#050505'} fill={isSaved ? FB_BLUE : 'transparent'} />
         </TouchableOpacity>
       </HStack>
 
@@ -295,9 +300,11 @@ export default function PostDetailScreen({ route, navigation }: any) {
         <HStack items="center" flex={1}>
           <Image source={{ uri: post.author?.avatar }} style={styles.authorAvatar} />
           <VStack ml={10} flex={1}>
-            <Text fontSize={15} fontWeight="800" color="#111827">{post.author?.name}</Text>
-            <Text fontSize={12} color={SOFT_GRAY} numberOfLines={1}>{post.author?.headline}</Text>
-            <Text fontSize={11} color={SOFT_GRAY}>{post.postedAt}</Text>
+            <Text fontSize={15} fontWeight="700" color="#050505">{post.author?.name}</Text>
+            <HStack items="center">
+               <Text fontSize={12} color={SOFT_GRAY}>{post.postedAt} · </Text>
+               <Globe size={11} color={SOFT_GRAY} />
+            </HStack>
           </VStack>
         </HStack>
         <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -306,33 +313,46 @@ export default function PostDetailScreen({ route, navigation }: any) {
       </HStack>
 
       {/* Content */}
-      <Box px={14} pb={12}>
-        <Text fontSize={15} color="#1C1E21" lineHeight={22}>
-          {expandedContent ? post.content : post.content?.substring(0, 140)}
-          {!expandedContent && (post.content?.length ?? 0) > 140 && (
-            <Text fontSize={15} color={BLUE} onPress={() => setExpandedContent(true)}> ...see more</Text>
-          )}
+      <Box px={14} pb={post.image ? 12 : 16}>
+        <Text 
+          fontSize={isShortText ? 20 : 15} 
+          fontWeight={isShortText ? "500" : "400"}
+          color="#050505" 
+          lineHeight={isShortText ? 28 : 22}
+        >
+          {post.content}
         </Text>
       </Box>
 
-      {/* Image */}
-      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} resizeMode="cover" />}
+        {/* Post Image with Dummy Fallback */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ 
+              uri: (post.image && !imageError) 
+                ? post.image 
+                : `https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=800&auto=format&fit=crop`
+            }} 
+            style={styles.postImage} 
+            resizeMode="cover"
+            onError={() => setImageError(true)}
+          />
+        </View>
 
       {/* Stats */}
       <HStack px={14} py={10} justify="space-between" items="center">
-        <HStack items="center">
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <HStack style={styles.reactionBubbles}>
-              <View style={[styles.reactionBadge, { backgroundColor: BLUE }]}>
-                <ThumbsUp size={10} color="white" />
-              </View>
-              <View style={[styles.reactionBadge, { backgroundColor: '#E0245E', marginLeft: -4 }]}>
-                <Heart size={10} color="white" />
-              </View>
+          <HStack items="center">
+            <HStack>
+               <Box bg={FB_BLUE} rounded={10} p={3} border={1.5} borderColor="white">
+                 <ThumbsUp size={10} color="white" fill="white" />
+               </Box>
+               <Box bg="#F3425F" rounded={10} p={3} border={1.5} borderColor="white" ml={-6}>
+                 <Heart size={10} color="white" fill="white" />
+               </Box>
             </HStack>
-          </Animated.View>
-          <Text fontSize={13} color={SOFT_GRAY} ml={6}>{formatCount(likesCount)}</Text>
-        </HStack>
+            <Text fontSize={13} color={SOFT_GRAY} ml={6}>
+               {isLiked ? (likesCount > 1 ? `You and ${likesCount - 1} others` : 'You') : (likesCount || 0)}
+            </Text>
+          </HStack>
         <HStack>
           <Text fontSize={13} color={SOFT_GRAY}>{formatCount(post.comments || 0)} comments</Text>
           <Text fontSize={13} color={SOFT_GRAY} mx={4}>·</Text>
@@ -345,20 +365,20 @@ export default function PostDetailScreen({ route, navigation }: any) {
       {/* Action Bar */}
       <HStack px={4} py={2} justify="space-around">
         <TouchableOpacity style={styles.actionBtn} onPress={handleToggleLike}>
-          <ThumbsUp size={20} color={isLiked ? BLUE : SOFT_GRAY} fill={isLiked ? BLUE : 'transparent'} />
-          <Text fontSize={13} fontWeight="800" color={isLiked ? BLUE : SOFT_GRAY} ml={6}>Like</Text>
+          <ThumbsUp size={20} color={isLiked ? FB_BLUE : SOFT_GRAY} strokeWidth={isLiked ? 2.5 : 2} />
+          <Text fontSize={13} fontWeight="600" color={isLiked ? FB_BLUE : SOFT_GRAY} ml={6}>Like</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={() => inputRef.current?.focus()}>
-          <MessageSquare size={20} color={SOFT_GRAY} />
-          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={6}>Comment</Text>
+          <MessageSquare size={20} color={SOFT_GRAY} strokeWidth={2} />
+          <Text fontSize={13} fontWeight="600" color={SOFT_GRAY} ml={6}>Comment</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-          <Repeat2 size={20} color={SOFT_GRAY} />
-          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={6}>Share</Text>
+          <Repeat2 size={20} color={SOFT_GRAY} strokeWidth={2} />
+          <Text fontSize={13} fontWeight="600" color={SOFT_GRAY} ml={6}>Share</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={handleToggleSave}>
-          <Bookmark size={20} color={isSaved ? BLUE : SOFT_GRAY} fill={isSaved ? BLUE : 'transparent'} />
-          <Text fontSize={13} fontWeight="800" color={isSaved ? BLUE : SOFT_GRAY} ml={6}>Save</Text>
+          <Bookmark size={20} color={isSaved ? FB_BLUE : SOFT_GRAY} />
+          <Text fontSize={13} fontWeight="600" color={isSaved ? FB_BLUE : SOFT_GRAY} ml={6}>Save</Text>
         </TouchableOpacity>
       </HStack>
 
@@ -366,16 +386,16 @@ export default function PostDetailScreen({ route, navigation }: any) {
 
       {/* Comments Header */}
       <HStack px={14} py={12} items="center" justify="space-between">
-        <Text fontSize={15} fontWeight="800" color="#111827">Most relevant</Text>
+        <Text fontSize={15} fontWeight="700" color="#050505">Most relevant</Text>
         <TouchableOpacity>
-          <Text fontSize={13} fontWeight="700" color={BLUE}>All comments ▾</Text>
+          <Text fontSize={13} fontWeight="700" color={FB_BLUE}>All comments ▾</Text>
         </TouchableOpacity>
       </HStack>
     </Box>
   );
 
   return (
-    <ScreenWrapper safeAreaTop={false} backgroundColor={GRAY_BG}>
+    <ScreenWrapper safeAreaTop={false} backgroundColor={FB_GRAY}>
       <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -408,7 +428,7 @@ export default function PostDetailScreen({ route, navigation }: any) {
           {replyingTo && (
             <HStack px={14} pt={8} pb={4} items="center" justify="space-between">
               <Text fontSize={12} color={SOFT_GRAY}>
-                Replying to <Text fontWeight="700" color={BLUE}>{replyingTo.name}</Text>
+                Replying to <Text fontWeight="700" color={FB_BLUE}>{replyingTo.name}</Text>
               </Text>
               <TouchableOpacity onPress={() => { setReplyingTo(null); setNewComment(''); }}>
                 <Text fontSize={12} color="#E53E3E" fontWeight="700">✕ Cancel</Text>
@@ -457,9 +477,9 @@ export default function PostDetailScreen({ route, navigation }: any) {
                 disabled={!newComment.trim() || sendingComment}
               >
                 {sendingComment ? (
-                  <ActivityIndicator size="small" color={BLUE} />
+                  <ActivityIndicator size="small" color={FB_BLUE} />
                 ) : (
-                  <Send size={18} color={BLUE} />
+                  <Send size={18} color={FB_BLUE} />
                 )}
               </TouchableOpacity>
             </HStack>
@@ -471,12 +491,18 @@ export default function PostDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  postImage: { width: '100%', height: verticalScale(200), backgroundColor: '#E4E6EB' },
+  imageContainer: { width: '100%', height: verticalScale(300), backgroundColor: '#F0F2F5' },
+  postImage: { width: '100%', height: '100%' },
+  imageErrorContainer: {
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   authorAvatar: {
-    width: moderateScale(46),
-    height: moderateScale(46),
-    borderRadius: moderateScale(23),
-    backgroundColor: '#E4E6EB',
+    width: moderateScale(40),
+    height: moderateScale(40),
+    borderRadius: moderateScale(20),
+    backgroundColor: '#F0F2F5',
   },
   actionBtn: {
     flex: 1,

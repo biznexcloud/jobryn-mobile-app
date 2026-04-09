@@ -41,6 +41,7 @@ export default function PostJobScreen({ navigation }: any) {
     salary_max: '',
     description: '',
     job_type: 'Full-time',
+    experience_level: 'Mid Level',
   });
 
   const update = (key: string, val: string) => setFormData(f => ({ ...f, [key]: val }));
@@ -54,8 +55,8 @@ export default function PostJobScreen({ navigation }: any) {
     try {
       await JobService.postJob({
         ...formData,
-        job_type: 'full_time',
-        experience_level: 'mid',
+        job_type: formData.job_type.toLowerCase().replace('-', '_') as any,
+        experience_level: formData.experience_level.toLowerCase().split(' ')[0] as any,
         salary_min: formData.salary_min || null,
         salary_max: formData.salary_max || null,
       });
@@ -163,6 +164,36 @@ export default function PostJobScreen({ navigation }: any) {
               style={[styles.input, styles.textArea]}
             />
 
+            <VStack mt={20}>
+              <Text fontSize={13} fontWeight="700" color="#111827" mb={12}>Job Type</Text>
+              <HStack space="xs" flexWrap="wrap">
+                {['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'].map(t => (
+                  <TouchableOpacity 
+                    key={t}
+                    onPress={() => update('job_type', t)}
+                    style={[styles.tag, formData.job_type === t && styles.activeTag]}
+                  >
+                    <Text fontSize={12} fontWeight="600" color={formData.job_type === t ? 'white' : '#65676B'}>{t}</Text>
+                  </TouchableOpacity>
+                ))}
+              </HStack>
+            </VStack>
+
+            <VStack mt={20}>
+              <Text fontSize={13} fontWeight="700" color="#111827" mb={12}>Experience Level</Text>
+              <HStack space="xs" flexWrap="wrap">
+                {['Entry Level', 'Mid Level', 'Senior', 'Lead', 'Executive'].map(l => (
+                  <TouchableOpacity 
+                    key={l}
+                    onPress={() => update('experience_level', l)}
+                    style={[styles.tag, formData.experience_level === l && styles.activeTag]}
+                  >
+                    <Text fontSize={12} fontWeight="600" color={formData.experience_level === l ? 'white' : '#65676B'}>{l}</Text>
+                  </TouchableOpacity>
+                ))}
+              </HStack>
+            </VStack>
+
             <TouchableOpacity style={styles.mediaBtn}>
                <ImageIcon size={20} color={FB_BLUE} />
                <Text fontSize={14} fontWeight="700" color={FB_BLUE} ml={10}>Add Media (Optional)</Text>
@@ -186,5 +217,7 @@ const styles = StyleSheet.create({
   postBtn: { paddingHorizontal: 16, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   input: { backgroundColor: '#F9FAFB', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#111827', borderWidth: 1, borderColor: '#F0F2F5' },
   textArea: { minHeight: 150, textAlignVertical: 'top' },
-  mediaBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 24, padding: 16, borderRadius: 12, backgroundColor: '#F0F9FF', justifyContent: 'center' }
+  mediaBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 24, padding: 16, borderRadius: 12, backgroundColor: '#F0F9FF', justifyContent: 'center' },
+  tag: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 8 },
+  activeTag: { backgroundColor: FB_BLUE, borderColor: FB_BLUE },
 });

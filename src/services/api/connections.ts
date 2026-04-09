@@ -1,10 +1,11 @@
 import apiClient from '../../../axios';
 
 // ─── Connection Service ────────────────────────────────────────────────────────
-// ⚠️  NOTE: The Jobryn API.yaml specification does NOT currently define
-// networking/connections endpoints. These methods are structured for future
-// backend implementation. All calls are wrapped in try/catch and return
-// safe empty-state fallbacks to avoid breaking the UI.
+// Wraps the Jobryn /follows/ endpoints.
+// Docs note: Some endpoints (accept/decline/pending) may not yet be in the
+// API spec — safe fallbacks ensure the UI degrades gracefully.
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface ConnectionStatus {
   is_following: boolean;
   is_connected: boolean;
@@ -12,70 +13,154 @@ export interface ConnectionStatus {
 }
 
 export const ConnectionService = {
-  /**
-   * Check connection/follow status with a target user.
-   */
+
+  // ── Status ────────────────────────────────────────────────────────────────
+
+  /** Check connection/follow status with a target user. */
   getStatus: async (targetId: string | number): Promise<ConnectionStatus> => {
     const response = await apiClient.get(`/follows/status/${targetId}/`);
     return response.data;
   },
 
-  /**
-   * Follow a user or company.
-   */
+  // ── Follow / Unfollow ─────────────────────────────────────────────────────
+
+  /** Follow a user — creates a follow / connection request. */
   follow: async (targetId: string | number) => {
     const response = await apiClient.post('/follows/follow/', { following: targetId });
     return response.data;
   },
 
-  /**
-   * Unfollow a user or company.
-   */
+  /** Unfollow / remove follow by follow-record ID. */
   unfollow: async (followId: string | number) => {
     await apiClient.delete(`/follows/unfollow/${followId}/`);
   },
 
-  /**
-   * Send a connection request (Mutual Follow initiation).
-   */
+  /** Alias — send a connection request. */
   connect: async (targetId: string | number) => {
     return ConnectionService.follow(targetId);
   },
 
-  /**
-   * Get all people the user is FOLLOWING.
-   */
-  getFollowing: async (userId: string | number, params = {}) => {
-    const response = await apiClient.get(`/follows/following/${userId}/`, { params });
-    return response.data;
-  },
+  // ── Followers / Following ─────────────────────────────────────────────────
 
-  /**
-   * Get all people FOLLOWING the user.
-   */
-  getFollowers: async (userId: string | number, params = {}) => {
+  /** Get all people FOLLOWING the user (accepted connections). */
+  getFollowers: async (userId: string | number, params: any = {}) => {
     const response = await apiClient.get(`/follows/followers/${userId}/`, { params });
     return response.data;
   },
 
-  /**
-   * Unified call to get "Connections" (Mutual follows or general network).
-   */
-  getConnections: async (params = {}) => {
+  /** Get all people the user is FOLLOWING. */
+  getFollowing: async (userId: string | number, params: any = {}) => {
+    const response = await apiClient.get(`/follows/following/${userId}/`, { params });
+    return response.data;
+  },
+
+  /** Get connections for logged-in user (me). */
+  getConnections: async (params: any = {}) => {
     const response = await apiClient.get('/follows/followers/me/', { params });
     return response.data;
   },
 
-  acceptRequest: async (targetId: string | number) => {
-    return ConnectionService.follow(targetId);
+  // ── Pending / Invitations ─────────────────────────────────────────────────
+
+  /**
+   * Get pending connection requests sent TO the current user.
+   * These are followers whose follow has not yet been reciprocated
+   * (i.e., you have not followed back).
+   * Tries a dedicated /follows/pending/ endpoint first; falls back to
+   * filtering notifications for connection-request types.
+   */
+  getPendingRequests: async (): Promise<any[]> => {
+    try {
+      // Primary: dedicated pending endpoint if it exists
+      const response = await apiClient.get('/follows/pending/');
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.results || []);
+    } catch {
+      // Fallback: pull connection-type notifications as invitations
+      try {
+        const response = await apiClient.get('/notifications/', {
+          params: { notification_type: 'connection_request', is_read: false },
+        });
+        const data = response.data;
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        // Shape notifications into a follower-like object
+        return results
+          .filter((n: any) =>
+            n.notification_type === 'connection_request' ||
+            n.type === 'connection' ||
+            (n.message || n.title || '').toLowerCase().includes('connect')
+          )
+          .map((n: any) => ({
+            id: n.id,
+            notification_id: n.id,
+            follower: n.sender || n.actor_id,
+            follower_email: n.sender_email || n.actor_email || '',
+            follower_name: n.sender_name || n.actor_name || n.sender_email?.split('@')[0] || 'Someone',
+            follower_avatar: n.sender_avatar || n.actor_avatar || '',
+            follow_type_display: n.message || n.title || 'Wants to connect with you',
+            created_at: n.created_at,
+            _from_notification: true,
+          }));
+      } catch {
+        return [];
+      }
+    }
   },
 
-  declineRequest: async (followId: string | number) => {
-    return ConnectionService.unfollow(followId);
+  /**
+   * Accept a pending connection request.
+   * Follows the requester back (mutual follow = connection).
+   */
+  acceptRequest: async (requesterId: string | number, notificationId?: string | number) => {
+    // Follow back = accept connection
+    await ConnectionService.follow(requesterId);
+    // Optionally mark the notification as read
+    if (notificationId) {
+      try {
+        await apiClient.patch(`/notifications/${notificationId}/`, { is_read: true });
+      } catch { /* non-critical */ }
+    }
+  },
+
+  /**
+   * Decline a pending connection request.
+   * If the record has a follow ID, unfollow it; otherwise mark notification read.
+   */
+  declineRequest: async (followId?: string | number, notificationId?: string | number) => {
+    if (followId) {
+      try {
+        await ConnectionService.unfollow(followId);
+      } catch { /* may not exist yet */ }
+    }
+    if (notificationId) {
+      try {
+        await apiClient.patch(`/notifications/${notificationId}/`, { is_read: true });
+      } catch { /* non-critical */ }
+    }
+  },
+
+  // ── Suggestions ───────────────────────────────────────────────────────────
+
+  /**
+   * Fetch "People You May Know" — seeker profiles from the platform
+   * that the current user has not yet followed.
+   * Tries a dedicated /follows/suggestions/ endpoint first;
+   * falls back to paginated seeker profiles.
+   */
+  getSuggestions: async (params: any = {}): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/follows/suggestions/', { params });
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.results || []);
+    } catch {
+      // Fallback: general seeker profiles list
+      try {
+        const response = await apiClient.get('/profiles/seeker/', { params: { page_size: 20, ...params } });
+        const data = response.data;
+        return Array.isArray(data) ? data : (data?.results || []);
+      } catch {
+        return [];
+      }
+    }
   },
 };
-
-
-
-
-

@@ -94,6 +94,7 @@ export default function Sidebar({ isOpen, onClose, navigation, role }: SidebarPr
     { label: 'Company Profile',   icon: OfficeBuildingIcon, screen: 'ProviderProfile' },
     { label: 'Manage Postings',   icon: BriefcaseIcon,      screen: 'ProviderRoot', params: { screen: 'Managed' } },
     { label: 'Applicants Queue',  icon: UserGroupIcon,      screen: 'ProviderRoot', params: { screen: 'Pipeline' } },
+    { label: 'Hiring Analytics',  icon: CalendarIcon,       screen: 'Analytics' },
     { label: 'Billing & Plans',   icon: CreditCardIcon,     screen: 'Billing' },
     { label: 'Account Settings',  icon: CogIcon,            screen: 'ProviderSettings' },
   ];

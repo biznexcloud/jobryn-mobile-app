@@ -1,0 +1,19 @@
+﻿
+LineNumber Line                    Context
+---------- ----                    -------
+      4282         credential_url:        
+      4956         linkedin_url:          
+      4961         github_url:            
+      4966         portfolio_url:         
+      5749         credential_url:        
+      6101         linkedin_url:          
+      6106         github_url:            
+      6111         portfolio_url:         
+      6215         url:                   
+      6227         repository_url:        
+      6492         recording_url:         
+      6809         url:                   
+      6821         repository_url:        
+      7134         recording_url:         
+
+

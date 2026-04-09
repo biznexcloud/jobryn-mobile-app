@@ -7,8 +7,11 @@ import {
   Send,
   Bookmark,
   MoreHorizontal,
-  Globe
+  Globe,
+  Heart,
+  Image as ImageIcon
 } from 'lucide-react-native';
+import { useAuthStore } from '../../store/authStore';
 import { Colors, Fonts } from '../../constants';
 import { timeAgo } from '../../utils';
 import { Post } from '../../types';
@@ -26,13 +29,18 @@ interface PostCardProps {
   onLikersPress?: () => void;
 }
 
-const INDIGO = '#4F46E5';
-const SOFT_GRAY = '#65676B';
+const FB_BLUE = '#1877F2';
+const FB_GRAY = '#65676B';
+const FB_DIVIDER = '#E4E6EB';
 
 export const PostCard = ({ post, onLike, onComment, onShare, onSave, onLikersPress }: PostCardProps) => {
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [liked, setLiked] = useState(post.is_liked || false);
+  const [saved, setSaved] = useState(post.is_saved || false);
+  const { token } = useAuthStore();
+  const [imageError, setImageError] = useState(false);
   const author = post.author;
+
+  const isShortText = (post.content?.length ?? 0) < 80 && !post.image;
 
   const handleLike = async () => {
     const newLiked = !liked;
@@ -50,7 +58,9 @@ export const PostCard = ({ post, onLike, onComment, onShare, onSave, onLikersPre
     setSaved(newSaved);
     onSave?.();
     try {
-      await SocialService.savePost(post.id);
+      if (newSaved) {
+        await SocialService.savePost(post.id);
+      }
     } catch (e) {
       console.warn('Save failed');
     }
@@ -71,73 +81,92 @@ export const PostCard = ({ post, onLike, onComment, onShare, onSave, onLikersPre
   };
 
   return (
-    <Box bg="white" mb={8} borderBottom={0.5} borderColor="#E5E7EB" shadow={0.1}>
+    <Box bg="white" mb={8} shadow={0.05} style={styles.card}>
       {/* Header */}
       <HStack p={12} items="center" justify="space-between">
         <HStack items="center" flex={1}>
-          <Avatar uri={author?.avatar} name={author?.name} size={42} />
-          <VStack ml={12} flex={1}>
-            <Text fontSize={15} fontWeight="800" color="#111827">{author?.name ?? 'User'}</Text>
+          <Avatar uri={author?.avatar} name={author?.name} size={40} />
+          <VStack ml={10} flex={1}>
+            <Text fontSize={15} fontWeight="700" color="#050505">{author?.name ?? 'User'}</Text>
             <HStack items="center">
-               <Text fontSize={12} fontWeight="600" color={SOFT_GRAY}>{timeAgo(post.postedAt)} · </Text>
-               <Globe size={11} color={SOFT_GRAY} />
+               <Text fontSize={12} color={FB_GRAY}>{timeAgo(post.postedAt)} · </Text>
+               <Globe size={11} color={FB_GRAY} />
             </HStack>
           </VStack>
         </HStack>
-        <TouchableOpacity style={{ padding: 8 }}>
-          <MoreHorizontal size={20} color={SOFT_GRAY} />
+        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <MoreHorizontal size={20} color={FB_GRAY} />
         </TouchableOpacity>
       </HStack>
 
       {/* Content */}
-      <Box px={12} pb={12}>
-        <Text fontSize={15} color="#111827" lineHeight={22}>{post.content}</Text>
+      <Box px={12} pb={post.image ? 12 : 16}>
+        <Text 
+          fontSize={isShortText ? 20 : 15} 
+          fontWeight={isShortText ? "500" : "400"}
+          color="#050505" 
+          lineHeight={isShortText ? 28 : 22}
+        >
+          {post.content}
+        </Text>
       </Box>
 
-      {/* Image */}
-      {post.image && (
-        <Image source={{ uri: post.image }} style={styles.postImage} resizeMode="cover" />
-      )}
+      {/* Image with Dummy Fallback */}
+      <View style={styles.imageContainer}>
+        <Image 
+          source={{ 
+            uri: (post.image && !imageError) 
+              ? post.image 
+              : `https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=800&auto=format&fit=crop` // Professional placeholder
+          }} 
+          style={styles.postImage} 
+          resizeMode="cover"
+          onError={() => setImageError(true)}
+        />
+      </View>
 
       {/* Stats Row */}
       <HStack px={12} py={10} justify="space-between" items="center">
-        <TouchableOpacity onPress={onLikersPress}>
+        <TouchableOpacity onPress={onLikersPress} activeOpacity={0.7}>
           <HStack items="center">
-            <Box bg={INDIGO} rounded={10} p={3}>
-              <ThumbsUp size={10} color="white" />
-            </Box>
-            <Text fontSize={12} fontWeight="600" color={SOFT_GRAY} ml={6}>{liked ? post.likes + 1 : post.likes}</Text>
+            {/* FB Style Stacked Icons */}
+            <HStack>
+               <Box bg={FB_BLUE} rounded={10} p={3} border={1.5} borderColor="white">
+                 <ThumbsUp size={10} color="white" fill="white" />
+               </Box>
+               <Box bg="#F3425F" rounded={10} p={3} border={1.5} borderColor="white" ml={-6}>
+                 <Heart size={10} color="white" fill="white" />
+               </Box>
+            </HStack>
+            <Text fontSize={13} color={FB_GRAY} ml={6}>
+               {liked ? (post.likes > 0 ? `You and ${post.likes} others` : 'You') : (post.likes || 0)}
+            </Text>
           </HStack>
         </TouchableOpacity>
+        
         <HStack space="md">
-          <Text fontSize={12} fontWeight="600" color={SOFT_GRAY}>{post.comments} comments</Text>
-          <Text fontSize={12} color={SOFT_GRAY}>·</Text>
-          <Text fontSize={12} fontWeight="600" color={SOFT_GRAY}>{post.reposts} shares</Text>
+          {post.comments > 0 && <Text fontSize={13} color={FB_GRAY}>{post.comments} comments</Text>}
+          {post.reposts > 0 && <Text fontSize={13} color={FB_GRAY}>{post.reposts} shares</Text>}
         </HStack>
       </HStack>
 
-      <Divider color="#E5E7EB" mx={12} height={0.5} />
+      <Divider color={FB_DIVIDER} mx={12} height={1} />
 
       {/* Action Bar */}
       <HStack px={4} py={2} justify="space-around">
         <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
-          <ThumbsUp size={20} color={liked ? INDIGO : SOFT_GRAY} fill={liked ? INDIGO : 'transparent'} />
-          <Text fontSize={13} fontWeight="800" color={liked ? INDIGO : SOFT_GRAY} ml={8}>Like</Text>
+          <ThumbsUp size={20} color={liked ? FB_BLUE : FB_GRAY} strokeWidth={liked ? 2.5 : 2} fill={liked ? 'transparent' : 'none'} />
+          <Text fontSize={13} fontWeight="600" color={liked ? FB_BLUE : FB_GRAY} ml={6}>Like</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionBtn} onPress={onComment}>
-          <MessageSquare size={20} color={SOFT_GRAY} />
-          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={8}>Comment</Text>
+          <MessageSquare size={20} color={FB_GRAY} strokeWidth={2} />
+          <Text fontSize={13} fontWeight="600" color={FB_GRAY} ml={6}>Comment</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-          <Repeat size={20} color={SOFT_GRAY} />
-          <Text fontSize={13} fontWeight="800" color={SOFT_GRAY} ml={8}>Share</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionBtn} onPress={handleSave}>
-          <Bookmark size={20} color={saved ? INDIGO : SOFT_GRAY} fill={saved ? INDIGO : 'transparent'} />
-          <Text fontSize={13} fontWeight="800" color={saved ? INDIGO : SOFT_GRAY} ml={8}>Save</Text>
+          <Repeat size={20} color={FB_GRAY} strokeWidth={2} />
+          <Text fontSize={13} fontWeight="600" color={FB_GRAY} ml={6}>Share</Text>
         </TouchableOpacity>
       </HStack>
     </Box>
@@ -145,8 +174,30 @@ export const PostCard = ({ post, onLike, onComment, onShare, onSave, onLikersPre
 };
 
 const styles = StyleSheet.create({
-  postImage: { width: '100%', height: 320, backgroundColor: '#F8FAFC' },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
+  card: {
+    borderRadius: 0,
+    elevation: 0,
+  },
+  imageContainer: {
+    width: '100%',
+    backgroundColor: '#F0F2F5',
+  },
+  postImage: { 
+    width: '100%', 
+    height: verticalScale(300),
+  },
+  imageErrorContainer: {
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtn: { 
+    flex: 1, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 10 
+  },
 });
 
 export default PostCard;

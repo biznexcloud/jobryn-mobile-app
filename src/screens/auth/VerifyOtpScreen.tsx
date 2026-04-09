@@ -17,6 +17,7 @@ const BLUE = '#0A66C2';
 
 export default function VerifyOtpScreen({ navigation, route }: any) {
   const { email, password } = route.params || {};
+  const cleanedEmail = email?.trim().toLowerCase();
   const login = useAuthStore((state: any) => state.login);
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,18 +34,18 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
     setError('');
 
     try {
-      await AuthService.verifyOtp(email, otp);
+      await AuthService.verifyOtp(cleanedEmail, otp);
 
       // Auto-login after OTP verification if we have credentials
       if (password) {
         try {
-          const resp = await AuthService.login(email, password);
+          const resp = await AuthService.login(cleanedEmail, password);
           const access   = typeof resp.token === 'string' ? resp.token : (resp.token?.access || resp.access);
           const rawRole  = resp.role || resp.user?.role;
           const targetRole = (rawRole === 'recruiter' || rawRole === 'job_provider')
             ? Roles.JOB_PROVIDER
             : Roles.JOB_SEEKER;
-          const userData = resp.user || { email, role: rawRole };
+          const userData = resp.user || { email: cleanedEmail, role: rawRole };
           // onboarded = false → triggers ProfileWizard for new users
           login(targetRole, access, userData, false);
           return;
@@ -53,7 +54,7 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
         }
       }
       // No password available — show the verified screen and let user sign in
-      navigation.navigate('Login');
+      navigation.navigate('Login', { email: cleanedEmail, password });
     } catch (err: any) {
       const apiError = err.response?.data?.msg || err.response?.data?.error || 'Invalid OTP. Please try again.';
       setError(apiError);

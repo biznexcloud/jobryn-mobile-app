@@ -65,6 +65,8 @@ export interface Post {
   comments: number;
   reposts: number;
   postedAt: string;
+  is_liked?: boolean;
+  is_saved?: boolean;
 }
 
 export interface Message {

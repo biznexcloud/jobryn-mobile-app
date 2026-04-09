@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import apiClient from '../../../axios';
+import { useAuthStore } from '../../store/authStore';
 
 /**
  * ─── Social & Feed Service ───────────────────────────────────────────────────
@@ -10,8 +12,57 @@ import apiClient from '../../../axios';
  *   - /api/v1/stories/stori-comments/  (comment)
  *   - /api/v1/stories/stori-views/     (view tracking)
  *   - /api/v1/posts/post/              (feed)
- * ─────────────────────────────────────────────────────────────────────────────
  */
+
+export const BASE_URL = 'https://backend.jobryn.com';
+export const API_BASE = `${BASE_URL}/api/v1`;
+
+const DEFAULT_AVATARS = [
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+]; // Root domain for media files
+
+/**
+ * Helper to ensure a URL is absolute. 
+ * Prepends BASE_URL if the path is relative (/media/...).
+ */
+const ensureFullUrl = (path: any): string => {
+  if (!path) return '';
+  
+  // Handle arrays
+  if (Array.isArray(path) && path.length > 0) {
+    return ensureFullUrl(path[0]);
+  }
+
+  // Handle nested objects
+  if (typeof path === 'object' && path !== null) {
+    const objPath = path.image || path.file || path.url || path.path || path.uri || path.link;
+    if (objPath) return ensureFullUrl(objPath);
+    return '';
+  }
+
+  if (typeof path !== 'string') return '';
+
+  // Handle absolute URLs (including local uris for preview)
+  if (path.startsWith('http') || path.startsWith('file://') || path.startsWith('content://') || path.startsWith('data:')) {
+    return path;
+  }
+
+  if (path === 'null' || path === 'undefined' || path === 'None') return '';
+
+  // Handle protocol-relative URLs
+  if (path.startsWith('//')) {
+    return `https:${path}`;
+  }
+
+  // Handle relative paths
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (cleanPath === '/' || cleanPath === '/media/' || cleanPath === '/media/null' || cleanPath === '/images/null' || cleanPath.endsWith('/None')) return '';
+  
+  return `${BASE_URL}${cleanPath}`;
+};
 
 export interface Story {
   id: string | number;
@@ -31,17 +82,36 @@ export interface Story {
  * The backend returns: { id, author, caption, images, visibility, is_active, views_count, likes_count, author_email, ... }
  * The UI expects:       { id, image, user: { name, avatar }, caption, ... }
  */
+/**
+ * Internal helper to robustly extract author identity from inconsistent API responses.
+ * Attempts to find name and avatar in author, user, creator, owner, or top-level properties.
+ */
+const extractAuthor = (raw: any, id?: string) => {
+  // Try to reconstruct a readable name from email if name is missing
+  const emailPrefix = raw.author_email?.split('@')[0] || '';
+  const fallbackName = emailPrefix 
+    ? emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)
+    : `User ${id || ''}`;
+
+  return {
+    id: id || String(raw.author || ''),
+    name: raw.author_name || fallbackName,
+    avatar: raw.author_profile_image || raw.author_avatar || DEFAULT_AVATARS[Number(id || 0) % 4],
+    role: raw.author_role || 'Member'
+  };
+};
+
+/**
+ * Normalize a raw API story object into the shape our UI components expect.
+ */
 const normalizeStory = (raw: any): any => {
+  const author = extractAuthor(raw, String(raw.id));
   return {
     ...raw,
-    // Map 'images' field → 'image' for the UI
-    image: raw.images || raw.image || '',
-    // Build a user object from whatever the backend provides
-    user: raw.user || {
-      id: raw.author,
-      name: raw.author_name || raw.author_email || 'User',
-      avatar: raw.author_avatar || `https://i.pravatar.cc/150?u=${raw.author || raw.id}`,
-    },
+    image: ensureFullUrl(raw.images || raw.image || raw.media || raw.file || raw.image_url || raw.file_url || raw.attachment),
+    user: author,
+    user_name: author.name,
+    user_avatar: author.avatar,
     caption: raw.caption || '',
     created_at: raw.created_at || 'Just now',
   };
@@ -57,12 +127,7 @@ const normalizeComment = (raw: any): any => {
     text: raw.content || raw.text || '',
     time: raw.created_at || 'Just now',
     likes: raw.likes_count ?? raw.likes ?? 0,
-    author: raw.author || {
-      id: raw.user?.id || raw.author_id,
-      name: raw.user?.name || raw.author_name || raw.author_email || 'User',
-      avatar: raw.user?.avatar || raw.author_avatar || `https://i.pravatar.cc/150?u=${raw.id}`,
-      role: raw.user?.role || raw.author_role || 'Member'
-    }
+    author: extractAuthor(raw, String(raw.author_id || raw.id))
   };
 };
 
@@ -72,26 +137,40 @@ const normalizeComment = (raw: any): any => {
 const normalizePost = (raw: any): any => {
   return {
     ...raw,
-    // Ensure id is a string
     id: String(raw.id),
-    // Map content safely
     content: raw.content || '',
-    image: raw.image || null,
-    video: raw.video || null,
+    image: (() => {
+      const candidates = [
+        raw.image, raw.images, raw.media, raw.file, 
+        raw.image_url, raw.file_url, raw.post_media, 
+        raw.attachment, raw.attachment_url,
+        raw.picture, raw.photo, raw.thumbnail, 
+        raw.featured_image, raw.preview_image,
+        raw.file_path, raw.media_path, raw.post_image, raw.post_media,
+        // Dig even deeper if it's an array or object in a weird key
+        raw.meta?.image, raw.data?.image, raw.content_media,
+        raw.image_file, raw.attachment_file
+      ];
+      for (const c of candidates) {
+         const resolved = ensureFullUrl(c);
+         if (resolved) return resolved;
+      }
+      return '';
+    })(),
+    video: raw.video ? ensureFullUrl(raw.video) : null,
     likes: raw.likes_count ?? raw.likes ?? 0,
     comments_count: raw.comments_count ?? (Array.isArray(raw.comments) ? raw.comments.length : 0),
+    comments: raw.comments_count ?? (Array.isArray(raw.comments) ? raw.comments.length : 0),
     reposts: raw.shares_count ?? raw.shares ?? 0,
     is_liked: String(raw.is_liked) === 'true',
+    is_liked_by_me: String(raw.is_liked) === 'true',
     is_saved: Boolean(raw.is_saved),
     postedAt: raw.created_at || 'Just now',
-    author: raw.author || {
-      id: raw.user?.id || raw.author_id,
-      name: raw.user?.name || raw.author_name || raw.author_email || 'User',
-      avatar: raw.user?.avatar || raw.author_avatar || `https://i.pravatar.cc/150?u=${raw.id}`,
-      headline: raw.user?.role || raw.author_role || 'Member'
+    author: extractAuthor(raw),
+    get authorId() {
+      return this.author.id;
     },
-    // Recursively normalize comments if they exist in the post object
-    comments: Array.isArray(raw.comments) ? raw.comments.map(normalizeComment) : []
+    comments_list: Array.isArray(raw.comments) ? raw.comments.map(normalizeComment) : []
   };
 };
 
@@ -144,9 +223,7 @@ export const SocialService = {
         formData.append('visibility', data.visibility || 'public');
         formData.append('is_active', String(data.is_active ?? true));
         
-        response = await apiClient.post('/stories/stori/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        response = await apiClient.post('/stories/stori/', formData);
       } else {
         response = await apiClient.post('/stories/stori/', {
           images: data.images,
@@ -198,22 +275,62 @@ export const SocialService = {
       let response;
       if (isLocalFile) {
         const formData = new FormData();
-        const filename = data.image?.split('/').pop() || 'post.jpg';
-        formData.append('content', data.content);
-        formData.append('image', {
-          uri: data.image,
-          name: filename,
-          type: 'image/jpeg',
-        } as any);
-        if (data.visibility) formData.append('visibility', data.visibility);
+        const uri = data.image!;
+        const filename = uri.split('/').pop() || 'upload.jpg';
+        const extension = filename.split('.').pop()?.toLowerCase() || 'jpg';
         
-        response = await apiClient.post('/posts/post/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        // Map common extensions to full MIME types to satisfy Android native layer
+        const mimeMap: Record<string, string> = {
+          'jpg': 'image/jpeg',
+          'jpeg': 'image/jpeg',
+          'png': 'image/png',
+          'gif': 'image/gif',
+          'webp': 'image/webp'
+        };
+        const type = mimeMap[extension] || 'image/jpeg';
+        
+        const finalUri = Platform.OS === 'android' ? uri : uri.replace('file://', '');
+        
+        console.log('--- [DEBUG] Uploading Image:', { uri: finalUri, type, filename });
+
+        formData.append('content', data.content);
+        
+        // Single field upload to avoid Network Error in RN 0.83
+        formData.append('image', {
+          uri: finalUri,
+          name: filename,
+          type: type,
+        } as any);
+
+        if (data.shared_post) formData.append('shared_post', String(data.shared_post));
+        
+        console.log('--- [DEBUG] Uploading Post with image file via FETCH BYPASS');
+        
+        // Final connectivity bypass: Use native fetch for multipart to avoid Axios/Android boundary conflicts
+        const token = useAuthStore.getState().token;
+        const fetchResponse = await fetch(`${BASE_URL}/api/v1/posts/post/`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            // Do NOT set Content-Type; the native fetch will set boundary automatically
+          },
         });
+
+        if (!fetchResponse.ok) {
+          const errorData = await fetchResponse.json().catch(() => ({}));
+          console.error('[SocialService] Fetch upload failed:', errorData);
+          throw new Error(errorData.detail || 'Upload failed');
+        }
+
+        const responseData = await fetchResponse.json();
+        console.log('--- [DEBUG] Post creation SUCCESS via Fetch');
+        return responseData;
       } else {
-        response = await apiClient.post('/posts/post/', data);
+        const response = await apiClient.post('/posts/post/', data);
+        return response.data;
       }
-      return response.data;
     } catch (e: any) {
       console.error('[SocialService] createPost failed:', e.message);
       throw e;
@@ -249,8 +366,14 @@ export const SocialService = {
    * Like a post.
    */
   likePost: async (postId: string | number) => {
-    const response = await apiClient.post(`/posts/post/${postId}/like/`);
-    return response.data;
+    try {
+      const response = await apiClient.post(`/posts/post/${postId}/like/`);
+      return response.data;
+    } catch (e: any) {
+      // If backend fails with 500 (out of range) or 403, we still want to resolve locally
+      console.warn('Like action failed on server:', e.message);
+      return { success: false };
+    }
   },
 
   /**
@@ -273,7 +396,12 @@ export const SocialService = {
    * Add a comment to a post.
    */
   addComment: async (postId: string | number, content: string) => {
-    const response = await apiClient.post(`/posts/comments/`, { post: postId, content });
+    // Explicitly cast to Number for the 'post' ForeignKey field to prevent DB IntegrityErrors
+    const numericPostId = Number(postId);
+    const response = await apiClient.post(`/posts/comments/`, { 
+      post: numericPostId, 
+      content 
+    });
     return response.data;
   },
 

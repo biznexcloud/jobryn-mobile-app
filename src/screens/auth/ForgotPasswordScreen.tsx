@@ -34,11 +34,12 @@ export default function ForgotPasswordScreen({ navigation }: any) {
 
   const handleReset = async () => {
     setError('');
-    if (!isValidEmail(email)) { setError('Please enter a valid email.'); return; }
+    const cleanedEmail = email.trim().toLowerCase();
+    if (!isValidEmail(cleanedEmail)) { setError('Please enter a valid email.'); return; }
     
     setLoading(true);
     try {
-      await AuthService.forgotPassword(email.trim());
+      await AuthService.forgotPassword(cleanedEmail);
       setStep(2);
     } catch (err: any) {
       const apiError = err.response?.data?.msg || err.response?.data?.error || 'Failed to send reset code. Please check your email and try again.';
@@ -55,8 +56,9 @@ export default function ForgotPasswordScreen({ navigation }: any) {
     if (newPassword !== confirmPassword) { setError('Passwords do not match.'); return; }
 
     setLoading(true);
+    const cleanedEmail = email.trim().toLowerCase();
     try {
-      await AuthService.resetPassword(email.trim(), otp, newPassword);
+      await AuthService.resetPassword(cleanedEmail, otp, newPassword);
       setStep(3); // Success Screen
     } catch (err: any) {
       const apiError = err.response?.data?.msg || err.response?.data?.error || 'Failed to reset password. Please check your code and try again.';
@@ -129,6 +131,8 @@ export default function ForgotPasswordScreen({ navigation }: any) {
                      placeholder="6-digit code" 
                      value={otp} 
                      onChangeText={setOtp}
+                     autoCapitalize="none"
+                     autoCorrect={false}
                      keyboardType="number-pad"
                      bg="#F9FAFB"
                   />
@@ -139,6 +143,8 @@ export default function ForgotPasswordScreen({ navigation }: any) {
                      value={newPassword} 
                      onChangeText={setNewPassword}
                      secureTextEntry={!showPw}
+                     autoCapitalize="none"
+                     autoCorrect={false}
                      bg="#F9FAFB"
                   />
 
@@ -148,6 +154,8 @@ export default function ForgotPasswordScreen({ navigation }: any) {
                      value={confirmPassword} 
                      onChangeText={setConfirmPassword}
                      secureTextEntry={!showPw}
+                     autoCapitalize="none"
+                     autoCorrect={false}
                      bg="#F9FAFB"
                   />
                </VStack>
@@ -177,11 +185,11 @@ export default function ForgotPasswordScreen({ navigation }: any) {
                <Text fontSize={16} color="#666666" textAlign="center" mt={12} px={10}>
                   Your password has been successfully updated. You can now use your new credentials to sign in.
                </Text>
-               <Button 
-                  label="Go to Sign In" 
-                  onPress={() => navigation.navigate('Login')}
-                  style={{ backgroundColor: BLUE, width: '100%', height: 52, borderRadius: 26, marginTop: 40 }}
-               />
+                <Button 
+                   label="Go to Sign In" 
+                   onPress={() => navigation.navigate('Login', { email })}
+                   style={{ backgroundColor: BLUE, width: '100%', height: 52, borderRadius: 26, marginTop: 40 }}
+                />
             </VStack>
          )}
       </ScrollView>

@@ -51,19 +51,8 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
   const [showSentFeedback, setShowSentFeedback] = useState('');
   const progress = useRef(new RNAnimated.Value(0)).current;
 
-  const raw = stories[currentIndex] || {};
-  const currentStory = {
-    id: raw.id || 0,
-    image: raw.image || raw.images || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800',
-    user: {
-      name: raw.user?.name || raw.user_name || raw.author_email || 'User',
-      avatar: raw.user?.avatar || raw.user_avatar || `https://i.pravatar.cc/150?u=${raw.id}`,
-    },
-    caption: raw.caption || '',
-    created_at: raw.created_at || '',
-    views_count: raw.views_count || 0,
-    likes_count: raw.likes_count || 0,
-  };
+  // The stories passed here are already normalized by SocialService.getStories
+  const currentStory = stories[currentIndex] || {};
 
   useEffect(() => {
     if (reactionMode) {
@@ -180,10 +169,10 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
 
          <HStack mt={16} items="center" justify="space-between">
             <HStack items="center">
-               <Avatar source={{ uri: currentStory.user.avatar }} size={36} />
+               <Avatar source={{ uri: currentStory.user?.avatar }} size={36} />
                <VStack ml={10}>
-                  <Text fontSize={14} fontWeight="800" color="white" style={styles.textShadow}>{currentStory.user.name}</Text>
-                  <Text fontSize={11} color="rgba(255,255,255,0.8)" style={styles.textShadow}>{currentStory.created_at || '2h'}</Text>
+                  <Text fontSize={14} fontWeight="800" color="white" style={styles.textShadow}>{currentStory.user?.name}</Text>
+                  <Text fontSize={11} color="rgba(255,255,255,0.8)" style={styles.textShadow}>{currentStory.created_at || 'Just now'}</Text>
                </VStack>
             </HStack>
             <HStack space="md" items="center">
