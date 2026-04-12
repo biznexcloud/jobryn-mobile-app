@@ -48,7 +48,7 @@ export default function ProviderCreateSocialPostScreen({ navigation }: any) {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
@@ -67,13 +67,15 @@ export default function ProviderCreateSocialPostScreen({ navigation }: any) {
     setLoading(true);
     try {
       await SocialService.createPost({ 
-        content, 
+        content: content.trim() || ' ',  // Backend requires non-blank content
         image,
         visibility: 'public',
       });
       Toast.show({ type: 'success', text1: 'Post published' });
       navigation.goBack();
-    } catch (e) {
+    } catch (e: any) {
+      const errorMessage = e?.message || JSON.stringify(e?.response?.data);
+      Alert.alert('Post Failed', `Could not publish your post.\n\n${errorMessage}`);
       setLoading(false);
     }
   };

@@ -14,17 +14,17 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ChevronLeftIcon,
-  CogIcon,
-  CameraIcon,
-  PencilIcon,
-  PlusIcon,
-  LocationMarkerIcon,
-  UsersIcon,
-  BriefcaseIcon,
-  LinkIcon,
-  GlobeAltIcon,
-} from 'react-native-heroicons/outline';
+  ChevronLeft,
+  Settings,
+  Camera,
+  Pencil,
+  Plus,
+  MapPin,
+  Users,
+  Briefcase,
+  Link,
+  Globe,
+} from 'lucide-react-native';
 import { useAuthStore } from '../../store/authStore';
 import { JobService } from '../../services/api/jobs';
 import { ProfileService } from '../../services/api/profile';
@@ -35,14 +35,6 @@ const FB_GRAY = '#F0F2F5';
 const GRAY_TEXT = '#65676B';
 const { width } = Dimensions.get('window');
 
-const DUMMY_MEDIA = [
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=400',
-  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=400',
-];
 
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -63,7 +55,7 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: type === 'logo' ? [1, 1] : [16, 9],
       quality: 0.8,
@@ -114,12 +106,12 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
          <HStack px={16} justify="space-between" items="center">
             <HStack items="center">
                <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
-                  <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
+                  <ChevronLeft size={22} color="black" strokeWidth={2.5} />
                </TouchableOpacity>
                <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Company Profile</Text>
             </HStack>
             <TouchableOpacity style={styles.headerIcon} onPress={() => navigation?.navigate('ProviderSettings')}>
-               <CogIcon size={20} color="black" />
+               <Settings size={20} color="black" />
             </TouchableOpacity>
          </HStack>
       </Box>
@@ -133,7 +125,7 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
               onPress={() => pickImage('cover')} 
               style={styles.coverCameraBtn}
            >
-              <CameraIcon size={18} color="black" />
+              <Camera size={18} color="black" />
            </TouchableOpacity>
         </Box>
 
@@ -149,7 +141,7 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
                     onPress={() => pickImage('logo')} 
                     style={styles.logoCameraBtn}
                  >
-                    <CameraIcon size={14} color="black" />
+                    <Camera size={14} color="black" />
                  </TouchableOpacity>
               </Box>
            </Box>
@@ -174,7 +166,7 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={12}>
               <Text fontSize={17} fontWeight="700" color="#111827">About</Text>
-              <TouchableOpacity><PencilIcon size={18} color={GRAY_TEXT} /></TouchableOpacity>
+              <TouchableOpacity><Pencil size={18} color={GRAY_TEXT} /></TouchableOpacity>
            </HStack>
            <Text fontSize={15} color="#4B5563" lineHeight={22}>
               {profile?.description || profile?.bio || profile?.about || 'No company bio provided yet. Add a few sentences to attract candidates.'}
@@ -186,57 +178,66 @@ export default function ProviderProfileScreen({ navigation }: { navigation?: any
            <Text fontSize={17} fontWeight="700" color="#111827" mb={16}>Details</Text>
            <VStack space="md">
                <HStack items="center" space="md">
-                  <GlobeAltIcon size={18} color="#9BA3AF" />
+                  <Globe size={18} color="#9BA3AF" />
                   <Text fontSize={14} color={FB_BLUE} fontWeight="700">{profile?.website || 'nexus.com'}</Text>
                </HStack>
                <HStack items="center" space="md">
-                  <UsersIcon size={18} color="#9BA3AF" />
+                  <Users size={18} color="#9BA3AF" />
                   <Text fontSize={14} color="#111827">{profile?.company_size || '1–10'} employees</Text>
                </HStack>
                <HStack items="center" space="md">
-                  <LocationMarkerIcon size={18} color="#9BA3AF" />
+                  <MapPin size={18} color="#9BA3AF" />
                   <Text fontSize={14} color="#111827">{profile?.location || 'Kathmandu, NP'}</Text>
                </HStack>
            </VStack>
         </Box>
 
         {/* Media Gallery */}
-        <Box bg="white" mt={8} p={16}>
-           <HStack justify="space-between" items="center" mb={16}>
-              <VStack>
-                 <Text fontSize={17} fontWeight="700" color="#111827">Gallery</Text>
-                 <Text fontSize={12} color={GRAY_TEXT} mt={2}>Life at Nexus Corp</Text>
-              </VStack>
-              <TouchableOpacity><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>
-           </HStack>
-           <HStack flexWrap="wrap" space="xs">
-              {DUMMY_MEDIA.map((uri, i) => (
-                 <TouchableOpacity key={i} style={styles.mediaBox}>
-                    <Image source={{ uri }} style={styles.galleryImage} />
-                 </TouchableOpacity>
-              ))}
-           </HStack>
-        </Box>
+        {(profile?.gallery_images && profile.gallery_images.length > 0) && (
+          <Box bg="white" mt={8} p={16}>
+             <HStack justify="space-between" items="center" mb={16}>
+                <VStack>
+                   <Text fontSize={17} fontWeight="700" color="#111827">Gallery</Text>
+                   <Text fontSize={12} color={GRAY_TEXT} mt={2}>Life at {profile?.company_name || 'the company'}</Text>
+                </VStack>
+                <TouchableOpacity><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>
+             </HStack>
+             <HStack flexWrap="wrap" space="xs">
+                {profile.gallery_images.map((uri: string, i: number) => (
+                   <TouchableOpacity key={i} style={styles.mediaBox}>
+                      <Image source={{ uri }} style={styles.galleryImage} />
+                   </TouchableOpacity>
+                ))}
+             </HStack>
+          </Box>
+        )}
 
         {/* Active Jobs */}
         <Box bg="white" mt={8} p={16}>
            <HStack justify="space-between" items="center" mb={16}>
               <Text fontSize={17} fontWeight="700" color="#111827">Active Jobs</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>
+              {activeJobs.length > 0 && <TouchableOpacity onPress={() => navigation.navigate('JobPostings')}><Text fontSize={14} fontWeight="700" color={FB_BLUE}>See all</Text></TouchableOpacity>}
            </HStack>
-           {activeJobs.map((job, idx) => (
+           {activeJobs.length > 0 ? activeJobs.map((job, idx) => (
               <TouchableOpacity key={idx} style={styles.jobItem} onPress={() => navigation.navigate('JobPostings')}>
                  <HStack items="center" space="md">
                     <Box w={40} h={40} bg="#F3F4F6" rounded={8} items="center" justify="center">
-                       <BriefcaseIcon size={20} color="#6B7280" />
+                       <Briefcase size={20} color="#6B7280" />
                     </Box>
                     <VStack flex={1}>
                        <Text fontSize={15} fontWeight="700" color="#111827">{job.title}</Text>
-                       <Text fontSize={13} color={GRAY_TEXT}>{job.location} • {job.created_at}</Text>
+                       <Text fontSize={13} color={GRAY_TEXT}>{job.location || 'Remote'} • {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'}</Text>
                     </VStack>
                  </HStack>
               </TouchableOpacity>
-           ))}
+           )) : (
+              <Box p={20} items="center">
+                 <Text fontSize={14} color={GRAY_TEXT}>No active jobs posted yet.</Text>
+                 <TouchableOpacity onPress={() => navigation.navigate('PostJob')} style={{ marginTop: 12 }}>
+                    <Text fontSize={14} fontWeight="700" color={FB_BLUE}>Post a Job</Text>
+                 </TouchableOpacity>
+              </Box>
+           )}
         </Box>
 
         <Box py={40} items="center">

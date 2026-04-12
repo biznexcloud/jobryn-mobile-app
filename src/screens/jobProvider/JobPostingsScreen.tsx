@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -8,22 +8,11 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ChevronLeft,
-  Plus,
-  Briefcase,
-  Pencil,
-  Trash2,
-  MapPin,
-  DollarSign,
-  Eye,
-  Users,
-  ChevronRight,
-} from 'lucide-react-native';
 import { JobService } from '../../services/api/jobs';
-import { ScreenWrapper, Text, Box, VStack, HStack, Divider } from '../../components/ui';
-import { moderateScale } from '../../utils/responsive';
+import { ScreenWrapper, Text, Box, VStack, HStack } from '../../components/ui';
+import { Briefcase, Eye, Users, Pencil, Trash2, ChevronLeft, Plus } from 'lucide-react-native';
 
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
@@ -35,29 +24,26 @@ export default function JobPostingsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
 
-  const fetchJobs = async () => {
-    const dummyJobs = [
-      { id: 1, title: 'Senior Protocol Engineer', location: 'Remote', salary_min: 120000, salary_max: 150000, applicant_count: 24, status: 'Active', views: 842 },
-      { id: 2, title: 'UX/UI Design Lead', location: 'Hybrid', salary_min: 90000, salary_max: 110000, applicant_count: 12, status: 'Closed', views: 421 },
-      { id: 3, title: 'Backend Architect', location: 'Kathmandu, NP', salary_min: 80000, salary_max: 100000, applicant_count: 8, status: 'Active', views: 312 },
-    ];
+  const fetchJobs = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const data = await JobService.getRecruiterJobs();
-      if (data?.results && data.results.length > 0) {
-        setJobs(data.results);
-      } else {
-        setJobs(dummyJobs);
-      }
+      setJobs(data?.results || []);
     } catch (e) {
-      setJobs(dummyJobs);
+      console.warn('Failed to fetch recruiter jobs', e);
+      setJobs([]);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchJobs(); }, []);
-  const onRefresh = () => { setRefreshing(true); fetchJobs(); };
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobs(jobs.length === 0);
+    }, [fetchJobs, jobs.length])
+  );
+  const onRefresh = () => { setRefreshing(true); fetchJobs(false); };
 
   const handleDelete = (job: any) => {
     Alert.alert(
@@ -68,8 +54,12 @@ export default function JobPostingsScreen({ navigation }: any) {
         {
           text: 'Delete', style: 'destructive',
           onPress: async () => {
-             // Mock delete
-             setJobs(prev => prev.filter(j => j.id !== job.id));
+             try {
+               await JobService.deleteJob(job.id);
+               setJobs(prev => prev.filter(j => j.id !== job.id));
+             } catch (e) {
+               Alert.alert('Error', 'Failed to delete job.');
+             }
           }
         }
       ]
@@ -92,20 +82,22 @@ export default function JobPostingsScreen({ navigation }: any) {
               <Text fontSize={13} color={GRAY_TEXT} mt={2}>{job.location || 'Remote'}</Text>
            </VStack>
         </HStack>
-        <Box bg={job.status === 'Active' ? '#EBFDF5' : '#F9FAFB'} px={10} py={4} rounded={20}>
-           <Text fontSize={11} fontWeight="700" color={job.status === 'Active' ? '#10B981' : '#9CA3AF'}>{job.status}</Text>
+        <Box bg={job.is_active ? '#EBFDF5' : '#F9FAFB'} px={10} py={4} rounded={20}>
+           <Text fontSize={11} fontWeight="700" color={job.is_active ? '#10B981' : '#9CA3AF'}>
+             {job.is_active ? 'Active' : 'Closed'}
+           </Text>
         </Box>
       </HStack>
 
       <HStack space="md" mb={16}>
-         <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
+          <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
             <Users size={14} color="#4B5563" />
-            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.applicant_count || 0} applicants</Text>
-         </Box>
-         <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
+            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.applications_count || job.applicant_count || 0} applicants</Text>
+          </Box>
+          <Box bg="#F9FAFB" px={10} py={6} rounded={8} items="center" style={{ flexDirection: 'row' }}>
             <Eye size={14} color="#4B5563" />
-            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.views || 0} views</Text>
-         </Box>
+            <Text fontSize={12} fontWeight="600" color="#4B5563" ml={6}>{job.views_count || job.views || 0} views</Text>
+          </Box>
       </HStack>
 
       <Box h={1} bg="#F3F4F6" mb={16} />

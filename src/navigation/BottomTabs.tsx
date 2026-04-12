@@ -35,6 +35,7 @@ import ProviderDashboard from '../screens/jobProvider/DashboardScreen';
 import ApplicantsScreen from '../screens/jobProvider/ApplicantsScreen';
 import PostJobScreen from '../screens/jobProvider/PostJobScreen';
 import JobPostingsScreen from '../screens/jobProvider/JobPostingsScreen';
+import ProviderNetworkScreen from '../screens/jobProvider/ProviderNetworkScreen';
 
 export function SeekerTabs() {
   const insets = useSafeAreaInsets();
@@ -177,10 +178,10 @@ export function ProviderTabs() {
         />
 
         <Tab.Screen
-          name="Pipeline"
-          component={ApplicantsScreen}
+          name="Network"
+          component={ProviderNetworkScreen}
           options={{
-            tabBarLabel: 'Pipeline',
+            tabBarLabel: 'My Network',
             tabBarIcon: ({ focused, color, size }) =>
               focused
                 ? <UsersIconSolid size={size} color={color} />
@@ -189,14 +190,27 @@ export function ProviderTabs() {
         />
 
         <Tab.Screen
-          name="Post"
-          component={PostJobScreen}
+          name="Pipeline"
+          component={ApplicantsScreen}
           options={{
-            tabBarLabel: 'Post Job',
+            tabBarLabel: 'Pipeline',
             tabBarIcon: ({ focused, color, size }) =>
               focused
-                ? <PlusIconSolid size={size} color={color} />
-                : <PlusIcon size={size} color={color} />,
+                ? <BookmarkIconSolid size={size} color={color} />
+                : <BookmarkIcon size={size} color={color} />,
+          }}
+        />
+
+        <Tab.Screen
+          name="Meetings"
+          component={MeetingsScreen}
+          initialParams={{ role: 'jobProvider' }}
+          options={{
+            tabBarLabel: 'Meetings',
+            tabBarIcon: ({ focused, color, size }) =>
+              focused
+                ? <BellIconSolid size={size} color={color} />
+                : <BellIcon size={size} color={color} />,
           }}
         />
 

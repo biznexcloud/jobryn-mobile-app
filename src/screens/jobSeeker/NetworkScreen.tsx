@@ -117,9 +117,9 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
           !dismissedRef.current.has(String(s.id)) &&
           String(s.id) !== String(user?.id)
       );
-      setSuggestions(filtered.length > 0 ? filtered : MOCK_NETWORK_SUGGESTIONS);
+      setSuggestions(filtered);
     } catch {
-      setSuggestions(MOCK_NETWORK_SUGGESTIONS);
+      setSuggestions([]);
     }
   }, [user?.id]);
 
@@ -251,10 +251,15 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
 
   /** Extract a display name from an invitation record. */
   const getInvitationName = (item: any): string => {
-    if (item.follower_name) return item.follower_name;
-    if (item.follower_email) return item.follower_email.split('@')[0];
-    if (item.sender_name) return item.sender_name;
-    return 'Someone';
+    // Favor the refined mapping from ConnectionService or search deeper
+    return (
+      item.follower_name || 
+      item.sender_name || 
+      item.sender_detail?.full_name || 
+      item.sender_detail?.name ||
+      item.follower_email?.split('@')[0] || 
+      'Member'
+    );
   };
 
   const getInvitationSubtitle = (item: any): string =>
@@ -265,22 +270,29 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
   const getInvitationAvatar = (item: any, idx: number): string =>
     item.follower_avatar ||
     item.sender_avatar ||
+    item.sender_detail?.profile_picture ||
     `https://i.pravatar.cc/150?u=inv_${item.id || idx}`;
 
   const getSuggestionName = (item: any): string =>
+    item.user_detail?.name ||
+    item.full_name ||
     item.name ||
-    (item.user?.name) ||
-    (item.following_email ? item.following_email.split('@')[0] : 'User');
+    item.user?.name ||
+    (item.first_name ? `${item.first_name} ${item.last_name || ''}`.trim() : null) ||
+    (item.email || item.following_email || '').split('@')[0] || 
+    'Member';
 
   const getSuggestionRole = (item: any): string =>
     item.role || item.job_title || item.headline || 'Professional';
 
   const getSuggestionAvatar = (item: any): string =>
-    item.avatar ||
     item.profile_picture ||
-    `https://i.pravatar.cc/150?u=sug_${item.id}`;
+    item.avatar ||
+    item.user_detail?.profile_picture ||
+    `https://i.pravatar.cc/150?u=tsug_${item.id}`;
 
   const getSuggestionBanner = (item: any): string =>
+    item.cover_photo ||
     item.banner ||
     item.cover_image ||
     'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=400';
@@ -361,7 +373,7 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
         <Box bg="white" mb={8} borderBottom={1} borderColor="#E5E7EB">
           <HStack justify="space-between" items="center" p={16}>
             <HStack items="center">
-              <Text fontSize={14} fontWeight="800" color="#65676B">
+              <Text fontSize={16} fontWeight="800" color="#1c1e21">
                 Invitations
               </Text>
               {invitationCount > 0 && (
@@ -371,9 +383,14 @@ export default function NetworkScreen({ navigation }: { navigation?: any }) {
                   </Text>
                 </Box>
               )}
+              {/* Live Sync Status */}
+              <HStack items="center" bg="#ECFDF5" px={8} py={2} rounded={12} ml={12}>
+                <Box w={6} h={6} rounded={3} bg="#10B981" mr={6} />
+                <Text fontSize={10} fontWeight="700" color="#059669">LIVE SYNC</Text>
+              </HStack>
             </HStack>
             <TouchableOpacity onPress={onRefresh}>
-              <Text fontSize={14} fontWeight="800" color={BLUE}>Refresh</Text>
+              <Text fontSize={14} fontWeight="800" color={BLUE}>Manage</Text>
             </TouchableOpacity>
           </HStack>
 

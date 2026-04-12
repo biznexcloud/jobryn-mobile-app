@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, HStack, VStack, Box, Divider } from '../../components/ui';
-import { ChevronLeft as ChevronLeftIcon, BarChart2 as BarChart2Icon, Users as UsersIcon, Briefcase as BriefcaseIcon, TrendingUp as TrendingUpIcon } from 'lucide-react-native';
+import { ChevronLeft as ChevronLeftIcon, BarChart2 as BarChart2Icon, Users as UsersIcon, Briefcase as BriefcaseIcon, TrendingUp as TrendingUpIcon, Eye as EyeIcon, PieChart as PieChartIcon } from 'lucide-react-native';
 import { JobService } from '../../services/api/jobs';
 import { moderateScale, screenWidth } from '../../utils/responsive';
 
@@ -23,6 +23,8 @@ export default function AnalyticsScreen({ navigation }: { navigation: any }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [totalJobsCount, setTotalJobsCount] = useState(0);
+  const [totalAppsCount, setTotalAppsCount] = useState(0);
   const [applications, setApplications] = useState<any[]>([]);
 
   const fetchData = async () => {
@@ -32,7 +34,9 @@ export default function AnalyticsScreen({ navigation }: { navigation: any }) {
         JobService.getRecruiterApplications(),
       ]);
       setJobs(jobsData?.results || []);
+      setTotalJobsCount(jobsData?.count || (jobsData?.results?.length || 0));
       setApplications(appsData?.results || []);
+      setTotalAppsCount(appsData?.count || (appsData?.results?.length || 0));
     } catch (e) {
       console.warn('Analytics fetch failed', e);
     } finally {
@@ -44,17 +48,19 @@ export default function AnalyticsScreen({ navigation }: { navigation: any }) {
   useEffect(() => { fetchData(); }, []);
   const onRefresh = () => { setRefreshing(true); fetchData(); };
 
-  const totalJobs = jobs.length;
+  const totalJobs = totalJobsCount;
   const activeJobs = jobs.filter(j => j.status?.toLowerCase() === 'active').length || totalJobs;
-  const totalApps = applications.length;
+  const totalApps = totalAppsCount;
   const shortlisted = applications.filter(a => a.status === 'screening').length;
   const hired = applications.filter(a => a.status === 'hired').length;
   const interviews = applications.filter(a => ['online_meeting', 'onsite_meeting'].includes(a.status)).length;
+  const totalViews = jobs.reduce((acc, job) => acc + (job.views_count || 0), 0);
+  const conversionRate = totalViews > 0 ? ((totalApps / totalViews) * 100).toFixed(1) : '0';
 
   const METRICS = [
-    { label: 'Active Jobs', value: activeJobs.toString(), icon: BriefcaseIcon, color: '#EBF5FF', iconColor: FB_BLUE },
+    { label: 'Total Views', value: totalViews.toLocaleString(), icon: EyeIcon, color: '#F0F9FF', iconColor: '#0EA5E9' },
     { label: 'Applications', value: totalApps.toString(), icon: UsersIcon, color: '#E6FFFA', iconColor: '#319795' },
-    { label: 'Interviews', value: interviews.toString(), icon: TrendingUpIcon, color: '#FFF5F5', iconColor: '#E53E3E' },
+    { label: 'Conversion', value: `${conversionRate}%`, icon: PieChartIcon, color: '#FFF7ED', iconColor: '#F97316' },
     { label: 'Success Hires', value: hired.toString(), icon: BarChart2Icon, color: '#FAF5FF', iconColor: '#805AD5' },
   ];
 
@@ -134,7 +140,7 @@ export default function AnalyticsScreen({ navigation }: { navigation: any }) {
                 <HStack py={12} items="center" justify="space-between" borderBottom={i < 2 ? 1 : 0} borderColor="#F0F2F5">
                    <VStack flex={1}>
                       <Text fontSize={15} fontWeight="700" color="#111827" numberOfLines={1}>{job.title}</Text>
-                      <Text fontSize={13} color={GRAY_TEXT} mt={2}>{job.applications_count || 0} applications received</Text>
+                      <Text fontSize={13} color={GRAY_TEXT} mt={2}>{job.applications_count || 0} applications • {job.views_count || 0} views</Text>
                    </VStack>
                    <Box bg="#F0FDF4" p={8} rounded={10}>
                       <TrendingUpIcon size={18} color="#16A34A" />

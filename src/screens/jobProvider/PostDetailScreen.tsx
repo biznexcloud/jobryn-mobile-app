@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -40,6 +40,16 @@ export default function PostDetailScreen({ navigation, route }: { navigation: an
   const [isLiked, setIsLiked] = useState(postFromParams.is_liked || false);
   const [likesCount, setLikesCount] = useState(postFromParams.likes_count || postFromParams.likes || 0);
   const [expandedContent, setExpandedContent] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+
+  const handleRepost = async () => {
+    try {
+      await SocialService.sharePost(post.id);
+      Toast.show({ type: 'success', text1: 'Post shared to your timeline' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Sharing unavailable right now' });
+    }
+  };
 
   useEffect(() => {
     loadPostData();
@@ -182,11 +192,11 @@ export default function PostDetailScreen({ navigation, route }: { navigation: an
           <ThumbsUp size={20} color={isLiked ? FB_BLUE : GRAY_TEXT} strokeWidth={isLiked ? 2.5 : 2} fill={isLiked ? FB_BLUE : 'transparent'} />
           <Text fontSize={14} fontWeight="700" color={isLiked ? FB_BLUE : GRAY_TEXT} ml={6}>Like</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => {}}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => inputRef.current?.focus()}>
           <MessageSquare size={20} color={GRAY_TEXT} strokeWidth={2} />
           <Text fontSize={14} fontWeight="700" color={GRAY_TEXT} ml={6}>Comment</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleRepost}>
           <Repeat2 size={20} color={GRAY_TEXT} strokeWidth={2} />
           <Text fontSize={14} fontWeight="700" color={GRAY_TEXT} ml={6}>Repost</Text>
         </TouchableOpacity>
@@ -262,6 +272,7 @@ export default function PostDetailScreen({ navigation, route }: { navigation: an
             <Image source={{ uri: myAvatar }} style={styles.smallAvatar} />
             <Box flex={1} bg={FB_GRAY} rounded={24} px={16} py={8} flexDirection="row" items="center">
               <TextInput
+                ref={inputRef}
                 style={styles.input}
                 placeholder="Write a comment..."
                 value={newComment}

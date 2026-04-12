@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -8,15 +8,16 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import {
-  BellIcon,
-  ChevronLeftIcon,
-  CheckCircleIcon,
-  BriefcaseIcon,
-  ChatAlt2Icon,
-  ClockIcon,
-  SearchIcon,
-} from 'react-native-heroicons/outline';
+  Bell,
+  ChevronLeft,
+  CheckCircle,
+  Briefcase,
+  MessageSquare,
+  Clock,
+  Search,
+} from 'lucide-react-native';
 import { NotificationService } from '../../services/api/notifications';
 import { moderateScale } from '../../utils/responsive';
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider } from '../../components/ui';
@@ -42,9 +43,11 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -63,9 +66,9 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'application': return <BriefcaseIcon size={18} color={FB_BLUE} />;
-      case 'message': return <ChatAlt2Icon size={18} color="#10B981" />;
-      default: return <BellIcon size={18} color="#F59E0B" />;
+      case 'application': return <Briefcase size={18} color={FB_BLUE} />;
+      case 'message': return <MessageSquare size={18} color="#10B981" />;
+      default: return <Bell size={18} color="#F59E0B" />;
     }
   };
 
@@ -80,7 +83,7 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
         <HStack px={16} justify="space-between" items="center">
            <HStack items="center">
               <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
-                 <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
+                 <ChevronLeft size={22} color="black" strokeWidth={2.5} />
               </TouchableOpacity>
               <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Notifications</Text>
            </HStack>
@@ -146,8 +149,8 @@ export default function NotificationsScreen({ navigation }: { navigation?: any }
           ))
         ) : (
           <VStack items="center" py={120} px={40}>
-            <Box w={72} h={72} rounded={36} bg="white" items="center" justify="center" mb={16} border={1} borderColor="#F0F2F5">
-               <BellIcon size={32} color="#D1D5DB" />
+             <Box w={72} h={72} rounded={36} bg="white" items="center" justify="center" mb={16} border={1} borderColor="#F0F2F5">
+                <Bell size={32} color="#D1D5DB" />
             </Box>
             <Text fontSize={17} fontWeight="700" color="#111827">All caught up!</Text>
             <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8} lineHeight={20}>

@@ -27,6 +27,8 @@ import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider, Button, Head
 import RecruiterActionSheet from '../../components/recruiter/RecruiterActionSheet';
 import { ApplicationStatus } from '../../screens/jobProvider/ApplicantsScreen';
 import Toast from 'react-native-toast-message';
+import { JobService } from '../../services/api/jobs';
+import { ProfileService } from '../../services/api/profile';
 
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
@@ -37,11 +39,40 @@ export default function ApplicantDetailScreen({ route, navigation }: { route: an
   const { applicant } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
+  const [seekerProfile, setSeekerProfile] = useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      if (applicant?.seeker) {
+        try {
+          const res = await ProfileService.getSeekerProfile(applicant.seeker);
+          setSeekerProfile(res);
+        } catch (e) {
+          console.warn('Failed to load seeker profile', e);
+        }
+      }
+    };
+    fetchProfile();
+  }, [applicant?.seeker]);
 
   const handleAction = async (status: ApplicationStatus) => {
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
+      if (applicant) {
+        await JobService.updateApplicationStatus(applicant.id, status as any);
+        applicant.status = status;
+        
+        // If the new status is an interview type, navigate to scheduling
+        if (status === 'online_meeting' || status === 'onsite_meeting') {
+          navigation.navigate('ScheduleMeeting', { 
+            applicationId: applicant.id,
+            applicantName: applicant.seeker_name,
+            applicantAvatar: applicant.seeker_avatar,
+            meetingType: status === 'online_meeting' ? 'online' : 'onsite',
+            isNewMeeting: true 
+          });
+        }
+      }
       Toast.show({ type: 'success', text1: 'Success', text2: `Status updated to ${status}` });
       setActionSheetVisible(false);
     } catch (e) {
@@ -137,60 +168,76 @@ export default function ApplicantDetailScreen({ route, navigation }: { route: an
                <VStack space="sm">
                   <HStack items="center" space="md" bg="white" p={14} rounded={12}>
                      <Mail size={18} color={GRAY_TEXT} />
-                     <Text fontSize={14} color="#111827" fontWeight="600">anupama.rai@example.com</Text>
+                     <Text fontSize={14} color="#111827" fontWeight="600">{seekerProfile?.user?.email || applicant?.author_email || 'Not provided'}</Text>
                   </HStack>
                   <HStack items="center" space="md" bg="white" p={14} rounded={12}>
                      <Phone size={18} color={GRAY_TEXT} />
-                     <Text fontSize={14} color="#111827" fontWeight="600">+977 9801234567</Text>
+                     <Text fontSize={14} color="#111827" fontWeight="600">{seekerProfile?.phone || 'Not provided'}</Text>
                   </HStack>
                </VStack>
             </VStack>
 
             <VStack>
                <SectionHeader title="Work Experience" />
-               <Box bg="white" p={16} rounded={12}>
-                  <HStack space="md" items="flex-start">
-                     <Box bg="#F0F2F5" p={10} rounded={10}>
-                        <Briefcase size={20} color={FB_BLUE} />
-                     </Box>
-                     <VStack flex={1}>
-                        <Text fontSize={15} fontWeight="700" color="#111827">Senior Product Designer @ TechHive</Text>
-                        <Text fontSize={13} color={GRAY_TEXT} mt={2}>Jan 2021 - Present</Text>
-                        <Text fontSize={13} color={GRAY_TEXT} mt={8} lineHeight={18}>
-                           Leader in visual design and product strategy. Managed design systems for multiple high-traffic SaaS applications.
-                        </Text>
-                     </VStack>
-                  </HStack>
-               </Box>
+               {(seekerProfile?.experience && seekerProfile.experience.length > 0) ? seekerProfile.experience.map((exp: any, idx: number) => (
+                 <Box key={idx} bg="white" p={16} rounded={12} mb={12}>
+                    <HStack space="md" items="flex-start">
+                       <Box bg="#F0F2F5" p={10} rounded={10}>
+                          <Briefcase size={20} color={FB_BLUE} />
+                       </Box>
+                       <VStack flex={1}>
+                          <Text fontSize={15} fontWeight="700" color="#111827">{exp.title} @ {exp.company}</Text>
+                          <Text fontSize={13} color={GRAY_TEXT} mt={2}>{exp.start_date || 'Past'} - {exp.end_date || 'Present'}</Text>
+                          {exp.description && (
+                            <Text fontSize={13} color={GRAY_TEXT} mt={8} lineHeight={18}>
+                               {exp.description}
+                            </Text>
+                          )}
+                       </VStack>
+                    </HStack>
+                 </Box>
+               )) : (
+                 <Box bg="white" p={16} rounded={12}>
+                    <Text fontSize={14} color={GRAY_TEXT}>No experience details provided.</Text>
+                 </Box>
+               )}
             </VStack>
 
             <VStack>
                <SectionHeader title="Skills" />
                <HStack space="xs" flexWrap="wrap">
-                  {['Product Design', 'Figma', 'React', 'Agile', 'UI/UX'].map(skill => (
-                     <Box key={skill} px={14} py={8} rounded={20} bg="white" border={1} borderColor="#F0F2F5" mb={8}>
-                        <Text fontSize={12} fontWeight="600" color="#111827">{skill}</Text>
+                  {(seekerProfile?.skills && seekerProfile.skills.length > 0) ? seekerProfile.skills.map((skill: any) => (
+                     <Box key={skill.id || skill.name || skill} px={14} py={8} rounded={20} bg="white" border={1} borderColor="#F0F2F5" mb={8}>
+                        <Text fontSize={12} fontWeight="600" color="#111827">{skill.name || skill}</Text>
                      </Box>
-                  ))}
+                  )) : (
+                     <Text fontSize={14} color={GRAY_TEXT} ml={4}>No skills listed.</Text>
+                  )}
                </HStack>
             </VStack>
 
             <VStack>
                <SectionHeader title="Documents" />
-               <TouchableOpacity style={styles.documentCard}>
-                  <HStack items="center" justify="space-between">
-                     <HStack items="center" space="md">
-                        <Box bg="#F0F2F5" p={10} rounded={10}>
-                           <ExternalLink size={20} color={FB_BLUE} />
-                        </Box>
-                        <VStack>
-                           <Text fontSize={14} fontWeight="700" color="#111827">Resume.pdf</Text>
-                           <Text fontSize={12} color={GRAY_TEXT}>PDF • 1.2 MB</Text>
-                        </VStack>
-                     </HStack>
-                     <ChevronRight size={18} color="#D1D5DB" />
-                  </HStack>
-               </TouchableOpacity>
+               {applicant?.resume ? (
+                 <TouchableOpacity style={styles.documentCard}>
+                    <HStack items="center" justify="space-between">
+                       <HStack items="center" space="md">
+                          <Box bg="#F0F2F5" p={10} rounded={10}>
+                             <ExternalLink size={20} color={FB_BLUE} />
+                          </Box>
+                          <VStack>
+                             <Text fontSize={14} fontWeight="700" color="#111827">Resume.pdf</Text>
+                             <Text fontSize={12} color={GRAY_TEXT}>PDF</Text>
+                          </VStack>
+                       </HStack>
+                       <ChevronRight size={18} color="#D1D5DB" />
+                    </HStack>
+                 </TouchableOpacity>
+               ) : (
+                 <Box bg="white" p={16} rounded={12}>
+                    <Text fontSize={14} color={GRAY_TEXT}>No documents attached.</Text>
+                 </Box>
+               )}
             </VStack>
          </VStack>
       </ScrollView>

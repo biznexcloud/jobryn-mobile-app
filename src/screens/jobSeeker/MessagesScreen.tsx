@@ -81,7 +81,7 @@ export default function MessagesScreen({ navigation }: any) {
       </Box>
 
       <FlatList 
-         data={MOCK_CONVERSATIONS}
+         data={search.trim() ? MOCK_CONVERSATIONS.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.last_msg.toLowerCase().includes(search.toLowerCase())) : MOCK_CONVERSATIONS}
          renderItem={renderChatItem}
          keyExtractor={(item) => item.id}
          showsVerticalScrollIndicator={false}

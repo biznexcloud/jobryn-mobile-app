@@ -132,7 +132,8 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
           )}
           renderItem={({ item }) => {
             const isInvited = invited.includes(item.id.toString());
-            const avatar = item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.full_name || 'User')}&background=F0F2F5&color=1877F2`;
+            const fullName = item.full_name || item.user_detail?.full_name || 'Candidate';
+            const avatar = item.avatar || item.profile_picture || item.user_detail?.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=F0F2F5&color=1877F2`;
             
             return (
               <TouchableOpacity 
@@ -145,7 +146,7 @@ export default function TalentSearchScreen({ navigation }: { navigation: any }) 
                   <VStack flex={1}>
                     <HStack justify="space-between" items="center">
                       <VStack flex={1} mr={8}>
-                        <Text fontSize={16} fontWeight="700" color="#111827">{item.full_name || 'Candidate'}</Text>
+                        <Text fontSize={16} fontWeight="700" color="#111827">{fullName}</Text>
                         <Text fontSize={13} color={GRAY_TEXT} mt={1} numberOfLines={1}>{item.headline || 'Professional'}</Text>
                       </VStack>
                       {item.match_score && (

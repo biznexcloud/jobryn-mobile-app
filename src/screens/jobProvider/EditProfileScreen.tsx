@@ -11,14 +11,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  XIcon as XIcon,
-  ChevronRightIcon,
-  CameraIcon,
-  BriefcaseIcon,
-  LinkIcon,
-  LocationMarkerIcon,
-  PencilIcon,
-} from 'react-native-heroicons/outline';
+  X,
+  Camera,
+} from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/authStore';
 import { ProfileService } from '../../services/api/profile';
@@ -35,13 +30,9 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
-  const [location, setLocation] = useState('');
-  const [website, setWebsite] = useState('');
   const [about, setAbout] = useState('');
   const [logoImage, setLogoImage] = useState<string | null>(user?.profile_picture || null);
-  const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [hasNewLogo, setHasNewLogo] = useState(false);
-  const [hasNewBanner, setHasNewBanner] = useState(false);
   const [profileId, setProfileId] = useState<string | number | null>(null);
 
   React.useEffect(() => {
@@ -51,12 +42,9 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
         const profile = resp?.results?.[0];
         if (profile) {
           setProfileId(profile.id);
-          setName(profile.company_name || user?.name || '');
-          setIndustry(profile.industry || '');
-          setLocation(profile.location || '');
-          setWebsite(profile.website || '');
-          setAbout(profile.description || profile.bio || profile.about || '');
-          setBannerImage(profile.banner || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800');
+          setName(profile.user_detail?.name || user?.name || '');
+          setIndustry(profile.headline || '');
+          setAbout(profile.about || '');
         }
       } catch (e) {
         setName(user?.name || '');
@@ -73,20 +61,15 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: type === 'logo' ? [1, 1] : [16, 9],
+      aspect: [1, 1],
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      if (type === 'logo') {
-        setLogoImage(result.assets[0].uri);
-        setHasNewLogo(true);
-      } else {
-        setBannerImage(result.assets[0].uri);
-        setHasNewBanner(true);
-      }
+      setLogoImage(result.assets[0].uri);
+      setHasNewLogo(true);
     }
   };
 
@@ -112,18 +95,8 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
 
       // 2. Update Recruiter Profile
       const profileData = new FormData();
-      profileData.append('company_name', name);
-      profileData.append('industry', industry);
-      profileData.append('location', location);
-      profileData.append('website', website);
-      profileData.append('description', about);
-      
-      if (hasNewBanner && bannerImage) {
-        const filename = bannerImage.split('/').pop();
-        const match = /\.(\w+)$/.exec(filename || '');
-        const type = match ? `image/${match[1]}` : `image`;
-        profileData.append('banner', { uri: bannerImage, name: filename, type } as any);
-      }
+      profileData.append('headline', industry); // Maps to headline in API
+      profileData.append('about', about);
 
       await ProfileService.updateRecruiterProfile(profileId, profileData);
 
@@ -167,7 +140,7 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
         <HStack items="center" justify="space-between">
           <HStack items="center">
              <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
-                <XIcon size={22} color="black" strokeWidth={2.5} />
+                <X size={22} color="black" strokeWidth={2.5} />
              </TouchableOpacity>
              <Text fontSize={17} fontWeight="700" color="#111827" ml={12}>Edit Profile</Text>
           </HStack>
@@ -178,33 +151,22 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
       </Box>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
-        {/* Banner & Avatar Preview */}
-        <Box>
-           <Image 
-              source={{ uri: bannerImage || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800' }}
-              style={styles.banner}
-           />
-           <Box position="absolute" bottom={-40} left={16}>
-              <Box p={3} bg="white" rounded={60} shadow={1}>
-                 <Avatar 
-                    source={{ uri: logoImage || user?.profile_picture || 'https://i.pravatar.cc/150' }} 
-                    size="xl" 
-                 />
-                 <TouchableOpacity style={styles.avatarCam} onPress={() => pickImage('logo')}>
-                    <CameraIcon size={16} color="black" />
-                 </TouchableOpacity>
-              </Box>
+        {/* Avatar Preview */}
+        <Box items="center" mt={32}>
+           <Box p={3} bg="white" rounded={60} shadow={1} style={{ position: 'relative' }}>
+              <Avatar 
+                 source={{ uri: logoImage || user?.profile_picture || 'https://i.pravatar.cc/150' }} 
+                 size="xl" 
+              />
+              <TouchableOpacity style={styles.avatarCam} onPress={() => pickImage('logo')}>
+                 <Camera size={16} color="black" />
+              </TouchableOpacity>
            </Box>
-           <TouchableOpacity style={styles.bannerCam} onPress={() => pickImage('banner')}>
-              <CameraIcon size={18} color="black" />
-           </TouchableOpacity>
         </Box>
 
-        <VStack px={16} mt={60}>
+        <VStack px={16} mt={40}>
            <InputField label="Company Name" value={name} onChangeText={setName} />
-           <InputField label="Industry" value={industry} onChangeText={setIndustry} placeholder="e.g. Technology" />
-           <InputField label="Location" value={location} onChangeText={setLocation} placeholder="e.g. London, UK" />
-           <InputField label="Website" value={website} onChangeText={setWebsite} placeholder="e.g. company.com" />
+           <InputField label="Headline/Industry" value={industry} onChangeText={setIndustry} placeholder="e.g. Technology" />
            
            <Divider my={10} color="#F3F4F6" />
            
@@ -218,9 +180,7 @@ export default function ProviderEditProfileScreen({ navigation }: { navigation?:
 const styles = StyleSheet.create({
   headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center' },
   input: { fontSize: 15, color: '#111827', fontWeight: '500', padding: 0 },
-  banner: { width: '100%', height: 120, backgroundColor: '#E5E7EB' },
-  avatarCam: { position: 'absolute', right: -4, bottom: 4, width: 30, height: 30, borderRadius: 15, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'white' },
-  bannerCam: { position: 'absolute', right: 12, bottom: 12, width: 34, height: 34, borderRadius: 17, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
+  avatarCam: { position: 'absolute', right: 0, bottom: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: '#F0F2F5', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'white' },
 });
 
 

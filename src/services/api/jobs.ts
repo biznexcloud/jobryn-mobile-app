@@ -46,24 +46,72 @@ export const JobService = {
     return response.data;
   },
 
-  postJob: async (data: {
-    title: string;
-    description: string;
-    location: string;
-    job_type: 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance';
-    experience_level: 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
-    payment_type?: 'fixed' | 'payroll';
-    is_onsite?: boolean;
-    is_remote?: boolean;
-    salary_min?: string | null;
-    salary_max?: string | null;
-    currency?: string;
-    requirements?: string;
-    benefits?: string;
-    application_deadline?: string | null;
-  }) => {
-    const response = await apiClient.post('/jobs/recruiter/', data);
-    return response.data;
+  postJob: async (data: any) => {
+    try {
+      const isLocalFile = data.image?.uri || (typeof data.image === 'string' && (data.image.startsWith('file://') || data.image.startsWith('content://')));
+      
+      if (isLocalFile) {
+        const uri = data.image.uri || data.image;
+        const filename = uri.split('/').pop() || 'job_poster.jpg';
+        const extension = filename.split('.').pop()?.toLowerCase() || 'jpg';
+        const mimeMap: Record<string, string> = {
+          'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+          'gif': 'image/gif', 'webp': 'image/webp'
+        };
+        const type = mimeMap[extension] || 'image/jpeg';
+
+        console.log('--- [DEBUG] Uploading Job Image via XHR:', { uri, type, filename });
+
+        const formData = new FormData();
+        // Append all fields except image first
+        Object.keys(data).forEach(key => {
+          if (key !== 'image' && data[key] !== undefined && data[key] !== null) {
+            formData.append(key, typeof data[key] === 'object' ? JSON.stringify(data[key]) : String(data[key]));
+          }
+        });
+        
+        // Append image last
+        formData.append('image', { uri, name: filename, type } as any);
+
+        const { useAuthStore } = require('../../store/authStore');
+        const token = useAuthStore.getState().token;
+        const BASE_URL = 'https://backend.jobryn.com';
+
+        const responseData = await new Promise<any>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `${BASE_URL}/api/v1/jobs/recruiter/`);
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.setRequestHeader('Accept', 'application/json');
+
+          xhr.onload = () => {
+            console.log('--- [DEBUG] XHR Job Post Status:', xhr.status);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try { resolve(JSON.parse(xhr.responseText)); }
+              catch { resolve(xhr.responseText); }
+            } else {
+              try {
+                const errData = JSON.parse(xhr.responseText);
+                const errMsg = errData.detail || JSON.stringify(errData);
+                reject(new Error(errMsg || `Job upload failed (${xhr.status})`));
+              } catch {
+                reject(new Error(`Job upload failed (${xhr.status})`));
+              }
+            }
+          };
+          xhr.onerror = () => reject(new Error('Network error during job upload'));
+          xhr.timeout = 60000; // Jobs might have large posters
+          xhr.send(formData);
+        });
+
+        return responseData;
+      } else {
+        const response = await apiClient.post('/jobs/recruiter/', data);
+        return response.data;
+      }
+    } catch (e: any) {
+      console.error('[JobService] postJob failed:', e.message);
+      throw e;
+    }
   },
 
   updateJob: async (id: string | number, data: any) => {

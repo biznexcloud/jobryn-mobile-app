@@ -22,6 +22,7 @@ import {
   Video,
   Image as ImageIcon,
   Smile,
+  Briefcase
 } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
 import { useAuthStore } from '../../store/authStore';
@@ -54,14 +55,11 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [jobsData, feedData, storiesData] = await Promise.all([
-        JobService.getJobs().catch(err => {
-          console.error('[Dashboard] Jobs API error:', err.response?.data || err.message);
-          return { results: [] };
-        }),
-        SocialService.getFeed().catch(err => {
-          console.error('[Dashboard] Feed API error:', err.response?.data || err.message);
-          return { results: [] };
+      // Unified Feed: Fetches both social posts and jobs interleaving them by date
+      const [feedData, storiesData] = await Promise.all([
+        SocialService.getUnifiedFeed({ role: 'jobSeeker' }).catch(err => {
+          console.error('[Dashboard] Unified Feed API error:', err.response?.data || err.message);
+          return { results: [], error: true };
         }),
         SocialService.getStories().catch(err => {
           console.error('[Dashboard] Stories API error:', err.response?.data || err.message);
@@ -69,14 +67,15 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
         }),
       ]);
 
-      const fetchedJobs = jobsData?.results || [];
       const fetchedFeed = feedData?.results || [];
       const fetchedStories = storiesData?.results || [];
       
-      // Update states with real data only. Empty states handled naturally
-      setJobs(fetchedJobs);
       setFeed(fetchedFeed);
       setStories(fetchedStories);
+
+      if (feedData?.error) {
+        // Option to show a toast or message if desired
+      }
 
     } catch (e: any) {
       console.error('[Dashboard] Global sync failed:', e.message);
@@ -151,11 +150,11 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
               </TouchableOpacity>
               <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost', { autoPickImage: true })}>
                  <ImageIcon size={18} color="#45BD62" />
-                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Photo</Text>
+                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Create Feed</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost')}>
-                 <Smile size={18} color="#F7B928" />
-                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Feeling</Text>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('Portfolio')}>
+                 <Briefcase size={18} color="#8B5CF6" />
+                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Portfolio</Text>
               </TouchableOpacity>
            </HStack>
         </Box>

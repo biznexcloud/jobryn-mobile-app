@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   View,
@@ -23,6 +23,7 @@ import {
   MoreVertical,
   Sparkles,
 } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { JobService } from '../../services/api/jobs';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Button } from '../../components/ui';
 import { moderateScale } from '../../utils/responsive';
@@ -31,7 +32,7 @@ const FB_BLUE = '#1877F2';
 const FB_GRAY = '#F0F2F5';
 const GRAY_TEXT = '#65676B';
 
-export type ApplicationStatus = 'applied' | 'screening' | 'interview' | 'offered' | 'hired' | 'rejected' | 'pending';
+export type ApplicationStatus = 'applied' | 'screening' | 'interview' | 'online_meeting' | 'onsite_meeting' | 'offered' | 'hired' | 'rejected' | 'pending';
 
 export default function ApplicantsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -40,20 +41,24 @@ export default function ApplicantsScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<ApplicationStatus>('applied');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchApplicants = async () => {
-      try {
-        const data = await JobService.getRecruiterApplications();
-        setApplicants(data?.results || []);
-      } catch (e) {
-        console.error('[ApplicantsScreen] Fetch error:', e);
-        setApplicants([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchApplicants();
+  const fetchApplicants = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const data = await JobService.getRecruiterApplications();
+      setApplicants(data?.results || []);
+    } catch (e) {
+      console.error('[ApplicantsScreen] Fetch error:', e);
+      setApplicants([]);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchApplicants(applicants.length === 0);
+    }, [fetchApplicants, applicants.length])
+  );
 
   const filtered = applicants.filter(a => {
     const matchesSearch = !searchQuery || 

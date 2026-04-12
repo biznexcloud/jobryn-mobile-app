@@ -39,6 +39,10 @@ export interface Job {
   company_logo?: string;
   featured_image?: string;
   created_at: string;
+  // Recruiter-only analytics fields
+  views_count?: number;
+  applications_count?: number;
+  status?: string;
 }
 
 export interface Application {
@@ -119,9 +123,10 @@ export interface Notification {
 }
 
 export interface Analytics {
-  totalUsers: number;
+  totalJobs: number;
   activeJobs: number;
   totalApplications: number;
+  totalViews: number;
   conversionRate: string;
   profileViews?: number;
   searchAppearances?: number;

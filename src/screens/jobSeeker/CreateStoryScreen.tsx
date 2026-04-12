@@ -112,7 +112,7 @@ export default function CreateStoryScreen({ navigation }: any) {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [9, 16],
       quality: 0.8,
@@ -159,8 +159,9 @@ export default function CreateStoryScreen({ navigation }: any) {
         is_active: true
       });
       Alert.alert('Success', 'Story shared!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
-    } catch (e) {
-      Alert.alert('Error', 'Failed to share story.');
+    } catch (e: any) {
+      const errMsg = e?.message || 'Failed to share story. Please try again.';
+      Alert.alert('Upload Failed', errMsg);
     } finally {
       setLoading(false);
     }

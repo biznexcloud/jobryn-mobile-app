@@ -29,8 +29,40 @@ const FB_BLUE = '#1877F2';
 const FB_GRAY = '#F0F2F5';
 const GRAY_TEXT = '#65676B';
 
-const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
+const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
 const EXP_LEVELS = ['Entry Level', 'Mid Level', 'Senior', 'Lead', 'Executive'];
+
+// ── Enum ↔ Display label maps ──────────────────────────────────────────────────
+// API → UI label (for initialising form from existing job data)
+const JOB_TYPE_TO_LABEL: Record<string, string> = {
+  full_time: 'Full-time',
+  part_time: 'Part-time',
+  contract: 'Contract',
+  internship: 'Internship',
+  freelance: 'Freelance',
+};
+const EXP_LEVEL_TO_LABEL: Record<string, string> = {
+  entry: 'Entry Level',
+  mid: 'Mid Level',
+  senior: 'Senior',
+  lead: 'Lead',
+  executive: 'Executive',
+};
+// UI label → API enum (for sending to backend)
+const LABEL_TO_JOB_TYPE: Record<string, string> = {
+  'Full-time': 'full_time',
+  'Part-time': 'part_time',
+  'Contract': 'contract',
+  'Internship': 'internship',
+  'Freelance': 'freelance',
+};
+const LABEL_TO_EXP_LEVEL: Record<string, string> = {
+  'Entry Level': 'entry',
+  'Mid Level': 'mid',
+  'Senior': 'senior',
+  'Lead': 'lead',
+  'Executive': 'executive',
+};
 
 export default function EditJobScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -42,8 +74,9 @@ export default function EditJobScreen({ route, navigation }: any) {
     salary_min: job?.salary_min?.toString() || '',
     salary_max: job?.salary_max?.toString() || '',
     description: job?.description || '',
-    job_type: job?.job_type || 'Full-time',
-    experience_level: job?.experience_level || 'Mid Level',
+    // Reverse-map API enum value → display label so correct chip is highlighted
+    job_type: JOB_TYPE_TO_LABEL[job?.job_type] || job?.job_type || 'Full-time',
+    experience_level: EXP_LEVEL_TO_LABEL[job?.experience_level] || job?.experience_level || 'Mid Level',
   });
 
   const update = (key: string, val: string) => setFormData(f => ({ ...f, [key]: val }));
@@ -57,9 +90,12 @@ export default function EditJobScreen({ route, navigation }: any) {
     try {
       await JobService.updateJob(job.id, {
         ...formData,
-        // Ensure values match API enums (e.g., 'Entry Level' -> 'entry')
-        job_type: formData.job_type.toLowerCase().replace('-', '_'),
-        experience_level: formData.experience_level.toLowerCase().split(' ')[0], 
+        // Use lookup maps for reliable enum conversion
+        job_type: LABEL_TO_JOB_TYPE[formData.job_type] || formData.job_type,
+        experience_level: LABEL_TO_EXP_LEVEL[formData.experience_level] || formData.experience_level,
+        // Convert salary strings to numbers (or null) — Django rejects string values
+        salary_min: formData.salary_min ? Number(formData.salary_min) : null,
+        salary_max: formData.salary_max ? Number(formData.salary_max) : null,
       });
       Toast.show({ type: 'success', text1: 'Job updated successfully' });
       navigation.goBack();

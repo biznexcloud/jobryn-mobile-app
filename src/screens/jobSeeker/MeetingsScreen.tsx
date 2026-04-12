@@ -14,6 +14,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   Calendar,
   Video,
@@ -71,8 +72,11 @@ const MEETINGS_DATA = [
   },
 ];
 
-export default function MeetingsScreen({ navigation }: any) {
+export default function MeetingsScreen() {
+  const navigation: any = useNavigation();
+  const route: any = useRoute();
   const insets = useSafeAreaInsets();
+  const { role = 'seeker' } = route?.params || {};
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,8 +84,9 @@ export default function MeetingsScreen({ navigation }: any) {
 
   const fetchMeetings = useCallback(async () => {
     try {
-      const data = await MeetingService.getSeekerMeetings();
-      setMeetings(data.results || data);
+      // Use the universal getMeetings helper which handles seeker/recruiter endpoints
+      const data = await MeetingService.getMeetings(role === 'jobProvider' ? 'recruiter' : 'seeker');
+      setMeetings(Array.isArray(data) ? data : (data.results || []));
     } catch (e) {
       console.warn('Meetings fetch failed:', e);
     } finally {
@@ -113,7 +118,11 @@ export default function MeetingsScreen({ navigation }: any) {
     const dateStr = meetTime.toDateString() === new Date().toDateString() ? 'Today' : meetTime.toLocaleDateString();
 
     return (
-      <View style={styles.card}>
+      <TouchableOpacity 
+        style={styles.card}
+        onPress={() => role === 'jobProvider' ? navigation.navigate('ScheduleMeeting', { meeting: item }) : null}
+        activeOpacity={role === 'jobProvider' ? 0.9 : 1}
+      >
          {/* Visual Cover Header */}
          <View style={styles.imageContainer}>
             <Image source={{ uri: item.cover_image || 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80' }} style={styles.coverImage} />
@@ -183,7 +192,7 @@ export default function MeetingsScreen({ navigation }: any) {
                </TouchableOpacity>
             )}
          </VStack>
-      </View>
+      </TouchableOpacity>
     );
   };
 

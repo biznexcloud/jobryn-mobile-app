@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenWrapper, Text, HStack, VStack, Box } from '../../components/ui';
-import { ChevronLeftIcon, SearchIcon, ClockIcon, XIcon, LocationMarkerIcon, BriefcaseIcon } from 'react-native-heroicons/outline';
+import { ChevronLeft, ChevronRight, Search, Clock, X, MapPin, Briefcase } from 'lucide-react-native';
 import { ProfileService } from '../../services/api/profile';
 
 const FB_BLUE = '#1877F2'; 
@@ -66,10 +66,10 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
       <Box pt={insets.top + 8} pb={12} bg="white" borderBottom={1} borderColor="#F0F2F5">
          <HStack px={16} items="center">
             <TouchableOpacity onPress={() => navigation?.goBack()} style={styles.headerIcon}>
-               <ChevronLeftIcon size={22} color="black" strokeWidth={2.5} />
+               <ChevronLeft size={22} color="black" strokeWidth={2.5} />
             </TouchableOpacity>
             <Box flex={1} ml={12} bg="#F0F2F5" rounded={10} px={10} py={8} flexDirection="row" items="center">
-               <SearchIcon size={18} color="#9CA3AF" />
+               <Search size={18} color="#9CA3AF" />
                <TextInput
                   style={styles.input}
                   placeholder="Search by name, skill, or role..."
@@ -82,7 +82,7 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
                />
                {query.length > 0 && (
                   <TouchableOpacity onPress={clearSearch}>
-                     <XIcon size={16} color="#9CA3AF" />
+                     <X size={16} color="#9CA3AF" />
                   </TouchableOpacity>
                )}
             </Box>
@@ -101,10 +101,10 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
           {RECENT_SEARCHES.map((item, i) => (
             <TouchableOpacity key={i} style={styles.recentRow} onPress={() => { setQuery(item); doSearch(item); }}>
               <HStack items="center" flex={1}>
-                <ClockIcon size={18} color="#9CA3AF" />
+                <Clock size={18} color="#9CA3AF" />
                 <Text fontSize={15} color="#374151" ml={12} flex={1}>{item}</Text>
               </HStack>
-              <ChevronLeftIcon size={16} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
+              <ChevronRight size={16} color="#D1D5DB" />
             </TouchableOpacity>
           ))}
 
@@ -137,7 +137,7 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
           ListEmptyComponent={
             <VStack items="center" py={60} px={40}>
               <Box w={72} h={72} rounded={36} bg="#F9FAFB" items="center" justify="center" mb={16} border={1} borderColor="#F0F2F5">
-                 <SearchIcon size={32} color="#D1D5DB" />
+                 <Search size={32} color="#D1D5DB" />
               </Box>
               <Text fontSize={17} fontWeight="700" color="#111827">No candidates found</Text>
               <Text fontSize={14} color={GRAY_TEXT} textAlign="center" mt={8}>Try adjusting your search query.</Text>
@@ -158,19 +158,19 @@ export default function SearchExploreScreen({ navigation, route }: { navigation:
                     <HStack mt={6} items="center" space="md">
                       {item.location && (
                         <HStack items="center">
-                          <LocationMarkerIcon size={12} color="#9CA3AF" />
+                          <MapPin size={12} color="#9CA3AF" />
                           <Text fontSize={11} color={GRAY_TEXT} ml={4}>{item.location}</Text>
                         </HStack>
                       )}
                       {item.experience_years && (
                         <HStack items="center">
-                          <BriefcaseIcon size={12} color="#9CA3AF" />
+                          <Briefcase size={12} color="#9CA3AF" />
                           <Text fontSize={11} color={GRAY_TEXT} ml={4}>{item.experience_years} yrs</Text>
                         </HStack>
                       )}
                     </HStack>
                   </VStack>
-                  <ChevronLeftIcon size={18} color="#D1D5DB" style={{ transform: [{ rotate: '180deg' }] }} />
+                  <ChevronRight size={18} color="#D1D5DB" />
                 </HStack>
               </TouchableOpacity>
             );

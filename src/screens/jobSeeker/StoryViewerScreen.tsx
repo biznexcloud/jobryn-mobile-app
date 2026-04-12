@@ -50,6 +50,11 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
   const [isLiked, setIsLiked] = useState(false);
   const [showSentFeedback, setShowSentFeedback] = useState('');
   const progress = useRef(new RNAnimated.Value(0)).current;
+  const pulse = useSharedValue(1);
+
+  const heartStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
 
   // The stories passed here are already normalized by SocialService.getStories
   const currentStory = stories[currentIndex] || {};
@@ -114,12 +119,23 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
   };
 
   const handleLike = async () => {
-     setIsLiked(!isLiked);
+     const prevLiked = isLiked;
+     setIsLiked(!prevLiked);
+     
+     // Pulse animation
+     pulse.value = withSpring(1.2, { damping: 2, stiffness: 80 }, () => {
+       pulse.value = withSpring(1);
+     });
+
      try {
         await SocialService.likeStory(currentStory.id);
+        if (!prevLiked) {
+           setShowSentFeedback('❤️');
+           setTimeout(() => setShowSentFeedback(''), 1000);
+        }
      } catch (e) {
         console.warn('Like failed');
-        setIsLiked(isLiked); // revert on failure
+        setIsLiked(prevLiked); // revert on failure
      }
   };
 
@@ -248,16 +264,18 @@ export default function StoryViewerScreen({ route, navigation }: { route: any, n
                   />
                </Box>
                
-               {!reactionMode && (
-                 <HStack space="md">
+                {!reactionMode && (
+                  <HStack space="md">
                     <TouchableOpacity onPress={handleLike}>
-                       <Heart size={26} color={isLiked ? '#FF3B5C' : 'white'} fill={isLiked ? '#FF3B5C' : 'none'} />
+                       <Animated.View style={heartStyle}>
+                          <Heart size={26} color={isLiked ? '#FF3B5C' : 'white'} fill={isLiked ? '#FF3B5C' : 'none'} />
+                       </Animated.View>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleReply(replyText)}>
                        <Send size={26} color="white" />
                     </TouchableOpacity>
-                 </HStack>
-               )}
+                  </HStack>
+                )}
             </HStack>
          </Box>
       </KeyboardAvoidingView>

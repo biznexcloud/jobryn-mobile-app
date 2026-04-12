@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -21,7 +22,9 @@ import {
   Globe,
   Settings,
   Image as ImageIcon,
+  X,
 } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { JobService } from '../../services/api/jobs';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Button, Divider, Heading } from '../../components/ui';
 import { useAuthStore } from '../../store/authStore';
@@ -43,6 +46,7 @@ export default function PostJobScreen({ navigation }: any) {
     job_type: 'Full-time',
     experience_level: 'Mid Level',
   });
+  const [selectedImage, setSelectedImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
   const update = (key: string, val: string) => setFormData(f => ({ ...f, [key]: val }));
 
@@ -53,13 +57,26 @@ export default function PostJobScreen({ navigation }: any) {
     }
     setLoading(true);
     try {
-      await JobService.postJob({
+      const payload: any = {
         ...formData,
-        job_type: formData.job_type.toLowerCase().replace('-', '_') as any,
-        experience_level: formData.experience_level.toLowerCase().split(' ')[0] as any,
-        salary_min: formData.salary_min || null,
-        salary_max: formData.salary_max || null,
-      });
+        job_type: ({
+          'Full-time': 'full_time', 'Part-time': 'part_time',
+          'Contract': 'contract', 'Internship': 'internship', 'Freelance': 'freelance',
+        } as any)[formData.job_type] || formData.job_type,
+        experience_level: ({
+          'Entry Level': 'entry', 'Mid Level': 'mid', 'Senior': 'senior',
+          'Lead': 'lead', 'Executive': 'executive',
+        } as any)[formData.experience_level] || formData.experience_level,
+        // Django DecimalFields require string numeric values
+        salary_min: formData.salary_min ? String(formData.salary_min) : null,
+        salary_max: formData.salary_max ? String(formData.salary_max) : null,
+      };
+
+      if (selectedImage) {
+        payload.image = selectedImage;
+      }
+
+      await JobService.postJob(payload);
       Alert.alert('Success', 'Your job posting is now live.', [
         { text: 'Done', onPress: () => navigation.goBack() }
       ]);
@@ -73,6 +90,24 @@ export default function PostJobScreen({ navigation }: any) {
   const InputLabel = ({ label }: { label: string }) => (
     <Text fontSize={13} fontWeight="700" color="#111827" mb={8} mt={20}>{label}</Text>
   );
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setSelectedImage(result.assets[0]);
+      }
+    } catch (error) {
+      console.log('Error picking image:', error);
+      Alert.alert('Error', 'Could not open photo gallery.');
+    }
+  };
 
   return (
     <ScreenWrapper safeAreaTop={false} backgroundColor={FB_GRAY}>
@@ -194,10 +229,25 @@ export default function PostJobScreen({ navigation }: any) {
               </HStack>
             </VStack>
 
-            <TouchableOpacity style={styles.mediaBtn}>
-               <ImageIcon size={20} color={FB_BLUE} />
-               <Text fontSize={14} fontWeight="700" color={FB_BLUE} ml={10}>Add Media (Optional)</Text>
-            </TouchableOpacity>
+            {!selectedImage ? (
+              <TouchableOpacity style={styles.mediaBtn} onPress={pickImage}>
+                 <ImageIcon size={20} color={FB_BLUE} />
+                 <Text fontSize={14} fontWeight="700" color={FB_BLUE} ml={10}>Add Media (Optional)</Text>
+              </TouchableOpacity>
+            ) : (
+              <Box mt={24} style={{ borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
+                 <Image source={{ uri: selectedImage.uri }} style={{ width: '100%', height: 200 }} resizeMode="cover" />
+                 <TouchableOpacity 
+                   onPress={() => setSelectedImage(null)}
+                   style={{
+                     position: 'absolute', top: 8, right: 8,
+                     backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 16, padding: 6
+                   }}
+                 >
+                   <X size={16} color="white" />
+                 </TouchableOpacity>
+              </Box>
+            )}
 
             <Box items="center" mt={32}>
                <Text fontSize={12} color={GRAY_TEXT} textAlign="center" lineHeight={18}>

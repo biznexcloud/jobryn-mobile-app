@@ -54,12 +54,18 @@ export const ProfileService = {
   },
 
   createRecruiterProfile: async (data: any) => {
-    const response = await apiClient.post('/profiles/recruiter/', data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.post('/profiles/recruiter/', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     return response.data;
   },
 
   updateRecruiterProfile: async (id: number | string, data: any) => {
-    const response = await apiClient.patch(`/profiles/recruiter/${id}/`, data);
+    const isFormData = data instanceof FormData;
+    const response = await apiClient.patch(`/profiles/recruiter/${id}/`, data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
     return response.data;
   },
 

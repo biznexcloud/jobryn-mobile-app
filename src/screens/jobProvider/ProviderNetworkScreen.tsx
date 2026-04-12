@@ -99,16 +99,16 @@ export default function ProviderNetworkScreen({ navigation }: { navigation?: any
 
   const fetchSuggestions = useCallback(async () => {
     try {
-      // For providers, we fetch "Talent Suggestions" (Seeker profiles)
       const data = await ConnectionService.getSuggestions();
       const filtered = data.filter(
         (s: any) => 
           !dismissedRef.current.has(String(s.id)) && 
           String(s.id) !== String(user?.id)
       );
-      setSuggestions(filtered.length > 0 ? filtered : MOCK_NETWORK_SUGGESTIONS);
-    } catch {
-      setSuggestions(MOCK_NETWORK_SUGGESTIONS);
+      setSuggestions(filtered);
+    } catch (err) {
+      console.warn('[ProviderNetwork] Suggestion fetch failed', err);
+      setSuggestions([]);
     }
   }, [user?.id]);
 
@@ -231,10 +231,10 @@ export default function ProviderNetworkScreen({ navigation }: { navigation?: any
   // ── Render Helpers ────────────────────────────────────────────────────────
 
   const getInvitationName = (item: any): string => 
-    item.follower_name || item.sender_name || item.follower_email?.split('@')[0] || 'Applicant';
+    item.follower_name || item.sender_name || item.follower_email?.split('@')[0] || 'Member';
 
   const getInvitationAvatar = (item: any, idx: number): string => 
-    item.follower_avatar || item.sender_avatar || `https://i.pravatar.cc/150?u=pinv_${item.id || idx}`;
+    item.follower_avatar || item.sender_avatar || `https://i.pravatar.cc/150?u=tsug_${item.id || idx}`;
 
   if (loading) {
     return (
@@ -298,14 +298,19 @@ export default function ProviderNetworkScreen({ navigation }: { navigation?: any
         <Box bg="white" mb={8} borderBottom={1} borderColor="#E5E7EB">
           <HStack justify="space-between" items="center" p={16}>
             <HStack items="center">
-              <Text fontSize={14} fontWeight="800" color="#65676B">Candidate Invitations</Text>
+              <Text fontSize={16} fontWeight="800" color="#1c1e21">Invitations</Text>
               {invitationCount > 0 && (
                 <Box bg={BLUE} rounded={10} px={7} py={2} ml={8}>
                   <Text color="white" fontSize={11} fontWeight="800">{invitationCount}</Text>
                 </Box>
               )}
+              {/* Live Sync Status */}
+              <HStack items="center" bg="#ECFDF5" px={8} py={2} rounded={12} ml={12}>
+                <Box w={6} h={6} rounded={3} bg="#10B981" mr={6} />
+                <Text fontSize={10} fontWeight="700" color="#059669">LIVE SYNC</Text>
+              </HStack>
             </HStack>
-            <TouchableOpacity onPress={onRefresh}><Text fontSize={14} fontWeight="800" color={BLUE}>Refresh</Text></TouchableOpacity>
+            <TouchableOpacity onPress={onRefresh}><Text fontSize={14} fontWeight="800" color={BLUE}>Manage</Text></TouchableOpacity>
           </HStack>
           <Divider color="#F3F2EF" />
 
@@ -367,15 +372,19 @@ export default function ProviderNetworkScreen({ navigation }: { navigation?: any
               {suggestions.map((item) => {
                 const id = String(item.id);
                 const busy = actionLoading[id];
-                const name = item.name || item.user?.name || item.following_email?.split('@')[0] || 'Candidate';
+                // Unified Name Mapping
+                const name = item.user_detail?.name || item.full_name || item.name || item.user?.name || (item.first_name ? `${item.first_name} ${item.last_name || ''}`.trim() : null) || item.email?.split('@')[0] || 'Candidate';
+                const avatar = item.profile_picture || item.avatar || `https://i.pravatar.cc/150?u=tsug_${id}`;
+                const banner = item.cover_photo || item.banner || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=400';
+                
                 return (
                   <TouchableOpacity key={id} activeOpacity={0.9} onPress={() => navigateToProfile(id)} style={styles.suggestionCard}>
                     <Box h={moderateScale(60)} bg="#E5E7EB">
-                      <Image source={{ uri: item.banner || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=400' }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+                      <Image source={{ uri: banner }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                       <Box bg="rgba(0,0,0,0.1)" style={StyleSheet.absoluteFillObject} />
                     </Box>
                     <Box style={styles.cardAvatarWrapper}>
-                      <Avatar source={{ uri: item.avatar || item.profile_picture || `https://i.pravatar.cc/150?u=tsug_${id}` }} size={72} style={{ borderWidth: 3, borderColor: 'white' }} />
+                      <Avatar source={{ uri: avatar }} size={72} style={{ borderWidth: 3, borderColor: 'white' }} />
                     </Box>
                     <VStack items="center" p={12} pt={40} flex={1} justify="space-between">
                       <VStack items="center">

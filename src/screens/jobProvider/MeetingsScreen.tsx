@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   View,
+  Linking,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -22,6 +24,7 @@ import {
 import { ScreenWrapper, Text, Box, VStack, HStack, Divider, Avatar, Heading, Button } from '../../components/ui';
 import { MeetingService } from '../../services/api/meetings';
 import { useAuthStore } from '../../store/authStore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
@@ -45,7 +48,11 @@ export default function MeetingsScreen({ navigation }: any) {
     }
   };
 
-  useEffect(() => { loadMeetings(); }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadMeetings();
+    }, [])
+  );
 
   const getStatusConfig = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -72,7 +79,10 @@ export default function MeetingsScreen({ navigation }: any) {
                <TouchableOpacity onPress={() => navigation?.navigate('Notifications')} style={styles.headerIcon}>
                   <Bell size={20} color="black" />
                </TouchableOpacity>
-               <TouchableOpacity style={[styles.headerIcon, { backgroundColor: FB_BLUE }]}>
+               <TouchableOpacity 
+                 onPress={() => navigation?.navigate('Pipeline')} 
+                 style={[styles.headerIcon, { backgroundColor: FB_BLUE }]}
+               >
                   <Plus size={20} color="white" strokeWidth={2.5} />
                </TouchableOpacity>
             </HStack>
@@ -147,7 +157,18 @@ export default function MeetingsScreen({ navigation }: any) {
                      <Box h={1} bg="#F3F4F6" my={16} />
 
                      <HStack justify="space-between" items="center">
-                        <TouchableOpacity style={styles.actionBtn}>
+                        <TouchableOpacity 
+                           style={styles.actionBtn}
+                           onPress={() => {
+                             if (!meeting.meeting_link) {
+                               Alert.alert('Link ready soon', 'The organizer hasn\'t shared the meeting link yet.');
+                               return;
+                             }
+                             Linking.openURL(meeting.meeting_link).catch(() => 
+                               Alert.alert('Error', 'Unable to launch meeting client.')
+                             );
+                           }}
+                        >
                            <Text fontSize={13} fontWeight="700" color="white">Join Meeting</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.iconBtn}>
@@ -155,6 +176,7 @@ export default function MeetingsScreen({ navigation }: any) {
                         </TouchableOpacity>
                      </HStack>
                   </TouchableOpacity>
+
                 );
               })
             )}

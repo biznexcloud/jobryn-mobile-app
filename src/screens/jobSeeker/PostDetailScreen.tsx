@@ -165,9 +165,14 @@ export default function PostDetailScreen({ route, navigation }: any) {
     setReplyingTo(null);
 
     try {
-      await SocialService.addComment(post.id, newComment.trim());
-    } catch {
-      /* fallback already shown via optimistic update */
+      const realComment = await SocialService.addComment(post.id, newComment.trim());
+      // Normalize if needed, though SocialService.addComment might already return raw
+      // Let's assume we need to update our list with the server-assigned ID
+      setComments(prev => prev.map(c => c.id === optimistic.id ? { ...c, id: String(realComment.id) } : c));
+    } catch (e) {
+      console.error('Comment posting failed:', e);
+      // Optional: remove optimistic comment if it failed definitively
+      setComments(prev => prev.filter(c => c.id !== optimistic.id));
     } finally {
       setSendingComment(false);
     }

@@ -118,7 +118,7 @@ export default function JobSeekerProfileScreen({ navigation }: { navigation?: an
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: type === 'profile' ? [1, 1] : [16, 9],
       quality: 0.8,

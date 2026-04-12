@@ -23,6 +23,7 @@ import {
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Button, Divider, Heading } from '../../components/ui';
 import { MeetingService } from '../../services/api/meetings';
 import Toast from 'react-native-toast-message';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const FB_BLUE = '#1877F2'; 
 const FB_GRAY = '#F0F2F5';
@@ -30,14 +31,21 @@ const GRAY_TEXT = '#65676B';
 
 export default function ScheduleMeetingScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { meeting } = route.params || {};
+  const { meeting, applicationId, applicantName, applicantAvatar, meetingType, isNewMeeting } = route.params || {};
   const [joining, setJoining] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | null>(isNewMeeting ? new Date() : null);
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+  const [agenda, setAgenda] = useState(meeting?.agenda || 'Interview Session');
+  const [meetingUrl, setMeetingUrl] = useState(meeting?.meeting_link || '');
 
-  const formattedDate = new Date(meeting?.scheduled_at).toLocaleDateString('en-US', {
+  const displayDate = isNewMeeting && rescheduleDate ? rescheduleDate : new Date(meeting?.scheduled_at || Date.now());
+
+  const formattedDate = displayDate.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   });
-  const formattedTime = new Date(meeting?.scheduled_at).toLocaleTimeString('en-US', {
+  const formattedTime = displayDate.toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit'
   });
 
@@ -66,6 +74,7 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
           text: 'Yes, Cancel', 
           style: 'destructive',
           onPress: async () => {
+            if (!meeting?.id) return;
             setLoading(true);
             try {
               await MeetingService.deleteMeeting(meeting.id);
@@ -80,6 +89,55 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
         }
       ]
     );
+  };
+
+  const handleScheduleSubmit = async (finalDate: Date) => {
+    setLoading(true);
+    try {
+      if (isNewMeeting) {
+        await MeetingService.scheduleMeeting({
+          application: applicationId,
+          meeting_type: meetingType || 'online',
+          scheduled_at: finalDate.toISOString(),
+          agenda: agenda,
+          meeting_link: meetingUrl || (meetingType === 'online' ? 'https://meet.google.com/new' : null),
+          duration_minutes: 30
+        });
+        Toast.show({ type: 'success', text1: 'Interview Scheduled!' });
+      } else {
+        await MeetingService.patchMeeting(meeting.id, {
+          scheduled_at: finalDate.toISOString(),
+          status: 'rescheduled'
+        });
+        Toast.show({ type: 'success', text1: 'Meeting rescheduled!' });
+      }
+      navigation.goBack();
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Operation failed' });
+      setLoading(false);
+    }
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (!selectedDate) return;
+
+    if (pickerMode === 'date') {
+      const newD = rescheduleDate || new Date();
+      selectedDate.setHours(newD.getHours(), newD.getMinutes());
+      setRescheduleDate(selectedDate);
+      setTimeout(() => {
+        setPickerMode('time');
+        setShowDatePicker(true);
+      }, 100);
+    } else {
+      const finalDate = rescheduleDate || new Date();
+      finalDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+      setRescheduleDate(finalDate);
+      // Wait for user to click a final "Confirm" button if it's a new meeting?
+      // For now, let's just trigger submit to keep it fast.
+      handleScheduleSubmit(finalDate);
+    }
   };
 
   return (
@@ -103,17 +161,17 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
           <Box p={16} bg="white" borderBottom={1} borderColor="#F0F2F5">
-            <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5} mb={8}>AGENDA</Text>
-            <Text fontSize={22} fontWeight="800" color="#111827" lineHeight={28}>{meeting?.agenda}</Text>
+            <Text fontSize={12} fontWeight="700" color={GRAY_TEXT} letterSpacing={0.5} mb={8}>{isNewMeeting ? 'NEW INTERVIEW' : 'AGENDA'}</Text>
+            <Text fontSize={22} fontWeight="800" color="#111827" lineHeight={28}>{isNewMeeting ? `Interview for ${agenda}` : meeting?.agenda}</Text>
             
             <HStack mt={20} items="center" space="md">
-               <Avatar source={{ uri: meeting?.seeker_avatar || meeting?.avatar || 'https://i.pravatar.cc/150?u=a1' }} size="lg" />
+               <Avatar source={{ uri: applicantAvatar || meeting?.seeker_avatar || meeting?.avatar || 'https://i.pravatar.cc/150?u=a1' }} size="lg" />
                <VStack flex={1}>
-                  <Text fontSize={16} fontWeight="700" color="#111827">{meeting?.seeker_name}</Text>
+                  <Text fontSize={16} fontWeight="700" color="#111827">{applicantName || meeting?.seeker_name}</Text>
                   <Text fontSize={14} color={GRAY_TEXT} mt={1}>{meeting?.seeker_role || 'Candidate'}</Text>
                </VStack>
                <TouchableOpacity 
-                 onPress={() => navigation?.navigate('PublicProfile', { userId: meeting?.seeker })}
+                 onPress={() => navigation?.navigate('PublicProfile', { userId: meeting?.seeker || route.params?.applicantId })}
                  style={styles.profileBtn}
                >
                   <User size={18} color="#111827" />
@@ -140,7 +198,7 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
                   </Box>
                   <VStack>
                      <Text fontSize={13} color={GRAY_TEXT}>Time & Duration</Text>
-                     <Text fontSize={15} fontWeight="700" color="#111827" mt={1}>{formattedTime} • {meeting.duration_minutes}m</Text>
+                     <Text fontSize={15} fontWeight="700" color="#111827" mt={1}>{formattedTime} • {meeting?.duration_minutes || 30}m</Text>
                   </VStack>
                </HStack>
 
@@ -151,7 +209,7 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
                    <VStack>
                       <Text fontSize={13} color={GRAY_TEXT}>Format</Text>
                       <Text fontSize={15} fontWeight="700" color="#111827" mt={1}>
-                        {(meeting.meeting_type === 'online' || meeting.meeting_type === 'virtual') ? 'Virtual Interview' : 'Office Interview'}
+                        {((meeting?.meeting_type || meetingType) === 'online' || (meeting?.meeting_type || meetingType) === 'virtual') ? 'Virtual Interview' : 'Office Interview'}
                       </Text>
                    </VStack>
                 </HStack>
@@ -179,7 +237,7 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
             </TouchableOpacity>
 
              <HStack space="md" mt={12}>
-                <TouchableOpacity style={styles.rescheduleBtn}>
+                <TouchableOpacity onPress={() => { setPickerMode('date'); setShowDatePicker(true); }} style={styles.rescheduleBtn}>
                    <Text fontSize={14} fontWeight="700" color="#111827">Reschedule</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -192,6 +250,16 @@ export default function ScheduleMeetingScreen({ route, navigation }: any) {
              </HStack>
          </Box>
       </ScrollView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={rescheduleDate || (meeting?.scheduled_at ? new Date(meeting.scheduled_at) : new Date())}
+          mode={pickerMode}
+          display="default"
+          onChange={onDateChange}
+          minimumDate={new Date()}
+        />
+      )}
     </ScreenWrapper>
   );
 }

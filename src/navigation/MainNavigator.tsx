@@ -162,6 +162,7 @@ export default function MainNavigator() {
           <Stack.Screen name="Analytics" component={AnalyticsScreen} />
           <Stack.Screen name="TalentSearch" component={TalentSearchScreen} />
           <Stack.Screen name="ProviderNetwork" component={ProviderNetworkScreen} />
+          <Stack.Screen name="PublicProfile" component={PublicUserProfileScreen} />
           <Stack.Screen name="SearchExplore" component={ProviderSearchExploreScreen} />
           <Stack.Screen name="Meetings" component={ProviderMeetingsScreen} initialParams={{ role: 'jobProvider' }} />
           <Stack.Screen name="CreateStory" component={CreateStoryScreen} options={{ animation: 'slide_from_bottom' }} />

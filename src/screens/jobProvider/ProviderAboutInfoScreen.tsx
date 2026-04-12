@@ -17,8 +17,11 @@ const FB_BLUE = '#1877F2';
 const FB_GRAY = '#F0F2F5';
 const GRAY_TEXT = '#65676B';
 
+import { useAuthStore } from '../../store/authStore';
+
 export default function ProviderAboutInfoScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
 
   const CategoryHeader = ({ title }: { title: string }) => (
     <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} mb={12} mt={24} ml={4}>{title.toUpperCase()}</Text>
@@ -71,15 +74,15 @@ export default function ProviderAboutInfoScreen({ navigation }: { navigation: an
         <Divider mt={8} color="#F3F4F6" />
 
         <CategoryHeader title="Links" />
-        <InfoRow icon={LinkIcon} title="Website" subtitle="https://innovatetech.io" />
-        <InfoRow icon={LinkIcon} title="Twitter" subtitle="@innovate_tech" />
-        <InfoRow icon={LinkIcon} title="Link" subtitle="linkedin.com/company/innovate-tech" />
+        <InfoRow icon={LinkIcon} title="Website" subtitle="https://company.io" />
+        <InfoRow icon={LinkIcon} title="Twitter" subtitle="@company_inc" />
+        <InfoRow icon={LinkIcon} title="Link" subtitle="linkedin.com/company/company-inc" />
 
         <Divider mt={8} color="#F3F4F6" />
 
         <CategoryHeader title="Contact" />
-        <InfoRow icon={MailIcon} title="HR Department" subtitle="hr@innovatetech.io" canEdit={false} />
-        <InfoRow icon={MailIcon} title="Support" subtitle="contact@innovatetech.io" canEdit={false} />
+        <InfoRow icon={MailIcon} title="Recruiter Email" subtitle={user?.email || "hr@innovatetech.io"} canEdit={false} />
+        <InfoRow icon={MailIcon} title="Support" subtitle="contact@company.io" canEdit={false} />
         
       </ScrollView>
     </ScreenWrapper>

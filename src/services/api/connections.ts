@@ -139,28 +139,33 @@ export const ConnectionService = {
     }
   },
 
-  // ── Suggestions ───────────────────────────────────────────────────────────
-
-  /**
-   * Fetch "People You May Know" — seeker profiles from the platform
-   * that the current user has not yet followed.
-   * Tries a dedicated /follows/suggestions/ endpoint first;
-   * falls back to paginated seeker profiles.
-   */
   getSuggestions: async (params: any = {}): Promise<any[]> => {
     try {
+      // Attempt to hit the dedicated suggestion API
       const response = await apiClient.get('/follows/suggestions/', { params });
       const data = response.data;
       return Array.isArray(data) ? data : (data?.results || []);
     } catch {
-      // Fallback: general seeker profiles list
+      // Fallback: Try mixing recruiters and seekers to allow bidirectional connections
+      let mixedResults: any[] = [];
+      
       try {
-        const response = await apiClient.get('/profiles/seeker/', { params: { page_size: 20, ...params } });
-        const data = response.data;
-        return Array.isArray(data) ? data : (data?.results || []);
-      } catch {
-        return [];
+        const seekerRes = await apiClient.get('/profiles/seeker/', { params: { page_size: 15, ...params } });
+        const sData = seekerRes.data;
+        mixedResults = mixedResults.concat(Array.isArray(sData) ? sData : (sData?.results || []));
+      } catch (err: any) {
+        // Silently swallow 403s if a specific user role lacks permission
       }
+
+      try {
+        const recruiterRes = await apiClient.get('/profiles/recruiter/', { params: { page_size: 15, ...params } });
+        const rData = recruiterRes.data;
+        mixedResults = mixedResults.concat(Array.isArray(rData) ? rData : (rData?.results || []));
+      } catch (err: any) {
+        // Silently swallow 403s 
+      }
+      
+      return mixedResults;
     }
   },
 };

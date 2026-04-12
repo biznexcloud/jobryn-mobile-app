@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuthStore } from '../../store/authStore';
 import {
   ChevronLeft,
   CreditCard,
@@ -31,6 +32,7 @@ const DUMMY_CARDS = [
 
 export default function PaymentMethodScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
   const [cards, setCards] = useState(DUMMY_CARDS);
 
   const setDefault = (id: string) => {
@@ -113,18 +115,22 @@ export default function PaymentMethodScreen({ navigation }: any) {
           <VStack space="md">
             <HStack justify="space-between">
               <Text fontSize={14} color={GRAY_TEXT}>Company Name</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">InnovateTech Inc.</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827" numberOfLines={1} flex={1} textAlign="right" ml={16}>
+                {user?.company_name || user?.name || 'Your Company Inc.'}
+              </Text>
             </HStack>
             <HStack justify="space-between">
               <Text fontSize={14} color={GRAY_TEXT}>Billing Email</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">accounts@innovatetech.io</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827" numberOfLines={1} flex={1} textAlign="right" ml={16}>
+                {user?.email || 'accounts@company.com'}
+              </Text>
             </HStack>
             <HStack justify="space-between">
               <Text fontSize={14} color={GRAY_TEXT}>Tax ID</Text>
-              <Text fontSize={14} fontWeight="700" color="#111827">IE-8839210</Text>
+              <Text fontSize={14} fontWeight="700" color="#111827">Pending setup</Text>
             </HStack>
           </VStack>
-          <TouchableOpacity style={styles.editBilling} onPress={() => {}}>
+          <TouchableOpacity style={styles.editBilling} onPress={() => navigation.navigate('EditProfile')}>
             <Text fontSize={14} fontWeight="700" color={FB_BLUE}>Edit Billing Details</Text>
           </TouchableOpacity>
         </Box>

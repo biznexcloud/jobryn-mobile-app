@@ -26,6 +26,8 @@ import {
   Briefcase,
   Camera,
   Users,
+  PenSquare,
+  Edit3,
 } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
@@ -41,6 +43,7 @@ import { SocialService } from '../../services/api/social';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Divider } from '../../components/ui';
 import { PostCard } from '../../components/cards/PostCard';
 import Sidebar from '../../components/common/Sidebar';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 const FB_BLUE = '#1877F2';
@@ -64,21 +67,33 @@ export default function ProviderDashboardScreen() {
     setLoading(true);
     try {
       const [feedData, storiesData, jobsData, appsData] = await Promise.all([
-        SocialService.getFeed().catch(() => ({ results: [] })),
-        SocialService.getStories().catch(() => ({ results: [] })),
+        SocialService.getUnifiedFeed({ role: 'jobProvider' }).catch(() => ({ results: [], error: true })),
+        SocialService.getStories().catch(() => ({ results: [], error: true })),
         JobService.getRecruiterJobs().catch(() => ({ results: [] })),
         JobService.getRecruiterApplications().catch(() => ({ results: [] })),
       ]);
 
-      setFeed(Array.isArray(feedData) ? feedData : (feedData as any)?.results || []);
-      setStories(Array.isArray(storiesData) ? storiesData : (storiesData as any)?.results || []);
+      setFeed(feedData?.results || []);
+      setStories(storiesData?.results || []);
       
-      const activeJobsCount = (jobsData as any)?.results?.filter((j: any) => j.status === 'active').length || 0;
-      const totalJobs = (jobsData as any)?.results?.length || 0;
+      const activeJobsCount = jobsData?.count || jobsData?.results?.filter((j: any) => j.status === 'active').length || 0;
+      const totalApplicants = appsData?.count || appsData?.results?.length || 0;
       setStats({
-        activeJobs: activeJobsCount || totalJobs,
-        newApplicants: (appsData as any)?.results?.length || 0,
+        activeJobs: activeJobsCount,
+        newApplicants: totalApplicants,
       });
+
+      // Special Check: If any core components 500'd and returned our catch fallbacks, notify the user
+      if (feedData?.error || storiesData?.error) {
+        // Using a safe reference to the imported Toast component
+        if (Toast && typeof Toast.show === 'function') {
+          Toast.show({
+            type: 'error',
+            text1: 'Sync Issue',
+            text2: 'Feed/Stories failed to load. The backend might be out of sync.',
+          });
+        }
+      }
     } catch (e: any) {
       console.error('[ProviderDashboard] Global sync failed:', e.message);
     } finally {
@@ -109,6 +124,9 @@ export default function ProviderDashboardScreen() {
             <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('PostJob')}>
               <Plus size={20} color="black" />
             </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('CreateSocialPost')}>
+              <PenSquare size={20} color="black" />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('SearchExplore')}>
               <Search size={20} color="black" />
             </TouchableOpacity>
@@ -131,47 +149,35 @@ export default function ProviderDashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={FB_BLUE} />}
         scrollEventThrottle={16}
       >
-        {/* Integrated Creation & Hiring Bar */}
-        <Box bg="white" p={12} borderBottom={1} borderColor="#E5E7EB">
-           <HStack items="center" space="sm">
-              <TouchableOpacity onPress={() => navigation.navigate('ProviderProfile')}>
-                 <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size="md" />
+        {/* Composer Bar: What's your next job posting? */}
+        <Box bg="white" px={16} py={12} borderBottom={1} borderColor="#E5E7EB">
+           <HStack items="center">
+              <Avatar source={{ uri: user?.profile_picture || 'https://i.pravatar.cc/150' }} size={40} />
+              <TouchableOpacity style={styles.postInput} onPress={() => navigation.navigate('PostJob')}>
+                 <Text color={GRAY_TEXT} fontSize={14}>What's your next job posting?</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                 style={styles.postInput}
-                 onPress={() => navigation.navigate('PostJob')}
-              >
-                 <Text color="#666666" fontSize={15}>What is your next job posting?</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('CreateSocialPost')}>
+              <TouchableOpacity onPress={() => navigation.navigate('CreateSocialPost', { autoPickImage: true })}>
                  <ImageIcon size={24} color="#45BD62" />
               </TouchableOpacity>
            </HStack>
            <Divider color="#F0F2F5" mt={12} mb={12} />
            <HStack justify="space-around">
-              <TouchableOpacity 
-                style={styles.shortcut} 
-                onPress={() => navigation.navigate('ProviderRoot', { screen: 'Managed' })}
-              >
-                 <Briefcase size={18} color="#F3425F" />
-                 <Text fontSize={13} fontWeight="700" color={FB_BLUE} ml={6}>Active: {stats.activeJobs}</Text>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('PostJob')}>
+                 <Briefcase size={18} color={FB_BLUE} />
+                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Post Job</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.shortcut} 
-                onPress={() => navigation.navigate('ProviderRoot', { screen: 'Pipeline' })}
-              >
-                 <Users size={18} color="#16A34A" />
-                 <Text fontSize={13} fontWeight="700" color="#16A34A" ml={6}>Applicants: {stats.newApplicants}</Text>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('CreateSocialPost', { autoPickImage: true })}>
+                 <Camera size={18} color="#45BD62" />
+                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Post Feed</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.shortcut} 
-                onPress={() => navigation.navigate('TalentSearch')}
-              >
-                 <Search size={18} color={FB_BLUE} />
-                 <Text fontSize={13} fontWeight="700" color={GRAY_TEXT} ml={6}>Find Talent</Text>
+              <TouchableOpacity style={styles.shortcut} onPress={() => navigation.navigate('ScheduleMeeting', { isNewMeeting: true })}>
+                 <Video size={18} color="#F3425F" />
+                 <Text fontSize={13} fontWeight="600" color="#65676B" ml={6}>Interview</Text>
               </TouchableOpacity>
            </HStack>
         </Box>
+
+
 
         {/* Story Section (FB-Style Rectangular Cards) */}
         <Box bg="white" py={12} my={8} borderBottom={1} borderColor="#E5E7EB">

@@ -55,9 +55,7 @@ export default function EditProfileScreen({ navigation }: any) {
   const [formData, setFormData] = useState({
     full_name: '',
     job_title: '',
-    location: '',
     bio: '',
-    website: '',
   });
   const [profileImage, setProfileImage] = useState<string | null>(user?.profile_picture || null);
   const [hasNewImage, setHasNewImage] = useState(false);
@@ -69,11 +67,9 @@ export default function EditProfileScreen({ navigation }: any) {
         const profile = resp?.results?.[0];
         if (profile) {
           setFormData({
-            full_name: profile.full_name || '',
-            job_title: profile.job_title || '',
-            location: profile.location || '',
-            bio: profile.description || profile.about || profile.bio || '',
-            website: profile.website || '',
+            full_name: profile.user_detail?.name || profile.full_name || '',
+            job_title: profile.headline || '',
+            bio: profile.about || profile.description || profile.bio || '',
           });
           useAuthStore.getState().setSeekerId(profile.id);
         }
@@ -92,7 +88,7 @@ export default function EditProfileScreen({ navigation }: any) {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -126,20 +122,14 @@ export default function EditProfileScreen({ navigation }: any) {
       await ProfileService.updateAccountProfile(accountData);
 
       // 2. Update or Create Seeker Profile (Professional details)
+      // The API only accepts headline, about, profile_picture, cover_photo, pronouns
       const seekerPayload = {
-        job_title: formData.job_title,
-        location: formData.location,
-        bio: formData.bio,
-        description: formData.bio,
+        headline: formData.job_title || 'Professional',
         about: formData.bio,
-        website: formData.website,
       };
 
       if (!seekerId) {
-        const resp = await ProfileService.createSeekerProfile({
-          ...seekerPayload,
-          headline: formData.job_title || 'Professional',
-        });
+        const resp = await ProfileService.createSeekerProfile(seekerPayload);
         useAuthStore.getState().setSeekerId(resp.id);
       } else {
         await ProfileService.updateSeekerProfile(seekerId, seekerPayload);
@@ -210,13 +200,6 @@ export default function EditProfileScreen({ navigation }: any) {
                  placeholder="e.g. Senior Software Engineer"
                  value={formData.job_title}
                  onChangeText={(text: string) => setFormData({ ...formData, job_title: text })}
-              />
-              <InputField 
-                 label="Location" 
-                 icon={MapPin} 
-                 placeholder="e.g. London, UK"
-                 value={formData.location}
-                 onChangeText={(text: string) => setFormData({ ...formData, location: text })}
               />
               <InputField 
                  label="Bio / Summary" 

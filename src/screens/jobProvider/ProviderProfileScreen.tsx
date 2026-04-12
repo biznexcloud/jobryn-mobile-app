@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -99,8 +100,8 @@ export default function ProviderProfileScreen({ navigation }: any) {
              </VStack>
 
              <HStack mt={20} space="sm">
-                <Button label="Edit Page" variant="outline" onPress={() => {}} style={{ flex: 1, borderColor: BLUE }} textStyle={{ color: BLUE, fontWeight: '700' }} />
-                <Button label="Share" variant="outline" onPress={() => {}} style={{ flex: 1, borderColor: '#666666' }} textStyle={{ color: '#666666', fontWeight: '700' }} />
+                <Button label="Edit Page" variant="outline" onPress={() => navigation.navigate('EditProfile')} style={{ flex: 1, borderColor: BLUE }} textStyle={{ color: BLUE, fontWeight: '700' }} />
+                <Button label="Share" variant="outline" onPress={() => Alert.alert('Share', 'Share module opening...')} style={{ flex: 1, borderColor: '#666666' }} textStyle={{ color: '#666666', fontWeight: '700' }} />
              </HStack>
           </Box>
 
@@ -108,7 +109,7 @@ export default function ProviderProfileScreen({ navigation }: any) {
           <Box bg="white" mt={8} p={16}>
              <HStack justify="space-between" items="center" mb={12}>
                 <Text fontSize={18} fontWeight="700" color="#000000">About</Text>
-                <TouchableOpacity><EditIcon size={20} color="#666666" /></TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}><EditIcon size={20} color="#666666" /></TouchableOpacity>
              </HStack>
              <Text fontSize={14} color="#000000" lineHeight={20}>
                 {displayData.about}

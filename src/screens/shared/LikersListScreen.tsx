@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, StatusBar, StyleSheet, FlatList, View } from 'react-native';
+import { ScrollView, TouchableOpacity, StatusBar, StyleSheet, FlatList, View, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   ChevronLeft, 
@@ -13,21 +13,35 @@ import {
 } from 'lucide-react-native';
 import { ScreenWrapper, Text, Box, VStack, HStack, Avatar, Button, Divider } from '../../components/ui';
 import { moderateScale, verticalScale } from '../../utils/responsive';
+import { SocialService } from '../../services/api/social';
 
 const BLUE = '#0A66C2';
 const GRAY_BG = '#FFFFFF';
 
 export default function LikersListScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
+  const { postId } = route.params || {};
   
-  const LIKERS = [
-    { id: '1', name: 'Arun Kushwaha', role: 'Full Stack Developer @ Jobryn', reaction: 'like', avatar: 'https://i.pravatar.cc/150?u=1' },
-    { id: '2', name: 'Sita Sharma', role: 'UI/UX Designer', reaction: 'heart', avatar: 'https://i.pravatar.cc/150?u=2' },
-    { id: '3', name: 'Ram Bahadur', role: 'Talent Acquisition', reaction: 'like', avatar: 'https://i.pravatar.cc/150?u=3' },
-    { id: '4', name: 'Gita Adhikari', role: 'Product Manager', reaction: 'smile', avatar: 'https://i.pravatar.cc/150?u=4' },
-    { id: '5', name: 'Kiran KC', role: 'Software Engineer', reaction: 'like', avatar: 'https://i.pravatar.cc/150?u=5' },
-    { id: '6', name: 'Sunil Thapa', role: 'Marketing Specialist', reaction: 'heart', avatar: 'https://i.pravatar.cc/150?u=6' },
-  ];
+  const [likers, setLikers] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadLikers = async () => {
+      if (!postId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await SocialService.getPostLikers(postId);
+        setLikers(data);
+      } catch (e) {
+        console.warn('Failed to load likers');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLikers();
+  }, [postId]);
 
   const ReactionIcon = ({ type }: { type: string }) => {
     switch (type) {
@@ -40,24 +54,24 @@ export default function LikersListScreen({ navigation, route }: any) {
   const LikerItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
       style={styles.likerRow}
-      onPress={() => navigation.navigate('PublicProfile', { userId: item.id })}
+      onPress={() => navigation.navigate('PublicProfile', { userId: item.user?.id })}
     >
       <HStack items="center">
         <View>
-          <Avatar source={{ uri: item.avatar }} size="md" />
+          <Avatar source={{ uri: item.user?.avatar }} size="md" />
           <View style={styles.reactionBadge}>
-            <ReactionIcon type={item.reaction} />
+            <ReactionIcon type={item.reaction || 'like'} />
           </View>
         </View>
         <VStack ml={12} flex={1}>
-          <Text fontSize={15} fontWeight="700" color="#000000">{item.name}</Text>
-          <Text fontSize={13} color="#666666" numberOfLines={1}>{item.role}</Text>
+          <Text fontSize={15} fontWeight="700" color="#000000">{item.user?.name}</Text>
+          <Text fontSize={13} color="#666666" numberOfLines={1}>{item.user?.headline || 'Member'}</Text>
         </VStack>
         <Button 
-          title="Connect" 
+          title="Profile" 
           variant="outline" 
           size="sm" 
-          onPress={() => {}}
+          onPress={() => navigation.navigate('PublicProfile', { userId: item.user?.id })}
           style={{ borderColor: BLUE, height: 32, borderRadius: 16 }}
           textStyle={{ color: BLUE, fontSize: 13, fontWeight: '700' }}
         />
@@ -80,21 +94,34 @@ export default function LikersListScreen({ navigation, route }: any) {
         </HStack>
       </Box>
 
-      <HStack px={16} py={12} borderBottom={1} borderColor="#F3F2EF">
-        <HStack space="md">
-          <TouchableOpacity style={styles.tabActive}><Text fontSize={14} fontWeight="800" color={BLUE}>All (12)</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.tab}><HStack items="center"><ThumbsUp size={14} color="#666666" /><Text fontSize={14} color="#666666" ml={4}>8</Text></HStack></TouchableOpacity>
-          <TouchableOpacity style={styles.tab}><HStack items="center"><Heart size={14} color="#666666" /><Text fontSize={14} color="#666666" ml={4}>4</Text></HStack></TouchableOpacity>
-        </HStack>
-      </HStack>
+      {loading ? (
+        <Box flex={1} justify="center" items="center">
+          <ActivityIndicator color={BLUE} />
+        </Box>
+      ) : (
+        <>
+          <HStack px={16} py={12} borderBottom={1} borderColor="#F3F2EF">
+            <HStack space="md">
+              <TouchableOpacity style={styles.tabActive}>
+                <Text fontSize={14} fontWeight="800" color={BLUE}>All ({likers.length})</Text>
+              </TouchableOpacity>
+            </HStack>
+          </HStack>
 
-      <FlatList 
-        data={LIKERS}
-        renderItem={LikerItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingVertical: 8 }}
-        showsVerticalScrollIndicator={false}
-      />
+          <FlatList 
+            data={likers}
+            renderItem={LikerItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingVertical: 8 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <Box mt={40} items="center">
+                <Text color="#666666">No reactions yet.</Text>
+              </Box>
+            }
+          />
+        </>
+      )}
     </ScreenWrapper>
   );
 }

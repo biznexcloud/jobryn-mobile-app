@@ -55,7 +55,11 @@ const { height: SCREEN_HEIGHT, width } = Dimensions.get('window');
 
 export default function ChatDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { id, name, avatar } = route.params || {};
+  const { id, name, avatar, recipientId, recipientName, recipientAvatar } = route.params || {};
+  // Support both navigation param styles (from ApplicantsScreen & ChatList)
+  const chatId        = id || recipientId;
+  const displayName   = name || recipientName || 'User';
+  const displayAvatar = avatar || recipientAvatar;
   const { user, userRole } = useAuthStore();
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
@@ -88,7 +92,8 @@ export default function ChatDetailScreen({ route, navigation }: any) {
 
     const fetchMessages = async () => {
       try {
-        const resp = await MessageService.getMessages(id);
+        const resp = await MessageService.getMessages(chatId);
+        setMessages(resp?.results || []);
       } catch (e) {
         console.warn('Failed to fetch messages:', e);
         setMessages([]);
@@ -104,17 +109,21 @@ export default function ChatDetailScreen({ route, navigation }: any) {
     };
   }, [id]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputText.trim()) return;
+    const text = inputText;
     const newMsg = {
       id: Date.now(),
       sender: { id: user?.id, name: 'Me' },
-      content: inputText,
+      content: text,
       created_at: new Date().toISOString()
     };
-    // For inverted list, add to index 0
-    setMessages([newMsg, ...messages]);
+    setMessages(prev => [newMsg, ...prev]);
     setInputText('');
+    // Fire-and-forget API call; UI already updated optimistically
+    MessageService.sendMessage(chatId, text).catch(e =>
+      console.warn('sendMessage failed (no API yet):', e)
+    );
   };
 
   const handleSendLike = () => {
@@ -124,13 +133,16 @@ export default function ChatDetailScreen({ route, navigation }: any) {
       content: quickReaction,
       created_at: new Date().toISOString()
     };
-    setMessages([newMsg, ...messages]);
+    setMessages(prev => [newMsg, ...prev]);
+    MessageService.sendMessage(chatId, quickReaction).catch(e =>
+      console.warn('sendMessage failed (no API yet):', e)
+    );
   };
 
   const handlePickImage = async () => {
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         quality: 0.7,
       });
       if (!result.canceled) {
@@ -156,7 +168,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
         return;
       }
       let result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         quality: 0.7,
       });
       if (!result.canceled) {
@@ -263,9 +275,9 @@ export default function ChatDetailScreen({ route, navigation }: any) {
                   style={{ flexDirection: 'row', alignItems: 'center' }}
                   onPress={navigateToProfile}
                 >
-                  <Avatar source={{ uri: avatar || `https://i.pravatar.cc/150?u=${id}` }} size="md" />
+                  <Avatar source={{ uri: displayAvatar || `https://i.pravatar.cc/150?u=${chatId}` }} size="md" />
                   <VStack ml={12}>
-                    <Text fontSize={17} fontWeight="700" color="#050505">{name || 'User'}</Text>
+                    <Text fontSize={17} fontWeight="700" color="#050505">{displayName}</Text>
                     <HStack items="center">
                       <Box w={8} h={8} rounded={4} bg="#31A24C" mr={4} />
                       <Text fontSize={13} color="#65676B">Active now</Text>
@@ -393,7 +405,7 @@ export default function ChatDetailScreen({ route, navigation }: any) {
             <TouchableOpacity onPress={navigateToProfile}>
               <VStack items="center">
                 <Box mb={8}>
-                  <Avatar source={{ uri: avatar || `https://i.pravatar.cc/150?u=${id}` }} size={48} />
+                  <Avatar source={{ uri: displayAvatar || `https://i.pravatar.cc/150?u=${chatId}` }} size={48} />
                 </Box>
                 <Text fontSize={12} color="#050505">Profile</Text>
               </VStack>
@@ -465,8 +477,8 @@ export default function ChatDetailScreen({ route, navigation }: any) {
 
           {/* Clean Profile Header */}
           <VStack items="center" mt={20} mb={24}>
-            <Avatar source={{ uri: avatar || `https://i.pravatar.cc/150?u=${id}` }} size={110} />
-            <Text fontSize={24} fontWeight="700" color="#050505" mt={16} textAlign="center">{name || 'User'}</Text>
+            <Avatar source={{ uri: displayAvatar || `https://i.pravatar.cc/150?u=${chatId}` }} size={110} />
+            <Text fontSize={24} fontWeight="700" color="#050505" mt={16} textAlign="center">{displayName}</Text>
             <Text fontSize={16} color="#65676B" mt={4} textAlign="center">Senior Product Designer at TechHive</Text>
 
             <HStack mt={12} items="center" justify="center">
